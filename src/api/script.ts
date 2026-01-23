@@ -77,6 +77,7 @@ export function generateStoryboard(id: number, data: {
         url: `/api/script/${id}/storyboard`,
         method: 'post',
         data,
+        timeout: 300000, // 5 分钟超时，因为生成分镜需要较长时间
     })
 }
 
