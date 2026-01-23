@@ -529,43 +529,6 @@ function ScriptDetail() {
                       )}
                     </Space>
                   }
-                  extra={
-                    <Space>
-                      <Button
-                        size="small"
-                        icon={<PictureOutlined />}
-                        onClick={() => handleGenerateImage(shot)}
-                        loading={generatingImages.has(shot.id)}
-                        disabled={!shot.imagePrompt && !shot.visualDescription}
-                      >
-                        生成图像
-                      </Button>
-                      <Button
-                        size="small"
-                        icon={<VideoCameraOutlined />}
-                        onClick={() => handleGenerateVideo(shot)}
-                        loading={generatingVideos.has(shot.id)}
-                        disabled={!shot.images || shot.images.length === 0}
-                      >
-                        生成视频
-                      </Button>
-                      <Button
-                        size="small"
-                        icon={<EditOutlined />}
-                        onClick={() => handleEditShot(shot)}
-                      >
-                        编辑
-                      </Button>
-                      <Popconfirm
-                        title="确定删除这个分镜吗？"
-                        onConfirm={() => handleDeleteShot(shot.id)}
-                      >
-                        <Button size="small" danger icon={<DeleteOutlined />}>
-                          删除
-                        </Button>
-                      </Popconfirm>
-                    </Space>
-                  }
                 >
                   {shot.characters && shot.characters.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
@@ -639,7 +602,7 @@ function ScriptDetail() {
                     </div>
                   )}
                   {shot.videoPrompt && (
-                    <div>
+                    <div style={{ marginBottom: 16 }}>
                       <strong>视频提示词：</strong>
                       <div
                         style={{
@@ -653,6 +616,51 @@ function ScriptDetail() {
                       </div>
                     </div>
                   )}
+
+                  {/* 操作按钮区域 - 添加背景色区分 */}
+                  <div
+                    style={{
+                      marginTop: 16,
+                      paddingTop: 16,
+                      borderTop: '1px solid #f0f0f0',
+                      backgroundColor: '#fafafa',
+                      padding: '12px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <Space wrap>
+                      <Button
+                        icon={<PictureOutlined />}
+                        onClick={() => handleGenerateImage(shot)}
+                        loading={generatingImages.has(shot.id)}
+                        disabled={!shot.imagePrompt && !shot.visualDescription}
+                      >
+                        生成图像
+                      </Button>
+                      <Button
+                        icon={<VideoCameraOutlined />}
+                        onClick={() => handleGenerateVideo(shot)}
+                        loading={generatingVideos.has(shot.id)}
+                        disabled={!shot.images || shot.images.length === 0}
+                      >
+                        生成视频
+                      </Button>
+                      <Button
+                        icon={<EditOutlined />}
+                        onClick={() => handleEditShot(shot)}
+                      >
+                        编辑
+                      </Button>
+                      <Popconfirm
+                        title="确定删除这个分镜吗？"
+                        onConfirm={() => handleDeleteShot(shot.id)}
+                      >
+                        <Button danger icon={<DeleteOutlined />}>
+                          删除
+                        </Button>
+                      </Popconfirm>
+                    </Space>
+                  </div>
                 </Card>
               ))}
             </Space>
