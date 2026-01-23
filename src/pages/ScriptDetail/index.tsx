@@ -145,17 +145,47 @@ function ScriptDetail() {
             }
           });
 
-          // 移除已完成或失败的任务
-          if (completedTasks.length > 0 || failedTasks.length > 0) {
-            const finishedShotIds = [...completedTasks, ...failedTasks];
+          // 移除已完成或失败的任务（按 taskId）
+          const finishedTaskIds: string[] = [];
 
-            setImageTasks((prev) =>
-              prev.filter((task) => !finishedShotIds.includes(task.shotId)),
-            );
+          res.data.forEach((result: any) => {
+            if (
+              result.status === 'completed' ||
+              result.status === 'failed' ||
+              result.status === 'error'
+            ) {
+              finishedTaskIds.push(result.taskId);
+            }
+          });
 
+          if (finishedTaskIds.length > 0) {
+            console.log('🗑️ 移除已完成的任务:', finishedTaskIds);
+
+            setImageTasks((prev) => {
+              const remaining = prev.filter(
+                (task) => !finishedTaskIds.includes(task.taskId),
+              );
+              console.log(`📊 剩余任务数: ${remaining.length}`);
+              return remaining;
+            });
+
+            // 检查每个 shotId 是否还有未完成的任务
+            const affectedShotIds = [
+              ...new Set(res.data.map((r: any) => r.shotId)),
+            ];
             setGeneratingImages((prev) => {
               const newSet = new Set(prev);
-              finishedShotIds.forEach((shotId) => newSet.delete(shotId));
+              affectedShotIds.forEach((shotId) => {
+                // 检查该 shotId 是否还有未完成的任务
+                const remainingForShot = imageTasks.filter(
+                  (t) =>
+                    t.shotId === shotId && !finishedTaskIds.includes(t.taskId),
+                );
+                if (remainingForShot.length === 0) {
+                  console.log(`✅ shotId ${shotId} 的所有任务已完成`);
+                  newSet.delete(shotId);
+                }
+              });
               return newSet;
             });
           }
@@ -336,7 +366,7 @@ function ScriptDetail() {
     }
   };
 
-  // 生成图像（优化版）
+  // 生成图像（简化版 - 单张图片）
   const handleGenerateImage = async (shot: any) => {
     const shotId = shot.id;
 
@@ -487,6 +517,128 @@ function ScriptDetail() {
       ),
     },
     {
+      key: 'images',
+      label: (
+        <span>
+          图像{' '}
+          {script.shots?.reduce(
+            (total: number, shot: any) => total + (shot.images?.length || 0),
+            0,
+          ) > 0 && (
+            <Tag color="blue">
+              {script.shots.reduce(
+                (total: number, shot: any) =>
+                  total + (shot.images?.length || 0),
+                0,
+              )}
+            </Tag>
+          )}
+        </span>
+      ),
+      children: (
+        <div>
+          {!script.shots || script.shots.length === 0 ? (
+            <Card>
+              <Empty
+                description="请先生成分镜脚本"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            </Card>
+          ) : (
+            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+              {script.shots.map((shot: any) => (
+                <Card
+                  key={shot.id}
+                  title={
+                    <Space>
+                      <Tag color="green">镜头 #{shot.shotNumber}</Tag>
+                      {shot.scene && <span>{shot.scene}</span>}
+                      {shot.images && shot.images.length > 0 && (
+                        <Tag color="blue">{shot.images.length} 张图片</Tag>
+                      )}
+                    </Space>
+                  }
+                >
+                  {shot.visualDescription && (
+                    <div style={{ marginBottom: 12 }}>
+                      <strong>画面描述：</strong>
+                      <div style={{ marginTop: 4, color: '#666' }}>
+                        {shot.visualDescription}
+                      </div>
+                    </div>
+                  )}
+
+                  {shot.imagePrompt && (
+                    <div style={{ marginBottom: 12 }}>
+                      <strong>图像提示词：</strong>
+                      <div
+                        style={{ marginTop: 4, color: '#1890ff', fontSize: 12 }}
+                      >
+                        {shot.imagePrompt}
+                      </div>
+                    </div>
+                  )}
+
+                  {shot.images && shot.images.length > 0 ? (
+                    <div style={{ marginBottom: 12 }}>
+                      <strong>已生成的图像：</strong>
+                      <div style={{ marginTop: 8 }}>
+                        <Image.PreviewGroup>
+                          {shot.images.map((img: any, idx: number) => (
+                            <Image
+                              key={idx}
+                              width={200}
+                              src={img.url}
+                              style={{ marginRight: 8, marginBottom: 8 }}
+                            />
+                          ))}
+                        </Image.PreviewGroup>
+                      </div>
+                    </div>
+                  ) : (
+                    <Empty
+                      description="暂无图像"
+                      image={Empty.PRESENTED_IMAGE_SIMPLE}
+                      style={{ margin: '20px 0' }}
+                    />
+                  )}
+
+                  {/* 图像操作按钮 */}
+                  <div
+                    style={{
+                      marginTop: 16,
+                      paddingTop: 16,
+                      borderTop: '1px solid #f0f0f0',
+                      backgroundColor: '#fafafa',
+                      padding: '12px',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    <Space wrap>
+                      <Button
+                        type="primary"
+                        icon={<PictureOutlined />}
+                        onClick={() => handleGenerateImage(shot)}
+                        loading={generatingImages.has(shot.id)}
+                        disabled={!shot.imagePrompt && !shot.visualDescription}
+                      >
+                        生成图像
+                      </Button>
+                      {shot.images && shot.images.length > 0 && (
+                        <Button icon={<DeleteOutlined />} danger>
+                          清空图像
+                        </Button>
+                      )}
+                    </Space>
+                  </div>
+                </Card>
+              ))}
+            </Space>
+          )}
+        </div>
+      ),
+    },
+    {
       key: 'shots',
       label: (
         <span>
@@ -556,15 +708,25 @@ function ScriptDetail() {
                       </div>
                     </div>
                   )}
+                  {shot.imagePrompt && (
+                    <div style={{ marginBottom: 8 }}>
+                      <strong>图像提示词：</strong>
+                      <div
+                        style={{ marginTop: 4, color: '#1890ff', fontSize: 12 }}
+                      >
+                        {shot.imagePrompt}
+                      </div>
+                    </div>
+                  )}
                   {shot.images && shot.images.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
-                      <strong>生成的图像：</strong>
+                      <strong>参考图像：</strong>
                       <div style={{ marginTop: 8 }}>
                         <Image.PreviewGroup>
                           {shot.images.map((img: any, idx: number) => (
                             <Image
                               key={idx}
-                              width={200}
+                              width={150}
                               src={img.url}
                               style={{ marginRight: 8, marginBottom: 8 }}
                             />
@@ -575,29 +737,15 @@ function ScriptDetail() {
                   )}
                   {shot.videos && shot.videos.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
-                      <strong>生成的视频：</strong>
+                      <strong>已生成视频：</strong>
                       <div style={{ marginTop: 8 }}>
-                        {shot.videos.map((video: any, idx: number) => (
-                          <video
-                            key={idx}
-                            width={300}
-                            controls
-                            style={{ marginRight: 8, marginBottom: 8 }}
-                          >
-                            <source src={video.url} type="video/mp4" />
-                            您的浏览器不支持视频播放
-                          </video>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {shot.imagePrompt && (
-                    <div style={{ marginBottom: 8 }}>
-                      <strong>图像提示词：</strong>
-                      <div
-                        style={{ marginTop: 4, color: '#1890ff', fontSize: 12 }}
-                      >
-                        {shot.imagePrompt}
+                        <Space wrap>
+                          {shot.videos.map((video: any, idx: number) => (
+                            <Tag key={idx} color="green">
+                              视频 #{idx + 1}
+                            </Tag>
+                          ))}
+                        </Space>
                       </div>
                     </div>
                   )}
@@ -617,7 +765,23 @@ function ScriptDetail() {
                     </div>
                   )}
 
-                  {/* 操作按钮区域 - 添加背景色区分 */}
+                  {shot.videoPrompt && (
+                    <div style={{ marginBottom: 16 }}>
+                      <strong>视频提示词：</strong>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          color: '#52c41a',
+                          fontSize: 12,
+                          whiteSpace: 'pre-wrap',
+                        }}
+                      >
+                        {shot.videoPrompt}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 操作按钮区域 */}
                   <div
                     style={{
                       marginTop: 16,
@@ -630,14 +794,7 @@ function ScriptDetail() {
                   >
                     <Space wrap>
                       <Button
-                        icon={<PictureOutlined />}
-                        onClick={() => handleGenerateImage(shot)}
-                        loading={generatingImages.has(shot.id)}
-                        disabled={!shot.imagePrompt && !shot.visualDescription}
-                      >
-                        生成图像
-                      </Button>
-                      <Button
+                        type="primary"
                         icon={<VideoCameraOutlined />}
                         onClick={() => handleGenerateVideo(shot)}
                         loading={generatingVideos.has(shot.id)}
@@ -669,21 +826,128 @@ function ScriptDetail() {
       ),
     },
     {
-      key: 'images',
-      label: '图像',
-      children: (
-        <Card>
-          <Empty description="图像功能开发中" />
-        </Card>
-      ),
-    },
-    {
       key: 'videos',
-      label: '视频',
+      label: (
+        <span>
+          视频{' '}
+          {script.shots?.reduce(
+            (total: number, shot: any) => total + (shot.videos?.length || 0),
+            0,
+          ) > 0 && (
+            <Tag color="blue">
+              {script.shots.reduce(
+                (total: number, shot: any) =>
+                  total + (shot.videos?.length || 0),
+                0,
+              )}
+            </Tag>
+          )}
+        </span>
+      ),
       children: (
-        <Card>
-          <Empty description="视频功能开发中" />
-        </Card>
+        <div>
+          {!script.shots || script.shots.length === 0 ? (
+            <Card>
+              <Empty
+                description="请先生成分镜脚本"
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
+            </Card>
+          ) : (
+            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+              {script.shots
+                .filter((shot: any) => shot.videos && shot.videos.length > 0)
+                .map((shot: any) => (
+                  <Card
+                    key={shot.id}
+                    title={
+                      <Space>
+                        <Tag color="green">镜头 #{shot.shotNumber}</Tag>
+                        {shot.scene && <span>{shot.scene}</span>}
+                        <Tag color="blue">{shot.videos.length} 个视频</Tag>
+                      </Space>
+                    }
+                  >
+                    {shot.visualDescription && (
+                      <div style={{ marginBottom: 12 }}>
+                        <strong>画面描述：</strong>
+                        <div style={{ marginTop: 4, color: '#666' }}>
+                          {shot.visualDescription}
+                        </div>
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: 12 }}>
+                      <strong>生成的视频：</strong>
+                      <div style={{ marginTop: 8 }}>
+                        <Space direction="vertical" style={{ width: '100%' }}>
+                          {shot.videos.map((video: any, idx: number) => (
+                            <div key={idx} style={{ marginBottom: 16 }}>
+                              <div style={{ marginBottom: 8 }}>
+                                <Tag color="green">视频 #{idx + 1}</Tag>
+                                {video.model && <Tag>{video.model}</Tag>}
+                                {video.createdAt && (
+                                  <span
+                                    style={{
+                                      fontSize: 12,
+                                      color: '#999',
+                                      marginLeft: 8,
+                                    }}
+                                  >
+                                    {new Date(video.createdAt).toLocaleString()}
+                                  </span>
+                                )}
+                              </div>
+                              <video
+                                width={400}
+                                controls
+                                style={{
+                                  borderRadius: '4px',
+                                  border: '1px solid #f0f0f0',
+                                }}
+                              >
+                                <source src={video.url} type="video/mp4" />
+                                您的浏览器不支持视频播放
+                              </video>
+                              <div style={{ marginTop: 8 }}>
+                                <Space>
+                                  <Button
+                                    size="small"
+                                    onClick={() =>
+                                      window.open(video.url, '_blank')
+                                    }
+                                  >
+                                    下载视频
+                                  </Button>
+                                  <Button
+                                    size="small"
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                  >
+                                    删除
+                                  </Button>
+                                </Space>
+                              </div>
+                            </div>
+                          ))}
+                        </Space>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              {script.shots.filter(
+                (shot: any) => shot.videos && shot.videos.length > 0,
+              ).length === 0 && (
+                <Card>
+                  <Empty
+                    description="暂无视频，请先在分镜页面生成视频"
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  />
+                </Card>
+              )}
+            </Space>
+          )}
+        </div>
       ),
     },
   ];
