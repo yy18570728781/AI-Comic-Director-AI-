@@ -517,21 +517,12 @@ function ScriptDetail() {
       ),
     },
     {
-      key: 'images',
+      key: 'shots',
       label: (
         <span>
-          图像{' '}
-          {script.shots?.reduce(
-            (total: number, shot: any) => total + (shot.images?.length || 0),
-            0,
-          ) > 0 && (
-            <Tag color="blue">
-              {script.shots.reduce(
-                (total: number, shot: any) =>
-                  total + (shot.images?.length || 0),
-                0,
-              )}
-            </Tag>
+          分镜脚本{' '}
+          {script.shots?.length > 0 && (
+            <Tag color="blue">{script.shots.length}</Tag>
           )}
         </span>
       ),
@@ -639,12 +630,21 @@ function ScriptDetail() {
       ),
     },
     {
-      key: 'shots',
+      key: 'images',
       label: (
         <span>
-          分镜{' '}
-          {script.shots?.length > 0 && (
-            <Tag color="blue">{script.shots.length}</Tag>
+          分镜图像{' '}
+          {script.shots?.reduce(
+            (total: number, shot: any) => total + (shot.images?.length || 0),
+            0,
+          ) > 0 && (
+            <Tag color="blue">
+              {script.shots.reduce(
+                (total: number, shot: any) =>
+                  total + (shot.images?.length || 0),
+                0,
+              )}
+            </Tag>
           )}
         </span>
       ),
@@ -653,174 +653,205 @@ function ScriptDetail() {
           {!script.shots || script.shots.length === 0 ? (
             <Card>
               <Empty
-                description="还没有生成分镜脚本"
+                description="请先生成分镜脚本"
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
-              >
-                <Button
-                  type="primary"
-                  icon={<ThunderboltOutlined />}
-                  onClick={handleGenerateStoryboard}
-                  loading={generateLoading}
-                >
-                  生成分镜脚本
-                </Button>
-              </Empty>
+              />
             </Card>
           ) : (
-            <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: '16px',
+              }}
+            >
               {script.shots.map((shot: any) => (
                 <Card
                   key={shot.id}
-                  title={
+                  style={{ height: '100%' }}
+                  bodyStyle={{ padding: 0 }}
+                >
+                  {/* 卡片头部 */}
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderBottom: '1px solid #f0f0f0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <Space>
                       <Tag color="green">镜头 #{shot.shotNumber}</Tag>
-                      {shot.scene && <span>{shot.scene}</span>}
                       {shot.shotType && <Tag>{shot.shotType}</Tag>}
                       {shot.duration && (
                         <Tag color="blue">{shot.duration}秒</Tag>
                       )}
                     </Space>
-                  }
-                >
-                  {shot.characters && shot.characters.length > 0 && (
-                    <div style={{ marginBottom: 8 }}>
-                      <strong>角色：</strong>
-                      {shot.characters.map((char: string, idx: number) => (
-                        <Tag key={idx} color="purple">
-                          {char}
-                        </Tag>
-                      ))}
-                    </div>
-                  )}
-                  {shot.dialogue && (
-                    <div style={{ marginBottom: 8 }}>
-                      <strong>对白：</strong>
-                      <div style={{ marginTop: 4, color: '#666' }}>
-                        {shot.dialogue}
-                      </div>
-                    </div>
-                  )}
-                  {shot.visualDescription && (
-                    <div style={{ marginBottom: 8 }}>
-                      <strong>画面描述：</strong>
-                      <div style={{ marginTop: 4, color: '#666' }}>
-                        {shot.visualDescription}
-                      </div>
-                    </div>
-                  )}
-                  {shot.imagePrompt && (
-                    <div style={{ marginBottom: 8 }}>
-                      <strong>图像提示词：</strong>
-                      <div
-                        style={{ marginTop: 4, color: '#1890ff', fontSize: 12 }}
-                      >
-                        {shot.imagePrompt}
-                      </div>
-                    </div>
-                  )}
-                  {shot.images && shot.images.length > 0 && (
-                    <div style={{ marginBottom: 8 }}>
-                      <strong>参考图像：</strong>
-                      <div style={{ marginTop: 8 }}>
-                        <Image.PreviewGroup>
-                          {shot.images.map((img: any, idx: number) => (
-                            <Image
-                              key={idx}
-                              width={150}
-                              src={img.url}
-                              style={{ marginRight: 8, marginBottom: 8 }}
-                            />
-                          ))}
-                        </Image.PreviewGroup>
-                      </div>
-                    </div>
-                  )}
-                  {shot.videos && shot.videos.length > 0 && (
-                    <div style={{ marginBottom: 8 }}>
-                      <strong>已生成视频：</strong>
-                      <div style={{ marginTop: 8 }}>
-                        <Space wrap>
-                          {shot.videos.map((video: any, idx: number) => (
-                            <Tag key={idx} color="green">
-                              视频 #{idx + 1}
-                            </Tag>
-                          ))}
-                        </Space>
-                      </div>
-                    </div>
-                  )}
-                  {shot.videoPrompt && (
-                    <div style={{ marginBottom: 16 }}>
-                      <strong>视频提示词：</strong>
-                      <div
-                        style={{
-                          marginTop: 4,
-                          color: '#52c41a',
-                          fontSize: 12,
-                          whiteSpace: 'pre-wrap',
-                        }}
-                      >
-                        {shot.videoPrompt}
-                      </div>
+                  </div>
+
+                  {/* 场景名称 */}
+                  {shot.scene && (
+                    <div
+                      style={{
+                        padding: '8px 16px',
+                        fontSize: 14,
+                        fontWeight: 500,
+                      }}
+                    >
+                      {shot.scene}
                     </div>
                   )}
 
-                  {shot.videoPrompt && (
-                    <div style={{ marginBottom: 16 }}>
-                      <strong>视频提示词：</strong>
-                      <div
+                  {/* 图片展示区域 */}
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '200px',
+                      backgroundColor: '#f5f5f5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {shot.images && shot.images.length > 0 ? (
+                      <Image
+                        src={shot.images[shot.images.length - 1].url}
+                        alt={`镜头 ${shot.shotNumber}`}
                         style={{
-                          marginTop: 4,
-                          color: '#52c41a',
-                          fontSize: 12,
-                          whiteSpace: 'pre-wrap',
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
                         }}
-                      >
-                        {shot.videoPrompt}
-                      </div>
+                        preview={{
+                          mask: '查看大图',
+                        }}
+                      />
+                    ) : (
+                      <Empty
+                        image={Empty.PRESENTED_IMAGE_SIMPLE}
+                        description="暂无图像"
+                      />
+                    )}
+                  </div>
+
+                  {/* 画面描述 */}
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      fontSize: 12,
+                      color: '#666',
+                      lineHeight: 1.6,
+                      maxHeight: '60px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                    }}
+                  >
+                    {shot.visualDescription || shot.imagePrompt || '暂无描述'}
+                  </div>
+
+                  {/* 视频任务ID（如果正在生成） */}
+                  {generatingVideos.has(shot.id) && (
+                    <div
+                      style={{
+                        padding: '0 16px 8px',
+                        fontSize: 12,
+                        color: '#999',
+                      }}
+                    >
+                      视频任务进行中
+                    </div>
+                  )}
+
+                  {shot.videos && shot.videos.length > 0 && (
+                    <div
+                      style={{
+                        padding: '0 16px 8px',
+                        fontSize: 12,
+                        color: '#52c41a',
+                      }}
+                    >
+                      已生成视频任务
                     </div>
                   )}
 
                   {/* 操作按钮区域 */}
                   <div
                     style={{
-                      marginTop: 16,
-                      paddingTop: 16,
+                      padding: '12px 16px',
                       borderTop: '1px solid #f0f0f0',
-                      backgroundColor: '#fafafa',
-                      padding: '12px',
-                      borderRadius: '4px',
+                      display: 'flex',
+                      gap: '8px',
                     }}
                   >
-                    <Space wrap>
+                    <Button
+                      style={{ flex: 1 }}
+                      icon={<EditOutlined />}
+                      onClick={() => handleEditShot(shot)}
+                    >
+                      编辑
+                    </Button>
+                    <Button
+                      style={{ flex: 1 }}
+                      type="primary"
+                      icon={<VideoCameraOutlined />}
+                      onClick={() => handleGenerateVideo(shot)}
+                      loading={generatingVideos.has(shot.id)}
+                      disabled={!shot.images || shot.images.length === 0}
+                    >
+                      生成视频
+                    </Button>
+                  </div>
+
+                  {/* 底部工具栏 */}
+                  <div
+                    style={{
+                      padding: '8px 16px',
+                      borderTop: '1px solid #f0f0f0',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Space>
                       <Button
-                        type="primary"
-                        icon={<VideoCameraOutlined />}
-                        onClick={() => handleGenerateVideo(shot)}
-                        loading={generatingVideos.has(shot.id)}
-                        disabled={!shot.images || shot.images.length === 0}
+                        size="small"
+                        type="text"
+                        icon={<PictureOutlined />}
+                        onClick={() => handleGenerateImage(shot)}
+                        loading={generatingImages.has(shot.id)}
                       >
-                        生成视频
+                        生成图像
                       </Button>
-                      <Button
-                        icon={<EditOutlined />}
-                        onClick={() => handleEditShot(shot)}
-                      >
-                        编辑
-                      </Button>
-                      <Popconfirm
-                        title="确定删除这个分镜吗？"
-                        onConfirm={() => handleDeleteShot(shot.id)}
-                      >
-                        <Button danger icon={<DeleteOutlined />}>
-                          删除
+                      {shot.images && shot.images.length > 1 && (
+                        <Button
+                          size="small"
+                          type="text"
+                          icon={<PictureOutlined />}
+                        >
+                          +{shot.images.length - 1}
                         </Button>
-                      </Popconfirm>
+                      )}
                     </Space>
+                    <Popconfirm
+                      title="确定删除这个分镜吗？"
+                      onConfirm={() => handleDeleteShot(shot.id)}
+                    >
+                      <Button
+                        size="small"
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                      />
+                    </Popconfirm>
                   </div>
                 </Card>
               ))}
-            </Space>
+            </div>
           )}
         </div>
       ),
