@@ -56,3 +56,15 @@ export function generateShotImage(shotId: number, data: {
         timeout: 120000,
     })
 }
+
+/**
+ * AI 优化图像提示词
+ */
+export function optimizeImagePrompt(prompt: string) {
+    return request({
+        url: '/api/ai/image/optimize-prompt',
+        method: 'post',
+        data: { prompt },
+        timeout: 30000,
+    })
+}
