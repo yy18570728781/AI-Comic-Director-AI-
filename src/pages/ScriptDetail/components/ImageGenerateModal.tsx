@@ -1,12 +1,8 @@
-import { Modal, Form, Input, Select, Upload, Button, message } from 'antd';
-import {
-  UploadOutlined,
-  PlusOutlined,
-  ThunderboltOutlined,
-} from '@ant-design/icons';
+import { Modal, Form, Input, Select, Button, message } from 'antd';
+import { ThunderboltOutlined, PictureOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import type { UploadFile } from 'antd/es/upload/interface';
 import { optimizeImagePrompt } from '@/api/image';
+import ReferenceImageSelector from '@/components/ReferenceImageSelector';
 
 const { TextArea } = Input;
 
@@ -29,8 +25,11 @@ export default function ImageGenerateModal({
   onSubmit,
 }: ImageGenerateModalProps) {
   const [form] = Form.useForm();
-  const [referenceImages, setReferenceImages] = useState<UploadFile[]>([]);
+  const [referenceImages, setReferenceImages] = useState<string[]>([]);
+  const [selectorVisible, setSelectorVisible] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
 
   // 当弹窗打开时，初始化表单
   const handleOpen = () => {
@@ -80,38 +79,19 @@ export default function ImageGenerateModal({
     try {
       const values = await form.validateFields();
 
-      // 将参考图转换为 URL 数组
-      const referenceImageUrls = referenceImages
-        .filter((file) => file.status === 'done' && file.response?.url)
-        .map((file) => file.response.url);
-
       onSubmit({
         ...values,
-        referenceImages: referenceImageUrls,
+        referenceImages,
       });
     } catch (error) {
       console.error('表单验证失败:', error);
     }
   };
 
-  // 处理图片上传
-  const handleUploadChange = ({ fileList }: any) => {
-    setReferenceImages(fileList);
-  };
-
-  // 上传前的校验
-  const beforeUpload = (file: File) => {
-    const isImage = file.type.startsWith('image/');
-    if (!isImage) {
-      message.error('只能上传图片文件！');
-      return false;
-    }
-    const isLt10M = file.size / 1024 / 1024 < 10;
-    if (!isLt10M) {
-      message.error('图片大小不能超过 10MB！');
-      return false;
-    }
-    return true;
+  // 选择参考图
+  const handleSelectImages = (images: string[]) => {
+    setReferenceImages(images);
+    setSelectorVisible(false);
   };
 
   return (
@@ -127,26 +107,57 @@ export default function ImageGenerateModal({
       confirmLoading={loading}
     >
       <Form form={form} layout="vertical">
-        {/* 参考图上传 */}
+        {/* 参考图选择 */}
         <Form.Item
           label="参考图（可选）"
-          extra="上传参考图片，AI 将基于参考图生成相似风格的图像"
+          extra="选择参考图片，AI 将基于参考图生成相似风格的图像"
         >
-          <Upload
-            listType="picture-card"
-            fileList={referenceImages}
-            onChange={handleUploadChange}
-            beforeUpload={beforeUpload}
-            maxCount={3}
-            accept="image/*"
+          <Button
+            icon={<PictureOutlined />}
+            onClick={() => setSelectorVisible(true)}
+            style={{ marginBottom: 8 }}
           >
-            {referenceImages.length < 3 && (
-              <div>
-                <PlusOutlined />
-                <div style={{ marginTop: 8 }}>上传图片</div>
-              </div>
-            )}
-          </Upload>
+            选择参考图{' '}
+            {referenceImages.length > 0 && `(${referenceImages.length})`}
+          </Button>
+          {referenceImages.length > 0 && (
+            <div
+              style={{
+                marginTop: 8,
+                display: 'flex',
+                gap: 8,
+                flexWrap: 'wrap',
+              }}
+            >
+              {referenceImages.map((url, index) => (
+                <div
+                  key={index}
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 4,
+                    overflow: 'hidden',
+                    border: '1px solid #d9d9d9',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    setPreviewImage(url);
+                    setPreviewOpen(true);
+                  }}
+                >
+                  <img
+                    src={url}
+                    alt={`参考图 ${index + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </Form.Item>
 
         {/* 图像比例 */}
@@ -228,6 +239,27 @@ export default function ImageGenerateModal({
           />
         </Form.Item>
       </Form>
+
+      {/* 参考图选择器 */}
+      <ReferenceImageSelector
+        visible={selectorVisible}
+        onCancel={() => setSelectorVisible(false)}
+        onConfirm={handleSelectImages}
+        maxCount={3}
+        scriptId={shot?.scriptId}
+        defaultImages={referenceImages}
+      />
+
+      {/* 图片预览 Modal */}
+      <Modal
+        open={previewOpen}
+        title="图片预览"
+        footer={null}
+        onCancel={() => setPreviewOpen(false)}
+        width={800}
+      >
+        <img alt="preview" style={{ width: '100%' }} src={previewImage} />
+      </Modal>
     </Modal>
   );
 }
