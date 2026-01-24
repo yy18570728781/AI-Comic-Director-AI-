@@ -526,7 +526,6 @@ function ScriptDetail() {
     {
       key: 'script',
       label: '剧本',
-      children: <ScriptTab content={script.content} />,
     },
     {
       key: 'shots',
@@ -537,15 +536,6 @@ function ScriptDetail() {
             <Tag color="blue">{script.shots.length}</Tag>
           )}
         </span>
-      ),
-      children: (
-        <ShotsTab
-          shots={script.shots || []}
-          generateLoading={generateLoading}
-          onGenerateStoryboard={handleGenerateStoryboard}
-          onEditShot={handleEditShot}
-          onDeleteShot={handleDeleteShot}
-        />
       ),
     },
     {
@@ -567,17 +557,6 @@ function ScriptDetail() {
           )}
         </span>
       ),
-      children: (
-        <ImagesTab
-          shots={script.shots || []}
-          generatingImages={generatingImages}
-          generatingVideos={generatingVideos}
-          onGenerateImage={handleGenerateImage}
-          onGenerateVideo={handleGenerateVideo}
-          onEditShot={handleEditShot}
-          onDeleteShot={handleDeleteShot}
-        />
-      ),
     },
     {
       key: 'videos',
@@ -598,43 +577,109 @@ function ScriptDetail() {
           )}
         </span>
       ),
-      children: <VideosTab shots={script.shots || []} />,
     },
   ];
 
+  // 渲染当前标签页的内容
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'script':
+        return <ScriptTab content={script.content} />;
+      case 'shots':
+        return (
+          <ShotsTab
+            shots={script.shots || []}
+            generateLoading={generateLoading}
+            onGenerateStoryboard={handleGenerateStoryboard}
+            onEditShot={handleEditShot}
+            onDeleteShot={handleDeleteShot}
+          />
+        );
+      case 'images':
+        return (
+          <ImagesTab
+            shots={script.shots || []}
+            generatingImages={generatingImages}
+            generatingVideos={generatingVideos}
+            onGenerateImage={handleGenerateImage}
+            onGenerateVideo={handleGenerateVideo}
+            onEditShot={handleEditShot}
+            onDeleteShot={handleDeleteShot}
+          />
+        );
+      case 'videos':
+        return <VideosTab shots={script.shots || []} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div>
+      {/* 固定的头部区域 - 使用 sticky */}
       <div
         style={{
-          marginBottom: 16,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          position: 'sticky',
+          top: -24, // 抵消父容器的 padding
+          zIndex: 10,
+          padding: '16px 24px',
+          margin: '-24px -24px 0 -24px', // 抵消父容器的 padding
+          borderBottom: '1px solid #f0f0f0',
+          backgroundColor: '#fff',
         }}
       >
-        <Space>
-          <Button
-            icon={<ArrowLeftOutlined />}
-            onClick={() => navigate('/script-management')}
-          >
-            返回
-          </Button>
-          <h2 style={{ margin: 0 }}>{script.title}</h2>
-          {script.style && <Tag color="blue">{script.style}</Tag>}
-        </Space>
-        {activeTab === 'script' && script.shots?.length === 0 && (
-          <Button
-            type="primary"
-            icon={<ThunderboltOutlined />}
-            onClick={handleGenerateStoryboard}
-            loading={generateLoading}
-          >
-            生成分镜脚本
-          </Button>
-        )}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Space>
+            <Button
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate('/script-management')}
+            >
+              返回
+            </Button>
+            <h2 style={{ margin: 0 }}>{script.title}</h2>
+            {script.style && <Tag color="blue">{script.style}</Tag>}
+          </Space>
+          {activeTab === 'script' && script.shots?.length === 0 && (
+            <Button
+              type="primary"
+              icon={<ThunderboltOutlined />}
+              onClick={handleGenerateStoryboard}
+              loading={generateLoading}
+            >
+              生成分镜脚本
+            </Button>
+          )}
+        </div>
       </div>
 
-      <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+      {/* 固定的标签页导航 - 使用 sticky */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 56, // 头部高度
+          zIndex: 9,
+          padding: '0 24px',
+          margin: '0 -24px', // 抵消父容器的 padding
+          backgroundColor: '#fff',
+          borderBottom: '1px solid #f0f0f0',
+        }}
+      >
+        <Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          items={tabItems}
+          style={{ marginBottom: 0 }}
+        />
+      </div>
+
+      {/* 内容区域 */}
+      <div style={{ marginTop: '16px' }}>{renderTabContent()}</div>
 
       {/* 编辑分镜弹窗 */}
       <Modal
