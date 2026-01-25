@@ -10,6 +10,7 @@ import {
   message,
 } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
+
 import { useAICreationStore } from '@/stores/useAICreationStore';
 
 const { TextArea } = Input;
@@ -63,8 +64,9 @@ function AICreation() {
     setNovelResult(''); // 清空之前的结果
 
     try {
+      const apiBaseURL = import.meta.env.VITE_API_BASE_URL
       const response = await fetch(
-        'http://localhost:7001/api/ai/novel/generate-stream',
+        `${apiBaseURL}/api/ai/novel/generate-stream`,
         {
           method: 'POST',
           headers: {
@@ -142,8 +144,9 @@ function AICreation() {
     setScriptResult(''); // 清空之前的结果
 
     try {
+      const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7001';
       const response = await fetch(
-        'http://localhost:7001/api/ai/script/generate-stream',
+        `${apiBaseURL}/api/ai/script/generate-stream`,
         {
           method: 'POST',
           headers: {
