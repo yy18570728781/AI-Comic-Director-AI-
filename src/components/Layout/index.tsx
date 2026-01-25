@@ -4,7 +4,6 @@ import { Layout as AntdLayout, Menu, theme } from 'antd';
 import {
   EditOutlined,
   FileTextOutlined,
-  FolderOpenOutlined,
   PictureOutlined,
   TeamOutlined,
   UserOutlined,
@@ -26,11 +25,6 @@ const menuItems: MenuItem[] = [
     key: '/script-management',
     icon: <FileTextOutlined />,
     label: '剧本管理',
-  },
-  {
-    key: '/resource-preparation',
-    icon: <FolderOpenOutlined />,
-    label: '资源准备',
   },
   {
     key: '/resource-library',

@@ -1,51 +1,21 @@
 import request from './request'
 
 /**
- * 创建资源准备项目
+ * 创建资源（Resource 实体 - 统一资源库）
  */
-export function createProject(data: {
+export function createResource(data: {
     name: string
-    scriptContent: string
+    type: 'character' | 'scene' | 'prop' | 'blend'
+    description?: string
+    prompt?: string
+    scriptId?: number | null // 关联的剧本ID，null 表示全局资源
     userId?: number
+    referenceImages?: string[]
+    tags?: string[]
+    metadata?: any
 }) {
     return request({
-        url: '/api/resource/project/create',
-        method: 'post',
-        data,
-    })
-}
-
-/**
- * 获取项目列表
- */
-export function getProjectList(params: {
-    userId?: number
-    page?: number
-    pageSize?: number
-}) {
-    return request({
-        url: '/api/resource/project/list',
-        method: 'get',
-        params,
-    })
-}
-
-/**
- * 获取项目详情
- */
-export function getProjectDetail(id: number) {
-    return request({
-        url: `/api/resource/project/${id}`,
-        method: 'get',
-    })
-}
-
-/**
- * AI提取角色和场景
- */
-export function extractCharactersAndScenes(id: number, data: { provider?: string }) {
-    return request({
-        url: `/api/resource/project/${id}/extract`,
+        url: '/api/resource/create',
         method: 'post',
         data,
     })
@@ -107,9 +77,20 @@ export function generateCharacterVideo(id: number, data: any) {
 }
 
 /**
- * 保存到资源库
+ * 保存到资源库（Resource 实体 - 统一资源库）
  */
-export function saveToLibrary(data: any) {
+export function saveToLibrary(data: {
+    name: string
+    type: 'character' | 'scene' | 'prop' | 'blend'
+    url: string
+    description?: string
+    prompt?: string
+    scriptId?: number | null // 关联的剧本ID，null 表示全局资源
+    userId?: number
+    referenceImages?: string[]
+    tags?: string[]
+    metadata?: any
+}) {
     return request({
         url: '/api/resource/library/save',
         method: 'post',
@@ -118,28 +99,34 @@ export function saveToLibrary(data: any) {
 }
 
 /**
- * 获取资源库列表
+ * 获取资源列表（剧本/分镜资源库）
  */
-export function getLibraryList(params: {
+export function getResourceList(params: {
     userId?: number
-    type?: string
+    scriptId?: number | null
+    type?: 'character' | 'scene' | 'prop' | 'blend'
+    tags?: string[]
     page?: number
     pageSize?: number
     keyword?: string
 }) {
     return request({
-        url: '/api/resource/library/list',
+        url: '/api/resource/list',
         method: 'get',
-        params,
+        params: {
+            ...params,
+            scriptId: params.scriptId === null ? 'null' : params.scriptId,
+            tags: params.tags?.join(','),
+        },
     })
 }
 
 /**
- * 删除资源库项目
+ * 删除资源（Resource 实体 - 统一资源库）
  */
-export function deleteLibraryItem(id: number) {
+export function deleteResource(id: number) {
     return request({
-        url: `/api/resource/library/${id}`,
+        url: `/api/resource/${id}`,
         method: 'delete',
     })
 }

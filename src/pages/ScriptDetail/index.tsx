@@ -122,6 +122,9 @@ function ScriptDetail() {
                   url: result.image.url,
                   description: (task as any).blendConfig?.prompt || '多参考图融合结果',
                   prompt: (task as any).blendConfig?.prompt || '',
+                  scriptId: script?.id || null, // 关联到当前剧本
+                  userId: script?.userId,
+                  referenceImages: (task as any).blendConfig?.referenceImages || [],
                   metadata: {
                     isBlend: true,
                     referenceImages: (task as any).blendConfig?.referenceImages || [],
@@ -514,6 +517,9 @@ function ScriptDetail() {
               url: imageUrl,
               description: config.prompt || '多参考图融合结果',
               prompt: config.prompt || '',
+              scriptId: script?.id || null, // 关联到当前剧本
+              userId: script?.userId,
+              referenceImages: config.referenceImages || [],
               metadata: {
                 isBlend: true,
                 referenceImages: config.referenceImages || [],
