@@ -104,13 +104,11 @@ export default function ResourceLibraryTab({
 
   // 获取资源的显示图片
   const getResourceImage = (resource: any): string | null => {
-    // 优先使用 images 中的最终选择图片
+    // 使用 images 数组的第一个图片（后端已确保只有一个）
     if (resource.images && resource.images.length > 0) {
-      const finalImage = resource.images.find((img: any) => img.isFinal);
-      if (finalImage) return finalImage.url;
       return resource.images[0].url;
     }
-    // 其次使用 referenceImages
+    // 其次使用 referenceImages（参考图）
     if (resource.referenceImages && resource.referenceImages.length > 0) {
       return resource.referenceImages[0];
     }

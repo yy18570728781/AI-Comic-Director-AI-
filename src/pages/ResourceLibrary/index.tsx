@@ -110,13 +110,11 @@ export default function ResourceLibrary() {
 
   // 获取资源的显示图片
   const getResourceImage = (resource: any): string | null => {
-    // 优先使用 images 中的最终选择图片
-    if (resource.images && resource.images.length > 0) {
-      const finalImage = resource.images.find((img: any) => img.isFinal);
-      if (finalImage) return finalImage.url;
+    // 使用 images 数组的第一个图片（后端已确保只有一个）
+    if (resource.images && resource.images.length > 0 && resource.images[0]?.url) {
       return resource.images[0].url;
     }
-    // 其次使用 referenceImages
+    // 其次使用 referenceImages（参考图）作为备用
     if (resource.referenceImages && resource.referenceImages.length > 0) {
       return resource.referenceImages[0];
     }
@@ -239,7 +237,11 @@ export default function ResourceLibrary() {
             >
               {resources.map((resource) => {
                 const imageUrl = getResourceImage(resource);
-                if (!imageUrl) return null;
+                // 调试信息
+                console.log('资源:', resource.id, resource.name);
+                console.log('  images:', resource.images);
+                console.log('  referenceImages:', resource.referenceImages);
+                console.log('  imageUrl:', imageUrl);
 
                 return (
                   <Card
@@ -251,80 +253,155 @@ export default function ResourceLibrary() {
                       position: 'relative',
                     }}
                     cover={
-                      <div style={{ position: 'relative', paddingTop: '100%' }}>
-                        <Image
-                          src={imageUrl}
-                          alt={resource.name}
-                          preview={{
-                            mask: (
-                              <div>
-                                <div style={{ color: '#fff', fontSize: 14 }}>
-                                  {resource.name}
-                                </div>
-                              </div>
-                            ),
-                          }}
-                          style={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                          }}
-                          placeholder={
-                            <div
-                              style={{
-                                width: '100%',
-                                height: '100%',
-                                background: '#f0f0f0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              <Spin size="small" />
-                            </div>
-                          }
-                        />
+                      imageUrl ? (
                         <div
                           style={{
-                            position: 'absolute',
-                            top: 8,
-                            left: 8,
+                            width: '100%',
+                            height: 200,
+                            backgroundColor: '#f5f5f5',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            overflow: 'hidden',
+                            position: 'relative',
                           }}
                         >
-                          <Tag color={getTypeColor(resource.type)}>
-                            {getTypeName(resource.type)}
-                          </Tag>
-                        </div>
-                        {scope === 'mine' && (
+                          <Image
+                            src={imageUrl}
+                            alt={resource.name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                            }}
+                            preview={{
+                              mask: (
+                                <div>
+                                  <div style={{ color: '#fff', fontSize: 14 }}>
+                                    {resource.name}
+                                  </div>
+                                </div>
+                              ),
+                            }}
+                            fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E图片加载失败%3C/text%3E%3C/svg%3E"
+                            placeholder={
+                              <div
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  background: '#f0f0f0',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <Spin size="small" />
+                              </div>
+                            }
+                            onError={(e) => {
+                              console.error('图片加载失败:', imageUrl);
+                              console.error('错误详情:', e);
+                              console.error('资源信息:', resource);
+                            }}
+                            onLoad={() => {
+                              console.log('✅ 图片加载成功:', imageUrl);
+                            }}
+                          />
                           <div
                             style={{
                               position: 'absolute',
                               top: 8,
-                              right: 8,
+                              left: 8,
+                              zIndex: 10,
                             }}
                           >
-                            <Popconfirm
-                              title="确定要删除这个资源吗？"
-                              onConfirm={() => handleDelete(resource.id)}
-                              okText="确定"
-                              cancelText="取消"
-                            >
-                              <Button
-                                type="text"
-                                danger
-                                icon={<DeleteOutlined />}
-                                size="small"
-                                style={{
-                                  background: 'rgba(255,255,255,0.9)',
-                                }}
-                              />
-                            </Popconfirm>
+                            <Tag color={getTypeColor(resource.type)}>
+                              {getTypeName(resource.type)}
+                            </Tag>
                           </div>
-                        )}
-                      </div>
+                          {scope === 'mine' && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                zIndex: 10,
+                              }}
+                            >
+                              <Popconfirm
+                                title="确定要删除这个资源吗？"
+                                onConfirm={() => handleDelete(resource.id)}
+                                okText="确定"
+                                cancelText="取消"
+                              >
+                                <Button
+                                  type="text"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  size="small"
+                                  style={{
+                                    background: 'rgba(255,255,255,0.9)',
+                                  }}
+                                />
+                              </Popconfirm>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div
+                          style={{
+                            position: 'relative',
+                            paddingTop: '100%',
+                            background: '#f0f0f0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#999',
+                            fontSize: 12,
+                          }}
+                        >
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 8,
+                              left: 8,
+                              zIndex: 10,
+                            }}
+                          >
+                            <Tag color={getTypeColor(resource.type)}>
+                              {getTypeName(resource.type)}
+                            </Tag>
+                          </div>
+                          {scope === 'mine' && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                zIndex: 10,
+                              }}
+                            >
+                              <Popconfirm
+                                title="确定要删除这个资源吗？"
+                                onConfirm={() => handleDelete(resource.id)}
+                                okText="确定"
+                                cancelText="取消"
+                              >
+                                <Button
+                                  type="text"
+                                  danger
+                                  icon={<DeleteOutlined />}
+                                  size="small"
+                                  style={{
+                                    background: 'rgba(255,255,255,0.9)',
+                                  }}
+                                />
+                              </Popconfirm>
+                            </div>
+                          )}
+                          暂无图片
+                        </div>
+                      )
                     }
                   >
                     <Card.Meta
