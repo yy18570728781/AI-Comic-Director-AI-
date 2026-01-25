@@ -34,6 +34,7 @@ interface ImagesTabProps {
   shots: Shot[];
   generatingImages: Set<number>;
   generatingVideos: Set<number>;
+  scriptId?: number;
   onGenerateImage: (shot: Shot, config: any) => void;
   onGenerateVideo: (shot: Shot) => void;
   onEditShot: (shot: Shot) => void;
@@ -47,6 +48,7 @@ export default function ImagesTab({
   shots,
   generatingImages,
   generatingVideos,
+  scriptId,
   onGenerateImage,
   onGenerateVideo,
   onEditShot,
@@ -74,6 +76,7 @@ export default function ImagesTab({
       handleCloseImageModal();
     }
   };
+
   if (!shots || shots.length === 0) {
     return (
       <Card>

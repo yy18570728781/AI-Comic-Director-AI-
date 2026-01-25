@@ -15,7 +15,7 @@ import {
   Tag,
   Empty,
 } from 'antd';
-import { ArrowLeftOutlined, ThunderboltOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, ThunderboltOutlined, MergeCellsOutlined } from '@ant-design/icons';
 import {
   getScriptDetail,
   generateStoryboard,
@@ -24,12 +24,14 @@ import {
 } from '@/api/script';
 import { generateImage, batchGetImageStatus } from '@/api/image';
 import { generateVideo, batchGetVideoStatus } from '@/api/video';
+import { saveToLibrary } from '@/api/resource';
 
 // 导入标签页组件
 import ScriptTab from './components/ScriptTab';
 import ShotsTab from './components/ShotsTab';
 import ImagesTab from './components/ImagesTab';
 import VideosTab from './components/VideosTab';
+import ImageBlendModal from './components/ImageBlendModal';
 
 const { TextArea } = Input;
 
@@ -37,6 +39,8 @@ const { TextArea } = Input;
 interface ImageTask {
   taskId: string;
   shotId: number;
+  isBlend?: boolean; // 标记是否为融图任务
+  blendConfig?: any; // 保存融图配置
 }
 
 interface VideoTask {
@@ -64,6 +68,7 @@ function ScriptDetail() {
   const [videoTasks, setVideoTasks] = useState<VideoTask[]>([]); // 视频生成任务列表
   const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const videoPollingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [blendModalVisible, setBlendModalVisible] = useState(false);
 
   // 加载剧本详情
   const loadScript = async () => {
@@ -106,39 +111,75 @@ function ScriptDetail() {
           // 处理每个任务的结果
           res.data.forEach((result: any) => {
             if (result.status === 'completed') {
-              completedTasks.push(result.shotId);
+              // 查找对应的任务信息
+              const task = imageTasks.find(t => t.taskId === result.taskId);
+              
+              // 如果是融图任务，保存到资源库
+              if (task && (task as any).isBlend && result.image) {
+                saveToLibrary({
+                  name: `融图结果_${new Date().getTime()}`,
+                  type: 'blend', // 保存为融图类型
+                  url: result.image.url,
+                  description: (task as any).blendConfig?.prompt || '多参考图融合结果',
+                  prompt: (task as any).blendConfig?.prompt || '',
+                  metadata: {
+                    isBlend: true,
+                    referenceImages: (task as any).blendConfig?.referenceImages || [],
+                    model: (task as any).blendConfig?.model || '',
+                    aspectRatio: (task as any).blendConfig?.aspectRatio || '',
+                  },
+                }).then(() => {
+                  message.success('融图结果已保存到资源库');
+                }).catch((error: any) => {
+                  console.error('保存到资源库失败:', error);
+                  message.warning('融图成功，但保存到资源库失败');
+                });
+              }
 
-              // 直接更新 script 状态中的对应镜头
-              setScript((prevScript: any) => {
-                if (!prevScript) return prevScript;
+              if (result.shotId !== 0) {
+                completedTasks.push(result.shotId);
 
-                const updatedShots = prevScript.shots.map((shot: any) => {
-                  if (shot.id === result.shotId) {
-                    return {
-                      ...shot,
-                      images: shot.images
-                        ? [...shot.images, result.image]
-                        : [result.image],
-                    };
-                  }
-                  return shot;
+                // 直接更新 script 状态中的对应镜头
+                setScript((prevScript: any) => {
+                  if (!prevScript) return prevScript;
+
+                  const updatedShots = prevScript.shots.map((shot: any) => {
+                    if (shot.id === result.shotId) {
+                      return {
+                        ...shot,
+                        images: shot.images
+                          ? [...shot.images, result.image]
+                          : [result.image],
+                      };
+                    }
+                    return shot;
+                  });
+
+                  return {
+                    ...prevScript,
+                    shots: updatedShots,
+                  };
                 });
 
-                return {
-                  ...prevScript,
-                  shots: updatedShots,
-                };
-              });
-
-              message.success(`镜头 #${result.shotId} 图像生成成功！`);
+                message.success(`镜头 #${result.shotId} 图像生成成功！`);
+              } else {
+                // 融图任务完成，只显示消息
+                message.success('图像融合成功！');
+              }
             } else if (
               result.status === 'failed' ||
               result.status === 'error'
             ) {
-              failedTasks.push(result.shotId);
-              message.error(
-                `镜头 #${result.shotId} 图像生成失败: ${result.error || '未知错误'}`,
-              );
+              if (result.shotId !== 0) {
+                failedTasks.push(result.shotId);
+                message.error(
+                  `镜头 #${result.shotId} 图像生成失败: ${result.error || '未知错误'}`,
+                );
+              } else {
+                message.error(
+                  `图像生成失败: ${result.error || '未知错误'}`,
+                );
+              }
             }
           });
 
@@ -168,7 +209,7 @@ function ScriptDetail() {
 
             // 检查每个 shotId 是否还有未完成的任务
             const affectedShotIds = [
-              ...new Set(res.data.map((r: any) => r.shotId)),
+              ...new Set(res.data.map((r: any) => r.shotId).filter((id: number) => id !== 0)),
             ];
             setGeneratingImages((prev) => {
               const newSet = new Set(prev);
@@ -443,6 +484,96 @@ function ScriptDetail() {
     }
   };
 
+  // 多图融合
+  const handleBlendImages = async (config: any) => {
+    console.log('🎨 前端：准备融图');
+    console.log('⚙️ 配置:', config);
+
+    try {
+      message.loading({
+        content: '正在融合图像...',
+        key: 'blend',
+        duration: 2,
+      });
+
+      const { blendImages } = await import('@/api/image');
+      const res = await blendImages({
+        model: config.model,
+        prompt: config.prompt,
+        referenceImages: config.referenceImages,
+        aspectRatio: config.aspectRatio,
+      });
+
+      if (res.success) {
+        // 保存融图结果到资源库的函数
+        const saveBlendResultToLibrary = async (imageUrl: string) => {
+          try {
+            await saveToLibrary({
+              name: `融图结果_${new Date().getTime()}`,
+              type: 'blend', // 保存为融图类型
+              url: imageUrl,
+              description: config.prompt || '多参考图融合结果',
+              prompt: config.prompt || '',
+              metadata: {
+                isBlend: true,
+                referenceImages: config.referenceImages || [],
+                model: config.model || '',
+                aspectRatio: config.aspectRatio || '',
+              },
+            });
+            message.success('融图结果已保存到资源库');
+          } catch (error: any) {
+            console.error('保存到资源库失败:', error);
+            message.warning('融图成功，但保存到资源库失败');
+          }
+        };
+
+        // 如果是异步模型，添加到任务列表（轮询完成后保存）
+        if (res.data.status === 'pending' || res.data.status === 'processing') {
+          // 通义万相是异步的，需要轮询
+          setImageTasks((prev) => [
+            ...prev,
+            { 
+              taskId: res.data.taskId, 
+              shotId: 0, // shotId 为 0 表示不关联分镜
+              isBlend: true, // 标记为融图任务
+              blendConfig: config, // 保存配置以便后续保存到资源库
+            },
+          ]);
+          message.success({
+            content: '图像融合任务已提交，正在处理中...',
+            key: 'blend',
+          });
+        } else if (res.data.status === 'completed' && res.data.images) {
+          // 同步模型直接显示结果并保存到资源库
+          const imageUrl = res.data.images[0].url;
+          await saveBlendResultToLibrary(imageUrl);
+          
+          Modal.success({
+            title: '融图成功',
+            content: (
+              <div>
+                <img
+                  src={imageUrl}
+                  alt="融图结果"
+                  style={{ width: '100%', marginTop: 16 }}
+                />
+              </div>
+            ),
+            width: 600,
+          });
+        }
+      } else {
+        throw new Error(res.message || '融图失败');
+      }
+    } catch (error: any) {
+      message.error({
+        content: error.message || '融图失败',
+        key: 'blend',
+      });
+    }
+  };
+
   // 生成视频（优化版）
   const handleGenerateVideo = async (shot: any) => {
     const shotId = shot.id;
@@ -601,6 +732,7 @@ function ScriptDetail() {
             shots={script.shots || []}
             generatingImages={generatingImages}
             generatingVideos={generatingVideos}
+            scriptId={script.id}
             onGenerateImage={handleGenerateImage}
             onGenerateVideo={handleGenerateVideo}
             onEditShot={handleEditShot}
@@ -670,16 +802,40 @@ function ScriptDetail() {
           borderBottom: '1px solid #f0f0f0',
         }}
       >
-        <Tabs
-          activeKey={activeTab}
-          onChange={setActiveTab}
-          items={tabItems}
-          style={{ marginBottom: 0 }}
-        />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={tabItems}
+            style={{ marginBottom: 0, flex: 1 }}
+          />
+          <Button
+            type="primary"
+            icon={<MergeCellsOutlined />}
+            onClick={() => setBlendModalVisible(true)}
+            style={{ marginLeft: 16 }}
+          >
+            多参考图融图
+          </Button>
+        </div>
       </div>
 
       {/* 内容区域 */}
       <div style={{ marginTop: '16px' }}>{renderTabContent()}</div>
+
+      {/* 融图弹窗 */}
+      <ImageBlendModal
+        visible={blendModalVisible}
+        scriptId={script.id}
+        onCancel={() => setBlendModalVisible(false)}
+        onSubmit={handleBlendImages}
+      />
 
       {/* 编辑分镜弹窗 */}
       <Modal
