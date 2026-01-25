@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Modal, Form, Input, Select, Button, message } from 'antd';
 import { PictureOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+
 import ReferenceImageSelector from '@/components/ReferenceImageSelector';
 
 const { TextArea } = Input;
@@ -65,7 +66,7 @@ export default function ImageBlendModal({
   return (
     <>
       <Modal
-        title="多参考图整图"
+        title="多参考图融图"
         open={visible}
         onCancel={onCancel}
         onOk={handleSubmit}
