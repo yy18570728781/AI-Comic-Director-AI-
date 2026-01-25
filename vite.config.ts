@@ -14,11 +14,11 @@ export default defineConfig({
         host: '0.0.0.0',
         proxy: {
             '/api': {
-                target: 'http://localhost:7001',
+                target: process.env.VITE_API_BASE_URL,
                 changeOrigin: true,
             },
             '/socket.io': {
-                target: 'http://localhost:7001',
+                target: process.env.VITE_WS_URL,
                 changeOrigin: true,
                 ws: true,
             },
