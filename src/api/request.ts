@@ -1,8 +1,9 @@
+import { message } from 'antd'
 import axios from 'axios'
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { message } from 'antd'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7001'
+const baseURL = import.meta.env.VITE_API_BASE_URL
+
 
 const service: AxiosInstance = axios.create({
     baseURL,
