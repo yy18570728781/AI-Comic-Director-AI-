@@ -220,7 +220,9 @@ export default function ShotsTab({
                               />
                               <Space>
                                 <Button
+                                  type="primary"
                                   icon={<StarOutlined />}
+                                  style={{ background: '#ffc107', borderColor: '#ffc107', color: '#000' }}
                                   onClick={() => {
                                     onSetFirstFrame(shot.id, img.id);
                                     Modal.destroyAll();
@@ -229,8 +231,9 @@ export default function ShotsTab({
                                   设为首帧
                                 </Button>
                                 <Button
+                                  type="primary"
                                   icon={<StarOutlined />}
-                                  style={{ color: '#1890ff' }}
+                                  style={{ background: '#1890ff', borderColor: '#1890ff' }}
                                   onClick={() => {
                                     onSetLastFrame(shot.id, img.id);
                                     Modal.destroyAll();
