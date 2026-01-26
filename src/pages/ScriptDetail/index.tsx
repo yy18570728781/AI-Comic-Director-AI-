@@ -24,6 +24,7 @@ import {
   deleteShot,
 } from '@/api/script';
 import { generateVideo } from '@/api/video';
+import { setFirstFrame, setLastFrame, deleteImage } from '@/api/image-action';
 import { useTaskStore } from '@/stores/useTaskStore';
 import { useImagePolling, useVideoPolling } from '@/hooks/useTaskPolling';
 
@@ -223,6 +224,39 @@ function ScriptDetail() {
       loadScript();
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  // 设置首帧
+  const handleSetFirstFrame = async (shotId: number, imageId: number) => {
+    try {
+      await setFirstFrame(imageId);
+      message.success('已设置为首帧');
+      loadScript();
+    } catch (error: any) {
+      message.error(error.message || '设置失败');
+    }
+  };
+
+  // 设置尾帧
+  const handleSetLastFrame = async (shotId: number, imageId: number) => {
+    try {
+      await setLastFrame(imageId);
+      message.success('已设置为尾帧');
+      loadScript();
+    } catch (error: any) {
+      message.error(error.message || '设置失败');
+    }
+  };
+
+  // 删除图片
+  const handleDeleteImage = async (imageId: number) => {
+    try {
+      await deleteImage(imageId);
+      message.success('删除成功');
+      loadScript();
+    } catch (error: any) {
+      message.error(error.message || '删除失败');
     }
   };
 
@@ -504,6 +538,9 @@ function ScriptDetail() {
             onEditShot={handleEditShot}
             onDeleteShot={handleDeleteShot}
             onGenerateImage={handleGenerateImage}
+            onSetFirstFrame={handleSetFirstFrame}
+            onSetLastFrame={handleSetLastFrame}
+            onDeleteImage={handleDeleteImage}
           />
         );
       case 'images':
