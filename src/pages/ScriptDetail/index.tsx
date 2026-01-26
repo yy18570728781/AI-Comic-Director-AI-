@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
-  Card,
   Button,
   Tabs,
   Form,
@@ -17,15 +16,16 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined, ThunderboltOutlined, MergeCellsOutlined } from '@ant-design/icons';
 
-import { generateImage, batchGetImageStatus } from '@/api/image';
-import { saveToLibrary } from '@/api/resource';
+import { generateImage } from '@/api/image';
 import {
   getScriptDetail,
   generateStoryboard,
   updateShot,
   deleteShot,
 } from '@/api/script';
-import { generateVideo, batchGetVideoStatus } from '@/api/video';
+import { generateVideo } from '@/api/video';
+import { useTaskStore } from '@/stores/useTaskStore';
+import { useImagePolling, useVideoPolling } from '@/hooks/useTaskPolling';
 
 // 导入标签页组件
 import ImageBlendModal from './components/ImageBlendModal';
@@ -35,20 +35,6 @@ import ShotsTab from './components/ShotsTab';
 import VideosTab from './components/VideosTab';
 
 const { TextArea } = Input;
-
-// 任务状态类型
-interface ImageTask {
-  taskId: string;
-  shotId: number;
-  isBlend?: boolean; // 标记是否为融图任务
-  blendConfig?: any; // 保存融图配置
-}
-
-interface VideoTask {
-  taskId: string;
-  shotId: number;
-  model: string;
-}
 
 function ScriptDetail() {
   const { id } = useParams();
@@ -65,11 +51,11 @@ function ScriptDetail() {
   const [generatingVideos, setGeneratingVideos] = useState<Set<number>>(
     new Set(),
   ); // 正在生成视频的镜头ID
-  const [imageTasks, setImageTasks] = useState<ImageTask[]>([]); // 图片生成任务列表
-  const [videoTasks, setVideoTasks] = useState<VideoTask[]>([]); // 视频生成任务列表
-  const pollingTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const videoPollingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [blendModalVisible, setBlendModalVisible] = useState(false);
+
+  // 使用全局任务状态
+  const { addImageTask } = useTaskStore();
+  const { addVideoTask } = useTaskStore();
 
   // 加载剧本详情
   const loadScript = async () => {
@@ -89,262 +75,94 @@ function ScriptDetail() {
     loadScript();
   }, [id]);
 
-  // 统一轮询器：批量查询所有任务状态
-  useEffect(() => {
-    if (imageTasks.length === 0) {
-      // 没有任务时清除定时器
-      if (pollingTimerRef.current) {
-        clearTimeout(pollingTimerRef.current);
-        pollingTimerRef.current = null;
-      }
-      return;
-    }
+  // 更新 script 中对应镜头的图片
+  const updateShotImage = useCallback((shotId: number, image: any) => {
+    setScript((prevScript: any) => {
+      if (!prevScript) return prevScript;
 
-    const pollTasks = async () => {
-      try {
-        console.log(`🔄 批量查询 ${imageTasks.length} 个任务状态`);
-        const res = await batchGetImageStatus(imageTasks);
-
-        if (res.success && res.data) {
-          const completedTasks: number[] = [];
-          const failedTasks: number[] = [];
-
-          // 处理每个任务的结果
-          res.data.forEach((result: any) => {
-            if (result.status === 'completed') {
-              // 查找对应的任务信息
-              const task = imageTasks.find(t => t.taskId === result.taskId);
-
-              // 如果是融图任务，保存到资源库
-              if (task && (task as any).isBlend && result.image) {
-                saveToLibrary({
-                  name: `融图结果_${new Date().getTime()}`,
-                  type: 'blend', // 保存为融图类型
-                  url: result.image.url,
-                  description: (task as any).blendConfig?.prompt || '多参考图融合结果',
-                  prompt: (task as any).blendConfig?.prompt || '',
-                  scriptId: script?.id || null, // 关联到当前剧本
-                  userId: script?.userId,
-                  referenceImages: (task as any).blendConfig?.referenceImages || [],
-                  metadata: {
-                    isBlend: true,
-                    referenceImages: (task as any).blendConfig?.referenceImages || [],
-                    model: (task as any).blendConfig?.model || '',
-                    aspectRatio: (task as any).blendConfig?.aspectRatio || '',
-                  },
-                }).then(() => {
-                  message.success('融图结果已保存到资源库');
-                }).catch((error: any) => {
-                  console.error('保存到资源库失败:', error);
-                  message.warning('融图成功，但保存到资源库失败');
-                });
-              }
-
-              if (result.shotId !== 0) {
-                completedTasks.push(result.shotId);
-
-                // 直接更新 script 状态中的对应镜头
-                setScript((prevScript: any) => {
-                  if (!prevScript) return prevScript;
-
-                  const updatedShots = prevScript.shots.map((shot: any) => {
-                    if (shot.id === result.shotId) {
-                      return {
-                        ...shot,
-                        images: shot.images
-                          ? [...shot.images, result.image]
-                          : [result.image],
-                      };
-                    }
-                    return shot;
-                  });
-
-                  return {
-                    ...prevScript,
-                    shots: updatedShots,
-                  };
-                });
-
-                message.success(`镜头 #${result.shotId} 图像生成成功！`);
-              } else {
-                // 融图任务完成，只显示消息
-                message.success('图像融合成功！');
-              }
-            } else if (
-              result.status === 'failed' ||
-              result.status === 'error'
-            ) {
-              if (result.shotId !== 0) {
-                failedTasks.push(result.shotId);
-                message.error(
-                  `镜头 #${result.shotId} 图像生成失败: ${result.error || '未知错误'}`,
-                );
-              } else {
-                message.error(
-                  `图像生成失败: ${result.error || '未知错误'}`,
-                );
-              }
-            }
-          });
-
-          // 移除已完成或失败的任务（按 taskId）
-          const finishedTaskIds: string[] = [];
-
-          res.data.forEach((result: any) => {
-            if (
-              result.status === 'completed' ||
-              result.status === 'failed' ||
-              result.status === 'error'
-            ) {
-              finishedTaskIds.push(result.taskId);
-            }
-          });
-
-          if (finishedTaskIds.length > 0) {
-            console.log('🗑️ 移除已完成的任务:', finishedTaskIds);
-
-            setImageTasks((prev) => {
-              const remaining = prev.filter(
-                (task) => !finishedTaskIds.includes(task.taskId),
-              );
-              console.log(`📊 剩余任务数: ${remaining.length}`);
-              return remaining;
-            });
-
-            // 检查每个 shotId 是否还有未完成的任务
-            const affectedShotIds = [
-              ...new Set(res.data.map((r: any) => r.shotId).filter((id: number) => id !== 0)),
-            ];
-            setGeneratingImages((prev) => {
-              const newSet = new Set(prev);
-              affectedShotIds.forEach((shotId) => {
-                // 检查该 shotId 是否还有未完成的任务
-                const remainingForShot = imageTasks.filter(
-                  (t) =>
-                    t.shotId === shotId && !finishedTaskIds.includes(t.taskId),
-                );
-                if (remainingForShot.length === 0) {
-                  console.log(`✅ shotId ${shotId} 的所有任务已完成`);
-                  newSet.delete(shotId);
-                }
-              });
-              return newSet;
-            });
-          }
+      const updatedShots = prevScript.shots.map((shot: any) => {
+        if (shot.id === shotId) {
+          return {
+            ...shot,
+            images: shot.images
+              ? [...shot.images, image]
+              : [image],
+          };
         }
-      } catch (error: any) {
-        console.error('批量查询任务失败:', error);
-      }
+        return shot;
+      });
 
-      // 继续轮询（如果还有任务）
-      if (imageTasks.length > 0) {
-        pollingTimerRef.current = setTimeout(pollTasks, 3500);
-      }
-    };
+      return {
+        ...prevScript,
+        shots: updatedShots,
+      };
+    });
+  }, []);
 
-    // 启动轮询
-    pollingTimerRef.current = setTimeout(pollTasks, 3500);
+  // 更新 script 中对应镜头的视频
+  const updateShotVideo = useCallback((shotId: number, video: any) => {
+    setScript((prevScript: any) => {
+      if (!prevScript) return prevScript;
 
-    // 清理函数
-    return () => {
-      if (pollingTimerRef.current) {
-        clearTimeout(pollingTimerRef.current);
-      }
-    };
-  }, [imageTasks]);
-
-  // 视频任务轮询器
-  useEffect(() => {
-    if (videoTasks.length === 0) {
-      if (videoPollingTimerRef.current) {
-        clearTimeout(videoPollingTimerRef.current);
-        videoPollingTimerRef.current = null;
-      }
-      return;
-    }
-
-    const pollVideoTasks = async () => {
-      try {
-        console.log(`🔄 批量查询 ${videoTasks.length} 个视频任务状态`);
-        const res = await batchGetVideoStatus(videoTasks);
-
-        if (res.success && res.data) {
-          const completedTasks: number[] = [];
-          const failedTasks: number[] = [];
-
-          res.data.forEach((result: any) => {
-            if (result.status === 'completed') {
-              completedTasks.push(result.shotId);
-
-              // 直接更新 script 状态中的对应镜头
-              setScript((prevScript: any) => {
-                if (!prevScript) return prevScript;
-
-                const updatedShots = prevScript.shots.map((shot: any) => {
-                  if (shot.id === result.shotId) {
-                    return {
-                      ...shot,
-                      videos: shot.videos
-                        ? [...shot.videos, result.video]
-                        : [result.video],
-                    };
-                  }
-                  return shot;
-                });
-
-                return {
-                  ...prevScript,
-                  shots: updatedShots,
-                };
-              });
-
-              message.success(`镜头 #${result.shotId} 视频生成成功！`);
-            } else if (
-              result.status === 'failed' ||
-              result.status === 'error'
-            ) {
-              failedTasks.push(result.shotId);
-              message.error(
-                `镜头 #${result.shotId} 视频生成失败: ${result.error || '未知错误'}`,
-              );
-            }
-          });
-
-          // 移除已完成或失败的任务
-          if (completedTasks.length > 0 || failedTasks.length > 0) {
-            const finishedShotIds = [...completedTasks, ...failedTasks];
-
-            setVideoTasks((prev) =>
-              prev.filter((task) => !finishedShotIds.includes(task.shotId)),
-            );
-
-            setGeneratingVideos((prev) => {
-              const newSet = new Set(prev);
-              finishedShotIds.forEach((shotId) => newSet.delete(shotId));
-              return newSet;
-            });
-          }
+      const updatedShots = prevScript.shots.map((shot: any) => {
+        if (shot.id === shotId) {
+          return {
+            ...shot,
+            videos: shot.videos
+              ? [...shot.videos, video]
+              : [video],
+          };
         }
-      } catch (error: any) {
-        console.error('批量查询视频任务失败:', error);
-      }
+        return shot;
+      });
 
-      // 继续轮询（视频生成较慢，5秒轮询一次）
-      if (videoTasks.length > 0) {
-        videoPollingTimerRef.current = setTimeout(pollVideoTasks, 5000);
-      }
-    };
+      return {
+        ...prevScript,
+        shots: updatedShots,
+      };
+    });
+  }, []);
 
-    // 启动轮询
-    videoPollingTimerRef.current = setTimeout(pollVideoTasks, 5000);
-
-    // 清理函数
-    return () => {
-      if (videoPollingTimerRef.current) {
-        clearTimeout(videoPollingTimerRef.current);
+  // 图片轮询回调
+  const handleImageComplete = useCallback((results: any[]) => {
+    results.forEach((result: any) => {
+      if (result.status === 'completed') {
+        if (result.shotId !== 0) {
+          updateShotImage(result.shotId, result.image);
+          message.success(`镜头 #${result.shotId} 图像生成成功！`);
+        } else {
+          message.success('图像融合成功！');
+        }
+      } else if (result.status === 'failed' || result.status === 'error') {
+        if (result.shotId !== 0) {
+          message.error(`镜头 #${result.shotId} 图像生成失败: ${result.error || '未知错误'}`);
+        } else {
+          message.error(`图像生成失败: ${result.error || '未知错误'}`);
+        }
       }
-    };
-  }, [videoTasks]);
+    });
+  }, [updateShotImage]);
+
+  // 视频轮询回调
+  const handleVideoComplete = useCallback((results: any[]) => {
+    results.forEach((result: any) => {
+      if (result.status === 'completed') {
+        updateShotVideo(result.shotId, result.video);
+        message.success(`镜头 #${result.shotId} 视频生成成功！`);
+      } else if (result.status === 'failed' || result.status === 'error') {
+        message.error(`镜头 #${result.shotId} 视频生成失败: ${result.error || '未知错误'}`);
+      }
+    });
+  }, [updateShotVideo]);
+
+  // 启用轮询
+  useImagePolling({
+    onComplete: handleImageComplete,
+  });
+
+  useVideoPolling({
+    onComplete: handleVideoComplete,
+  });
 
   // 生成分镜脚本
   const handleGenerateStoryboard = async () => {
@@ -408,7 +226,7 @@ function ScriptDetail() {
     }
   };
 
-  // 生成图像（简化版 - 单张图片）
+  // 生成图像
   const handleGenerateImage = async (shot: any, config?: any) => {
     const shotId = shot.id;
 
@@ -432,26 +250,24 @@ function ScriptDetail() {
         duration: 2,
       });
 
-      // 根据图像比例计算宽高（通义万相支持的尺寸）
+      // 根据图像比例计算宽高
       let width = 1024;
       let height = 1024;
 
       if (config?.aspectRatio) {
         const ratioMap: Record<string, [number, number]> = {
-          '1:1': [1024, 1024], // 正方形
-          '16:9': [1280, 720], // 横屏
-          '9:16': [720, 1280], // 竖屏
-          '4:3': [1024, 1024], // 标准横屏（用正方形代替，通义万相不支持4:3）
-          '3:4': [768, 1152], // 标准竖屏（2:3）
-          '21:9': [1280, 720], // 超宽屏（用16:9代替）
+          '1:1': [1024, 1024],
+          '16:9': [1280, 720],
+          '9:16': [720, 1280],
+          '4:3': [1024, 1024],
+          '3:4': [768, 1152],
+          '21:9': [1280, 720],
         };
         [width, height] = ratioMap[config.aspectRatio] || [1024, 1024];
       }
 
-      // 使用配置中的图像提示词（通义万相支持中文）
       const prompt = config?.imagePrompt || shot.imagePrompt;
 
-      // 调用生成图像 API
       const res = await generateImage({
         prompt,
         model: 'wanx',
@@ -461,12 +277,16 @@ function ScriptDetail() {
       });
 
       if (res.success && res.data.taskId) {
-        // 添加到任务列表
-        console.log('✅ 前端：添加图片任务到列表', {
+        // 添加到全局任务列表
+        console.log('✅ 前端：添加图片任务到全局列表', {
           taskId: res.data.taskId,
           shotId,
         });
-        setImageTasks((prev) => [...prev, { taskId: res.data.taskId, shotId }]);
+        addImageTask({
+          taskId: res.data.taskId,
+          shotId,
+          isBlend: false,
+        });
 
         message.info({
           content: '图像生成任务已提交，正在处理中...',
@@ -494,8 +314,10 @@ function ScriptDetail() {
     console.log('⚙️ 配置:', config);
 
     try {
+      setBlendModalVisible(false);
+
       message.loading({
-        content: '正在融合图像...',
+        content: '融图任务已提交，正在后台处理...',
         key: 'blend',
         duration: 2,
       });
@@ -506,70 +328,21 @@ function ScriptDetail() {
         prompt: config.prompt,
         referenceImages: config.referenceImages,
         aspectRatio: config.aspectRatio,
+        scriptId: script?.id,
+        userId: script?.userId,
       });
 
-      if (res.success) {
-        // 保存融图结果到资源库的函数
-        const saveBlendResultToLibrary = async (imageUrl: string) => {
-          try {
-            await saveToLibrary({
-              name: `融图结果_${new Date().getTime()}`,
-              type: 'blend', // 保存为融图类型
-              url: imageUrl,
-              description: config.prompt || '多参考图融合结果',
-              prompt: config.prompt || '',
-              scriptId: script?.id || null, // 关联到当前剧本
-              userId: script?.userId,
-              referenceImages: config.referenceImages || [],
-              metadata: {
-                isBlend: true,
-                referenceImages: config.referenceImages || [],
-                model: config.model || '',
-                aspectRatio: config.aspectRatio || '',
-              },
-            });
-            message.success('融图结果已保存到资源库');
-          } catch (error: any) {
-            console.error('保存到资源库失败:', error);
-            message.warning('融图成功，但保存到资源库失败');
-          }
-        };
-
-        // 如果是异步模型，添加到任务列表（轮询完成后保存）
-        if (res.data.status === 'pending' || res.data.status === 'processing') {
-          // 通义万相是异步的，需要轮询
-          setImageTasks((prev) => [
-            ...prev,
-            {
-              taskId: res.data.taskId,
-              shotId: 0, // shotId 为 0 表示不关联分镜
-              isBlend: true, // 标记为融图任务
-              blendConfig: config, // 保存配置以便后续保存到资源库
-            },
-          ]);
-          message.success({
-            content: '图像融合任务已提交，正在处理中...',
-            key: 'blend',
-          });
-        } else if (res.data.status === 'completed' && res.data.images) {
-          // 同步模型直接显示结果并保存到资源库
-          const imageUrl = res.data.images[0].url;
-          await saveBlendResultToLibrary(imageUrl);
-
-          Modal.success({
-            title: '融图成功',
-            content: (
-              <div>
-                <img
-                  src={imageUrl}
-                  alt="融图结果"
-                  style={{ width: '100%', marginTop: 16 }}
-                />
-              </div>
-            ),
-            width: 600,
-          });
-        }
+      if (res.success && res.data.taskId) {
+        // 添加到全局任务列表
+        addImageTask({
+          taskId: res.data.taskId,
+          shotId: 0,
+          isBlend: true,
+        });
+        message.success({
+          content: '融图任务已提交，完成后将自动保存到资源库',
+          key: 'blend',
+        });
       } else {
         throw new Error(res.message || '融图失败');
       }
@@ -581,7 +354,7 @@ function ScriptDetail() {
     }
   };
 
-  // 生成视频（优化版）
+  // 生成视频
   const handleGenerateVideo = async (shot: any) => {
     const shotId = shot.id;
 
@@ -610,27 +383,26 @@ function ScriptDetail() {
         duration: 2,
       });
 
-      // 使用最后一张图片作为参考图
       const referenceImage = shot.images[shot.images.length - 1].url;
 
-      // 调用生成视频 API
       const res = await generateVideo({
         prompt: shot.videoPrompt || shot.visualDescription || '',
-        model: 'wan2.6-i2v-flash', // 使用快速模式
+        model: 'wan2.6-i2v-flash',
         referenceImage,
       });
 
       if (res.success && res.data.taskId) {
-        // 添加到任务列表
-        console.log('✅ 前端：添加视频任务到列表', {
+        // 添加到全局任务列表
+        console.log('✅ 前端：添加视频任务到全局列表', {
           taskId: res.data.taskId,
           shotId,
           model: 'wan2.6-i2v-flash',
         });
-        setVideoTasks((prev) => [
-          ...prev,
-          { taskId: res.data.taskId, shotId, model: 'wan2.6-i2v-flash' },
-        ]);
+        addVideoTask({
+          taskId: res.data.taskId,
+          shotId,
+          model: 'wan2.6-i2v-flash',
+        });
 
         message.info({
           content: '视频生成任务已提交，正在处理中（预计1-2分钟）...',
@@ -718,7 +490,6 @@ function ScriptDetail() {
     },
   ];
 
-  // 渲染当前标签页的内容
   const renderTabContent = () => {
     switch (activeTab) {
       case 'script':
@@ -913,3 +684,4 @@ function ScriptDetail() {
 }
 
 export default ScriptDetail;
+
