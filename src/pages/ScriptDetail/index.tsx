@@ -17,6 +17,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeftOutlined, ThunderboltOutlined, MergeCellsOutlined } from '@ant-design/icons';
 
 import { generateImage } from '@/api/image';
+import { setFirstFrame, setLastFrame, deleteImage } from '@/api/image-action';
 import {
   getScriptDetail,
   generateStoryboard,
@@ -24,9 +25,8 @@ import {
   deleteShot,
 } from '@/api/script';
 import { generateVideo } from '@/api/video';
-import { setFirstFrame, setLastFrame, deleteImage } from '@/api/image-action';
-import { useTaskStore } from '@/stores/useTaskStore';
 import { useImagePolling, useVideoPolling } from '@/hooks/useTaskPolling';
+import { useTaskStore } from '@/stores/useTaskStore';
 
 // 导入标签页组件
 import ImageBlendModal from './components/ImageBlendModal';
@@ -131,12 +131,24 @@ function ScriptDetail() {
         if (result.shotId !== 0) {
           updateShotImage(result.shotId, result.image);
           message.success(`镜头 #${result.shotId} 图像生成成功！`);
+          // 移除 generatingImages 状态
+          setGeneratingImages((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(result.shotId);
+            return newSet;
+          });
         } else {
           message.success('图像融合成功！');
         }
       } else if (result.status === 'failed' || result.status === 'error') {
         if (result.shotId !== 0) {
           message.error(`镜头 #${result.shotId} 图像生成失败: ${result.error || '未知错误'}`);
+          // 移除 generatingImages 状态（失败也要移除）
+          setGeneratingImages((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(result.shotId);
+            return newSet;
+          });
         } else {
           message.error(`图像生成失败: ${result.error || '未知错误'}`);
         }
