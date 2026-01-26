@@ -48,6 +48,10 @@ export default function ImageBlendModal({
         return;
       }
 
+      // 立即关闭弹窗，不等待后端响应
+      onCancel();
+      
+      // 异步提交（不阻塞）
       onSubmit({
         ...values,
         referenceImages,
