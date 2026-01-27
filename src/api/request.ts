@@ -40,7 +40,17 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
     (response: AxiosResponse) => {
-        return response.data
+        const data = response.data
+
+        // 检查业务错误（success: false）
+        if (data && typeof data === 'object' && 'success' in data && data.success === false) {
+            const errorMessage = data.message || '操作失败'
+            message.error(errorMessage)
+            // 返回数据，让调用方可以处理
+            return data
+        }
+
+        return data
     },
     (error) => {
         console.error('响应错误:', error)
