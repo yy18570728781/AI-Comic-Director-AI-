@@ -1,9 +1,18 @@
 import { message } from 'antd'
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
-const baseURL = import.meta.env.VITE_API_BASE_URL
+const baseURL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:7001'
 
+/**
+ * 统一 API 响应类型
+ */
+export interface ApiResponse<T = any> {
+    success: boolean
+    data: T
+    message?: string
+    code?: number
+}
 
 const service: AxiosInstance = axios.create({
     baseURL,
@@ -30,21 +39,55 @@ service.interceptors.request.use(
 
 // 响应拦截器
 service.interceptors.response.use(
-    (response: AxiosResponse) => {
-        const res = response.data
-
-        if (res.success === false) {
-            message.error(res.message || '请求失败')
-            return Promise.reject(new Error(res.message || '请求失败'))
-        }
-
-        return res
+    (response) => {
+        // 直接返回 response.data，它应该是 ApiResponse 格式
+        return response.data
     },
     (error) => {
         console.error('响应错误:', error)
-        message.error(error.message || '网络错误')
+
+        // 统一错误处理
+        const errorMessage = error.response?.data?.message || error.message || '网络错误'
+        message.error(errorMessage)
+
         return Promise.reject(error)
     }
 )
+
+// 带泛型的请求方法
+export const request = <T = any>(
+    config: AxiosRequestConfig
+): Promise<ApiResponse<T>> => {
+    return service(config) as Promise<ApiResponse<T>>
+}
+
+// 便捷方法
+export const get = <T = any>(
+    url: string,
+    params?: any
+): Promise<ApiResponse<T>> => {
+    return service.get(url, { params }) as Promise<ApiResponse<T>>
+}
+
+export const post = <T = any>(
+    url: string,
+    data?: any
+): Promise<ApiResponse<T>> => {
+    return service.post(url, data) as Promise<ApiResponse<T>>
+}
+
+export const put = <T = any>(
+    url: string,
+    data?: any
+): Promise<ApiResponse<T>> => {
+    return service.put(url, data) as Promise<ApiResponse<T>>
+}
+
+export const del = <T = any>(
+    url: string,
+    data?: any
+): Promise<ApiResponse<T>> => {
+    return service.delete(url, { data }) as Promise<ApiResponse<T>>
+}
 
 export default service
