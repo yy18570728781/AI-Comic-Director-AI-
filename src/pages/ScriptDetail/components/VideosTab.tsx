@@ -12,7 +12,8 @@ interface Shot {
   id: number;
   shotNumber: number;
   scene?: string;
-  visualDescription?: string;
+  imagePrompt?: string;
+  videoPrompt?: string;
   videos?: ShotVideo[];
 }
 
@@ -63,12 +64,32 @@ export default function VideosTab({ shots }: VideosTabProps) {
             </Space>
           }
         >
-          {shot.visualDescription && (
-            <div style={{ marginBottom: 12 }}>
-              <strong>画面描述：</strong>
-              <div style={{ marginTop: 4, color: '#666' }}>
-                {shot.visualDescription}
-              </div>
+          {/* 提示词显示 */}
+          {(shot.imagePrompt || shot.videoPrompt) && (
+            <div
+              style={{
+                marginBottom: 12,
+                padding: 12,
+                backgroundColor: '#f5f5f5',
+                borderRadius: 4,
+              }}
+            >
+              {shot.imagePrompt && (
+                <div style={{ marginBottom: shot.videoPrompt ? 8 : 0 }}>
+                  <strong>图像提示词：</strong>
+                  <div style={{ marginTop: 4, color: '#666', fontSize: 12 }}>
+                    {shot.imagePrompt}
+                  </div>
+                </div>
+              )}
+              {shot.videoPrompt && (
+                <div>
+                  <strong>视频提示词：</strong>
+                  <div style={{ marginTop: 4, color: '#666', fontSize: 12 }}>
+                    {shot.videoPrompt}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
