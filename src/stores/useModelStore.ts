@@ -11,16 +11,22 @@ export interface ModelConfig {
 
 // 默认模型配置
 export const DEFAULT_MODEL_CONFIG: ModelConfig = {
-    imageModel: 'wanx',
-    videoModel: 'wan2.6-i2v-flash',
+    imageModel: 'seedream', // 默认使用即梦（Seedream）
+    videoModel: 'videopilot', // 默认使用 VideoPilot
 };
 
-// 模型选项接口
+// 配置版本号，用于强制更新
+const CONFIG_VERSION = 2;
+
+// 模型选项接口（与后端返回的格式一致）
 export interface ModelOption {
-    value: string;
-    label: string;
+    id: string;
+    name: string;
     description: string;
     type: 'image' | 'video';
+    provider: string;
+    features: string[];
+    available: boolean;
 }
 
 // 模型列表状态（纯内存，不持久化）
@@ -60,6 +66,7 @@ export const useModelStore = create<ModelState>()(
                 try {
                     const res = await getModelList();
                     if (res.success && res.data) {
+                        // 直接使用后端返回的数据结构，不做转换
                         set({
                             imageModels: res.data.imageModels || [],
                             videoModels: res.data.videoModels || [],
