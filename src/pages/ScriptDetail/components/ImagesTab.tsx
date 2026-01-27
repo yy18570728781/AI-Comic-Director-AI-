@@ -8,7 +8,6 @@ import {
   StarOutlined,
 } from '@ant-design/icons';
 
-import ImageGenerateModal from './ImageGenerateModal';
 import VideoGenerateModal from './VideoGenerateModal';
 
 interface ShotImage {
@@ -38,7 +37,6 @@ interface ImagesTabProps {
   generatingImages: Set<number>;
   generatingVideos: Set<number>;
   scriptId?: number;
-  onGenerateImage: (shot: Shot, config: any) => void;
   onGenerateVideo: (shot: Shot, config: any) => void;
   onEditShot: (shot: Shot) => void;
   onDeleteShot: (shotId: number) => void;
@@ -52,20 +50,12 @@ export default function ImagesTab({
   generatingImages,
   generatingVideos,
   scriptId,
-  onGenerateImage,
   onGenerateVideo,
   onEditShot,
   onDeleteShot,
 }: ImagesTabProps) {
-  const [imageModalVisible, setImageModalVisible] = useState(false);
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [currentShot, setCurrentShot] = useState<Shot | null>(null);
-
-  // 打开图像生成弹窗
-  const handleOpenImageModal = (shot: Shot) => {
-    setCurrentShot(shot);
-    setImageModalVisible(true);
-  };
 
   // 打开视频生成弹窗
   const handleOpenVideoModal = (shot: Shot) => {
@@ -74,22 +64,9 @@ export default function ImagesTab({
   };
 
   // 关闭弹窗
-  const handleCloseImageModal = () => {
-    setImageModalVisible(false);
-    setCurrentShot(null);
-  };
-
   const handleCloseVideoModal = () => {
     setVideoModalVisible(false);
     setCurrentShot(null);
-  };
-
-  // 提交图像生成
-  const handleSubmitImageGenerate = (config: any) => {
-    if (currentShot) {
-      onGenerateImage(currentShot, config);
-      handleCloseImageModal();
-    }
   };
 
   // 提交视频生成
@@ -339,19 +316,11 @@ export default function ImagesTab({
               borderTop: '1px solid #f0f0f0',
             }}
           >
-            {/* 主要操作 - 两个大按钮 */}
+            {/* 主要操作 - 生成视频按钮 */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
               <Button
                 style={{ flex: 1 }}
                 type="primary"
-                icon={<PictureOutlined />}
-                onClick={() => handleOpenImageModal(shot)}
-                loading={generatingImages.has(shot.id)}
-              >
-                生成图像
-              </Button>
-              <Button
-                style={{ flex: 1 }}
                 icon={<VideoCameraOutlined />}
                 onClick={() => handleOpenVideoModal(shot)}
                 loading={generatingVideos.has(shot.id)}
@@ -401,15 +370,6 @@ export default function ImagesTab({
   return (
     <>
       {content}
-
-      {/* 图像生成配置弹窗 */}
-      <ImageGenerateModal
-        visible={imageModalVisible}
-        shot={currentShot}
-        loading={currentShot ? generatingImages.has(currentShot.id) : false}
-        onCancel={handleCloseImageModal}
-        onSubmit={handleSubmitImageGenerate}
-      />
 
       {/* 视频生成配置弹窗 */}
       <VideoGenerateModal
