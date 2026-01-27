@@ -1,4 +1,4 @@
-import request from './request'
+import { request } from './request'
 
 /**
  * 生成视频

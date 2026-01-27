@@ -1,4 +1,4 @@
-import request from './request'
+import { request } from './request'
 
 // AI 创作相关接口
 

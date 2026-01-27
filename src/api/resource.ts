@@ -1,4 +1,4 @@
-import request from './request'
+import { request } from './request'
 
 /**
  * 创建资源（Resource 实体 - 统一资源库）

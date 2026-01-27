@@ -1,34 +1,34 @@
-import request from './request'
+import { request } from './request'
 
 /**
  * 生成图像
  */
 export function generateImage(data: {
-    prompt: string
-    model?: string
-    width?: number
-    height?: number
-    style?: string
-    referenceImages?: string[]
-    seed?: number
+  prompt: string
+  model?: string
+  width?: number
+  height?: number
+  style?: string
+  referenceImages?: string[]
+  seed?: number
 }) {
-    return request({
-        url: '/api/ai/image/generate',
-        method: 'post',
-        data,
-        timeout: 120000, // 2分钟超时
-    })
+  return request({
+    url: '/api/ai/image/generate',
+    method: 'post',
+    data,
+    timeout: 120000, // 2分钟超时
+  })
 }
 
 /**
  * 查询图像生成状态
  */
 export function getImageStatus(taskId: string) {
-    return request({
-        url: '/api/ai/image/status',
-        method: 'post',
-        data: { taskId },
-    })
+  return request({
+    url: '/api/ai/image/status',
+    method: 'post',
+    data: { taskId },
+  })
 }
 
 /**
@@ -38,8 +38,8 @@ export function getImageStatus(taskId: string) {
  * 1. 融图任务（taskId 以 blend- 开头）
  * 2. 分镜图片任务（其他 taskId）
  */
-export function batchGetImageStatus(tasks: Array<{ 
-  taskId: string; 
+export function batchGetImageStatus(tasks: Array<{
+  taskId: string;
   shotId: number;
   isBlend?: boolean;
 }>) {
@@ -54,27 +54,27 @@ export function batchGetImageStatus(tasks: Array<{
  * 为分镜生成图像
  */
 export function generateShotImage(shotId: number, data: {
-    prompt?: string
-    referenceImages?: string[]
+  prompt?: string
+  referenceImages?: string[]
 }) {
-    return request({
-        url: `/api/shot/${shotId}/image`,
-        method: 'post',
-        data,
-        timeout: 120000,
-    })
+  return request({
+    url: `/api/shot/${shotId}/image`,
+    method: 'post',
+    data,
+    timeout: 120000,
+  })
 }
 
 /**
  * AI 优化图像提示词
  */
 export function optimizeImagePrompt(prompt: string) {
-    return request({
-        url: '/api/ai/image/optimize-prompt',
-        method: 'post',
-        data: { prompt },
-        timeout: 30000,
-    })
+  return request({
+    url: '/api/ai/image/optimize-prompt',
+    method: 'post',
+    data: { prompt },
+    timeout: 30000,
+  })
 }
 
 /**

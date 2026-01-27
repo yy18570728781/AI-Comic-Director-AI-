@@ -1,6 +1,6 @@
 import { message } from 'antd'
 import axios from 'axios'
-import type { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosRequestConfig, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7001'
 
@@ -14,23 +14,13 @@ export interface ApiResponse<T = any> {
     code?: number
 }
 
-// 创建自定义的 axios 实例类型
-interface CustomAxiosInstance extends AxiosInstance {
-    <T = any>(config: AxiosRequestConfig): Promise<ApiResponse<T>>
-    <T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
-    get<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
-    post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
-    put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
-    delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>>
-}
-
 const service = axios.create({
     baseURL,
     timeout: 120000,
     headers: {
         'Content-Type': 'application/json',
     },
-}) as CustomAxiosInstance
+})
 
 // 请求拦截器
 service.interceptors.request.use(
@@ -60,11 +50,25 @@ service.interceptors.response.use(
     }
 )
 
-// 导出便捷方法
-export const request = service
-export const get = service.get
-export const post = service.post
-export const put = service.put
-export const del = service.delete
+// 导出类型安全的请求方法
+export const request = <T = any>(config: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    return service(config)
+}
+
+export const get = <T = any>(url: string, params?: any): Promise<ApiResponse<T>> => {
+    return service.get(url, { params })
+}
+
+export const post = <T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> => {
+    return service.post(url, data, config)
+}
+
+export const put = <T = any>(url: string, data?: any): Promise<ApiResponse<T>> => {
+    return service.put(url, data)
+}
+
+export const del = <T = any>(url: string): Promise<ApiResponse<T>> => {
+    return service.delete(url)
+}
 
 export default service

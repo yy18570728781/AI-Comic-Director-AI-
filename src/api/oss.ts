@@ -1,4 +1,4 @@
-import request from './request';
+import { post } from './request';
 
 /**
  * 上传单个文件到 OSS
@@ -8,7 +8,7 @@ export const uploadFile = async (file: File, folder: string = 'uploads') => {
     formData.append('file', file);
     formData.append('folder', folder);
 
-    return request.post('/api/oss/upload', formData, {
+    return post('/api/oss/upload', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
@@ -25,7 +25,7 @@ export const uploadFiles = async (files: File[], folder: string = 'uploads') => 
     });
     formData.append('folder', folder);
 
-    return request.post('/api/oss/upload-batch', formData, {
+    return post('/api/oss/upload-batch', formData, {
         headers: {
             'Content-Type': 'multipart/form-data',
         },
