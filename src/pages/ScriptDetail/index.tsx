@@ -644,7 +644,6 @@ function ScriptDetail() {
             generatingImages={generatingImages}
             generatingVideos={generatingVideos}
             scriptId={script.id}
-            onGenerateImage={handleGenerateImage}
             onGenerateVideo={handleGenerateVideo}
             onEditShot={handleEditShot}
             onDeleteShot={handleDeleteShot}
