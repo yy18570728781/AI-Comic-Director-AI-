@@ -12,11 +12,11 @@ export interface ModelConfig {
 // 默认模型配置
 export const DEFAULT_MODEL_CONFIG: ModelConfig = {
     imageModel: 'seedream', // 默认使用即梦（Seedream）
-    videoModel: 'videopilot', // 默认使用 VideoPilot
+    videoModel: 'seedance-pro-fast', // 默认使用 Seedance Pro Fast
 };
 
 // 配置版本号，用于强制更新
-const CONFIG_VERSION = 2;
+const CONFIG_VERSION = 5; // 增加版本号，强制重置配置
 
 // 模型选项接口（与后端返回的格式一致）
 export interface ModelOption {
@@ -96,7 +96,16 @@ export const useModelStore = create<ModelState>()(
                 // 只持久化用户选择的模型，模型列表不持久化
                 imageModel: state.imageModel,
                 videoModel: state.videoModel,
+                version: CONFIG_VERSION, // 添加版本号
             }),
+            // 添加版本检查
+            onRehydrateStorage: () => (state) => {
+                if (state && (state as any).version !== CONFIG_VERSION) {
+                    console.log('🔄 模型配置版本更新，重置为默认配置');
+                    // 版本不匹配，重置为默认配置
+                    Object.assign(state, DEFAULT_MODEL_CONFIG);
+                }
+            },
         }
     )
 );
