@@ -97,9 +97,9 @@ export default function CustomUploadTab({
       return false;
     }
 
-    const isLt10M = file.size / 1024 / 1024 < 10;
-    if (!isLt10M) {
-      message.error('图片大小不能超过 10MB！');
+    const isLt20M = file.size / 1024 / 1024 < 20;
+    if (!isLt20M) {
+      message.error('图片大小不能超过 20MB！');
       return false;
     }
 
