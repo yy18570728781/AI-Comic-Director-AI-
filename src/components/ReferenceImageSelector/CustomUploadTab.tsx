@@ -3,6 +3,7 @@ import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { uploadFile } from '@/api/oss';
+import { compressImage, shouldCompress } from '@/utils/imageCompress';
 
 interface CustomUploadTabProps {
   maxCount?: number;
@@ -42,9 +43,34 @@ export default function CustomUploadTab({
 
     setUploading(true);
     try {
-      const res: any = await uploadFile(file as File, 'reference-images');
+      let fileToUpload = file as File;
+      
+      // 检查是否需要压缩
+      if (shouldCompress(fileToUpload)) {
+        const sizeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
+        message.info(`图片较大 (${sizeMB}MB)，正在智能压缩...`);
+        
+        // 使用自动质量调整的压缩
+        fileToUpload = await compressImage(fileToUpload, {
+          maxWidth: 1920,
+          maxHeight: 1080,
+          autoQuality: true // 启用自动质量调整
+        });
+        
+        const compressedSizeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
+        message.success(`压缩完成！${sizeMB}MB → ${compressedSizeMB}MB`);
+        
+        // 压缩后再次检查大小，确保不超过合理限制
+        const finalSizeMB = fileToUpload.size / 1024 / 1024;
+        if (finalSizeMB > 10) {
+          message.error(`压缩后文件仍然过大 (${compressedSizeMB}MB)，请选择更小的图片`);
+          return;
+        }
+      }
+      
+      const res: any = await uploadFile(fileToUpload, 'reference-images');
 
-      console.log('上传响应:', res);
+
 
       if (res.success) {
         const url = res.data.url;
@@ -89,7 +115,7 @@ export default function CustomUploadTab({
     onChange?.(urls);
   };
 
-  // 上传前的校验
+  // 上传前的校验（只做基本校验，不涉及压缩）
   const beforeUpload = (file: File) => {
     const isImage = file.type.startsWith('image/');
     if (!isImage) {
@@ -97,10 +123,17 @@ export default function CustomUploadTab({
       return false;
     }
 
-    const isLt20M = file.size / 1024 / 1024 < 20;
-    if (!isLt20M) {
-      message.error('图片大小不能超过 20MB！');
+    // 放宽原始文件限制，因为我们会压缩
+    const isLt50M = file.size / 1024 / 1024 < 50;
+    if (!isLt50M) {
+      message.error('图片大小不能超过 50MB！');
       return false;
+    }
+
+    // 显示压缩提示
+    if (shouldCompress(file)) {
+      const sizeMB = (file.size / 1024 / 1024).toFixed(1);
+      message.info(`检测到大图片 (${sizeMB}MB)，将智能压缩优化`);
     }
 
     return true;
@@ -133,8 +166,11 @@ export default function CustomUploadTab({
         {fileList.length >= maxCount ? null : uploadButton}
       </Upload>
       <div style={{ marginTop: 8, color: '#999', fontSize: 12 }}>
-        支持 jpg、png、webp、gif 格式，单张图片不超过 10MB，最多上传 {maxCount}{' '}
-        张
+        支持 jpg、png、webp、gif 格式，原始文件不超过 50MB，最多上传 {maxCount} 张
+        <br />
+        <span style={{ color: '#1890ff' }}>
+          🤖 智能压缩：&gt;2MB自动压缩，保持高质量便于AI识别，最终不超过10MB
+        </span>
       </div>
 
       {/* 图片预览 Modal */}
