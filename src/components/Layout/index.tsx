@@ -9,6 +9,8 @@ import {
   TeamOutlined,
   UserOutlined,
   SettingOutlined,
+  VideoCameraOutlined,
+  CameraOutlined,
 } from '@ant-design/icons';
 
 import ModelSettingsModal from '@/components/ModelSettingsModal';
@@ -29,6 +31,16 @@ const menuItems: MenuItem[] = [
     key: '/script-management',
     icon: <FileTextOutlined />,
     label: '剧本管理',
+  },
+  {
+    key: '/image-to-video',
+    icon: <VideoCameraOutlined />,
+    label: '图生视频',
+  },
+  {
+    key: '/image-to-image',
+    icon: <CameraOutlined />,
+    label: '图生图',
   },
   {
     key: '/resource-library',
