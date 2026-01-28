@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Button,
   Card,
@@ -12,7 +12,6 @@ import {
   Tag,
   theme,
   Switch,
-  InputNumber,
 } from 'antd';
 import { PlusOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useModelStore } from '@/stores/useModelStore';
@@ -29,6 +28,7 @@ interface ModelConfig {
   description: string;
   config?: {
     resolutions?: string[];
+    aspectRatios?: string[];
     durations?: number[];
     supportFirstLastFrame?: boolean;
     supportCameraMovement?: boolean;
@@ -45,6 +45,7 @@ function ImageToVideo() {
   const [prompt, setPrompt] = useState('');
   const [duration, setDuration] = useState<number>(5);
   const [resolution, setResolution] = useState<string>('720p');
+  const [aspectRatio, setAspectRatio] = useState<string>('16:9');
   const [cameraFixed, setCameraFixed] = useState<boolean>(false);
   const [watermark, setWatermark] = useState<boolean>(true);
   const [selectorVisible, setSelectorVisible] = useState(false);
@@ -52,7 +53,7 @@ function ImageToVideo() {
   const [generatedVideos, setGeneratedVideos] = useState<string[]>([]);
 
   // 使用任务轮询 Hook
-  const { addTask, removeTask, tasks } = useTaskPolling({
+  const { addTask, tasks } = useTaskPolling({
     onTaskComplete: (taskId: string, result: any) => {
       console.log('✅ 视频生成完成:', taskId, result);
       if (result.videos && result.videos.length > 0) {
@@ -89,6 +90,11 @@ function ImageToVideo() {
           if (currentConfig?.resolutions && currentConfig.resolutions.length > 0) {
             setResolution(currentConfig.resolutions[0]);
           }
+          console.log(currentConfig);
+          
+          if (currentConfig?.aspectRatios && currentConfig.aspectRatios.length > 0) {
+            setAspectRatio(currentConfig.aspectRatios[0]);
+          }
         }
       } catch (error) {
         message.error('获取模型列表失败');
@@ -103,6 +109,8 @@ function ImageToVideo() {
   // 获取当前选中的模型配置
   const currentModel = models.find((m) => m.id === videoModel) as ModelConfig | undefined;
   const modelConfig = currentModel?.config;
+ 
+  
 
   // 当模型改变时，重置配置
   const handleModelChange = (value: string) => {
@@ -117,6 +125,9 @@ function ImageToVideo() {
     }
     if (newConfig?.resolutions && newConfig.resolutions.length > 0) {
       setResolution(newConfig.resolutions[0]);
+    }
+    if (newConfig?.aspectRatios && newConfig.aspectRatios.length > 0) {
+      setAspectRatio(newConfig.aspectRatios[0]);
     }
   };
 
@@ -145,9 +156,12 @@ function ImageToVideo() {
       if (modelConfig?.resolutions) {
         requestData.resolution = resolution;
       }
+      if (modelConfig?.aspectRatios) {
+        requestData.aspectRatio = aspectRatio;
+      }
 
       // Seedance 特有参数
-      if (videoModel === 'seedance') {
+      if (videoModel.includes('seedance')) {
         requestData.cameraFixed = cameraFixed;
         requestData.watermark = watermark;
       }
@@ -200,10 +214,10 @@ function ImageToVideo() {
   };
 
   // 下载视频
-  const handleDownload = (videoUrl: string, index: number) => {
+  const handleDownload = (videoUrl: string) => {
     const link = document.createElement('a');
     link.href = videoUrl;
-    link.download = `generated-video-${index + 1}.mp4`;
+    link.download = `generated-video-${Date.now()}.mp4`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -211,7 +225,7 @@ function ImageToVideo() {
   };
 
   // 收藏视频
-  const handleFavorite = (videoUrl: string, index: number) => {
+  const handleFavorite = (videoUrl: string) => {
     // TODO: 调用收藏 API
     message.success('视频已收藏');
   };
@@ -352,8 +366,27 @@ function ImageToVideo() {
                   </div>
                 )}
 
+                {/* 画面比例选择 */}
+                {modelConfig?.aspectRatios && modelConfig.aspectRatios.length > 0 && (
+                  <div>
+                    <div style={{ marginBottom: 12, fontWeight: 500 }}>画面比例</div>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      {modelConfig.aspectRatios.map((ratio) => (
+                        <Tag
+                          key={ratio}
+                          color={aspectRatio === ratio ? 'blue' : 'default'}
+                          onClick={() => setAspectRatio(ratio)}
+                          style={{ cursor: 'pointer', padding: '4px 12px' }}
+                        >
+                          {ratio === '16:9' ? '16:9 (横屏)' : '9:16 (竖屏)'}
+                        </Tag>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Seedance 特有参数 */}
-                {videoModel === 'seedance' && (
+                {videoModel.includes('seedance') && (
                   <>
                     {/* 镜头运动 */}
                     {modelConfig?.supportCameraMovement && (
@@ -523,7 +556,7 @@ function ImageToVideo() {
                         type="link"
                         size="small"
                         block
-                        onClick={() => handleDownload(video, idx)}
+                        onClick={() => handleDownload(video)}
                       >
                         下载
                       </Button>
@@ -531,7 +564,7 @@ function ImageToVideo() {
                         type="link"
                         size="small"
                         block
-                        onClick={() => handleFavorite(video, idx)}
+                        onClick={() => handleFavorite(video)}
                       >
                         收藏
                       </Button>

@@ -10,6 +10,7 @@ export function generateVideo(data: {
     referenceImage?: string
     referenceImages?: string[]
     resolution?: string
+    aspectRatio?: string
 }) {
     return request({
         url: '/api/ai/video/generate',
