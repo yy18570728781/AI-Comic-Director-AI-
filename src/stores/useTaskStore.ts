@@ -16,25 +16,38 @@ export interface VideoTask {
   createdAt: number;
 }
 
+// 通用任务类型（用于独立页面）
+export interface GeneralTask {
+  taskId: string;
+  type: 'image' | 'video';
+  model: string;
+  createdAt: number;
+}
+
 // 任务状态
 export interface TaskState {
   imageTasks: ImageTask[];
   videoTasks: VideoTask[];
+  generalTasks: GeneralTask[]; // 新增：独立页面任务
   
   // 添加任务
   addImageTask: (task: Omit<ImageTask, 'createdAt'>) => void;
   addVideoTask: (task: Omit<VideoTask, 'createdAt'>) => void;
+  addGeneralTask: (task: Omit<GeneralTask, 'createdAt'>) => void;
   
   // 移除任务
   removeImageTask: (taskId: string) => void;
   removeVideoTask: (taskId: string) => void;
+  removeGeneralTask: (taskId: string) => void;
   
   // 清空任务
   clearImageTasks: () => void;
   clearVideoTasks: () => void;
+  clearGeneralTasks: () => void;
   
   // 批量移除（已完成/失败）
   removeFinishedImageTasks: (finishedTaskIds: string[]) => void;
+  removeFinishedGeneralTasks: (finishedTaskIds: string[]) => void;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -42,6 +55,7 @@ export const useTaskStore = create<TaskState>()(
     (set) => ({
       imageTasks: [],
       videoTasks: [],
+      generalTasks: [],
 
       addImageTask: (task) =>
         set((state) => ({
@@ -59,6 +73,14 @@ export const useTaskStore = create<TaskState>()(
           ],
         })),
 
+      addGeneralTask: (task) =>
+        set((state) => ({
+          generalTasks: [
+            ...state.generalTasks,
+            { ...task, createdAt: Date.now() },
+          ],
+        })),
+
       removeImageTask: (taskId) =>
         set((state) => ({
           imageTasks: state.imageTasks.filter((t) => t.taskId !== taskId),
@@ -69,12 +91,25 @@ export const useTaskStore = create<TaskState>()(
           videoTasks: state.videoTasks.filter((t) => t.taskId !== taskId),
         })),
 
+      removeGeneralTask: (taskId) =>
+        set((state) => ({
+          generalTasks: state.generalTasks.filter((t) => t.taskId !== taskId),
+        })),
+
       clearImageTasks: () => set({ imageTasks: [] }),
       clearVideoTasks: () => set({ videoTasks: [] }),
+      clearGeneralTasks: () => set({ generalTasks: [] }),
 
       removeFinishedImageTasks: (finishedTaskIds) =>
         set((state) => ({
           imageTasks: state.imageTasks.filter(
+            (t) => !finishedTaskIds.includes(t.taskId)
+          ),
+        })),
+
+      removeFinishedGeneralTasks: (finishedTaskIds) =>
+        set((state) => ({
+          generalTasks: state.generalTasks.filter(
             (t) => !finishedTaskIds.includes(t.taskId)
           ),
         })),

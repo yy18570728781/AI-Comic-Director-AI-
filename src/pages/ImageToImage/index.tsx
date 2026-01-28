@@ -17,6 +17,7 @@ import { useModelStore } from '@/stores/useModelStore';
 import ReferenceImageSelector from '@/components/ReferenceImageSelector';
 import { getModelList } from '@/api/model';
 import { generateImage, blendImages } from '@/api/image';
+import { useTaskPolling } from '@/hooks/useTaskPolling';
 
 const { TextArea } = Input;
 
@@ -44,6 +45,24 @@ function ImageToImage() {
   const [selectorVisible, setSelectorVisible] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+
+  // 使用任务轮询 Hook
+  const { addTask, removeTask, tasks } = useTaskPolling({
+    onTaskComplete: (taskId: string, result: any) => {
+      console.log('✅ 图像生成完成:', taskId, result);
+      if (result.images && result.images.length > 0) {
+        const imageUrls = result.images.map((img: any) => img.url);
+        setGeneratedImages(prev => [...prev, ...imageUrls]);
+        message.success(`图像生成完成！生成了 ${imageUrls.length} 张图片`);
+      }
+      setGenerating(false);
+    },
+    onTaskError: (taskId: string, error: string) => {
+      console.error('❌ 图像生成失败:', taskId, error);
+      message.error(`图像生成失败: ${error}`);
+      setGenerating(false);
+    },
+  });
 
   // 下载图片
   const handleDownload = (imageUrl: string, index: number) => {
@@ -215,11 +234,15 @@ function ImageToImage() {
           const imageUrls = images.map((img: any) => img.url);
           setGeneratedImages(imageUrls);
           message.success(`图像生成完成！生成了 ${imageUrls.length} 张图片`);
+          setGenerating(false);
         } else if (taskId) {
-          // 异步任务（需要轮询状态）
+          // 异步任务，添加到轮询队列
+          addTask({
+            taskId,
+            type: 'image',
+            model: imageModel,
+          });
           message.info('图像生成任务已提交，正在处理中...');
-          // TODO: 实现轮询逻辑
-          console.log('任务ID:', taskId);
         } else {
           throw new Error('响应数据格式错误');
         }
@@ -424,6 +447,32 @@ function ImageToImage() {
                     : '图生图 - 消耗 30 点'
                   }
                 </Button>
+
+                {/* 任务状态显示 */}
+                {tasks.length > 0 && (
+                  <div>
+                    <div style={{ marginBottom: 8, fontWeight: 500 }}>处理中的任务</div>
+                    {tasks.map((task: any) => (
+                      <div
+                        key={task.taskId}
+                        style={{
+                          padding: 8,
+                          backgroundColor: token.colorBgElevated,
+                          borderRadius: 4,
+                          marginBottom: 4,
+                        }}
+                      >
+                        <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                          {task.model} - {task.taskId.substring(0, 8)}...
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Spin size="small" />
+                          <span style={{ fontSize: 12 }}>生成中...</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </Space>
             </Spin>
           </Card>
@@ -440,7 +489,7 @@ function ImageToImage() {
               minHeight: 500,
             }}
           >
-            {generating && (
+            {generating && tasks.length === 0 && (
               <div
                 style={{
                   display: 'flex',
@@ -453,7 +502,7 @@ function ImageToImage() {
               </div>
             )}
 
-            {!generating && generatedImages.length === 0 && (
+            {!generating && generatedImages.length === 0 && tasks.length === 0 && (
               <div
                 style={{
                   display: 'flex',
