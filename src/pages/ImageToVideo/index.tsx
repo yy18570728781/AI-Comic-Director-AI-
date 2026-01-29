@@ -12,6 +12,7 @@ import {
   Tag,
   theme,
   Switch,
+  InputNumber,
 } from 'antd';
 import { PlusOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useModelStore } from '@/stores/useModelStore';
@@ -84,9 +85,6 @@ function ImageToVideo() {
           const currentModel = videoModels.find((m: any) => m.id === videoModel) as ModelConfig | undefined;
           const currentConfig = currentModel?.config;
           
-          if (currentConfig?.durations && currentConfig.durations.length > 0) {
-            setDuration(currentConfig.durations[0]);
-          }
           if (currentConfig?.resolutions && currentConfig.resolutions.length > 0) {
             setResolution(currentConfig.resolutions[0]);
           }
@@ -120,9 +118,6 @@ function ImageToVideo() {
     const newConfig = newModel?.config;
 
     // 重置为新模型的默认配置
-    if (newConfig?.durations && newConfig.durations.length > 0) {
-      setDuration(newConfig.durations[0]);
-    }
     if (newConfig?.resolutions && newConfig.resolutions.length > 0) {
       setResolution(newConfig.resolutions[0]);
     }
@@ -329,23 +324,21 @@ function ImageToVideo() {
                 </div>
 
                 {/* 时长选择 */}
-                {modelConfig?.durations && modelConfig.durations.length > 0 && (
-                  <div>
-                    <div style={{ marginBottom: 12, fontWeight: 500 }}>时长 (秒)</div>
-                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      {modelConfig.durations.map((d) => (
-                        <Tag
-                          key={d}
-                          color={duration === d ? 'blue' : 'default'}
-                          onClick={() => setDuration(d)}
-                          style={{ cursor: 'pointer', padding: '4px 12px' }}
-                        >
-                          {d}s
-                        </Tag>
-                      ))}
-                    </div>
+                <div>
+                  <div style={{ marginBottom: 12, fontWeight: 500 }}>时长 (秒)</div>
+                  <InputNumber
+                    min={1}
+                    max={15}
+                    value={duration}
+                    onChange={(value) => setDuration(value || 5)}
+                    style={{ width: '100%' }}
+                    placeholder="输入视频时长（1-15秒）"
+                    addonAfter="秒"
+                  />
+                  <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
+                    建议时长：3-10秒，最长不超过15秒
                   </div>
-                )}
+                </div>
 
                 {/* 分辨率选择 */}
                 {modelConfig?.resolutions && modelConfig.resolutions.length > 0 && (

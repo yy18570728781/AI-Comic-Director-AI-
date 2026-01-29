@@ -6,7 +6,6 @@ import {
   Button,
   Space,
   message,
-  Select,
   InputNumber,
   Tag,
 } from 'antd';
@@ -380,10 +379,11 @@ export default function VideoGenerateModal({
             rules={[{ required: true, message: '请输入视频时长' }]}
           >
             <InputNumber
-              min={3}
+              min={1}
               max={15}
               style={{ width: '100%' }}
-              placeholder="输入视频时长（3-15秒）"
+              placeholder="输入视频时长（1-15秒）"
+              addonAfter="秒"
             />
           </Form.Item>
 
