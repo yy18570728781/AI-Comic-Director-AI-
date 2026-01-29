@@ -81,20 +81,41 @@ function ImageToVideo() {
           const videoModels = response.data.videoModels || [];
           setModels(videoModels);
 
-          // 初始化当前模型的配置项
+          // 检查当前选择的视频模型是否存在
           const currentModel = videoModels.find((m: any) => m.id === videoModel) as ModelConfig | undefined;
+          
+          if (!currentModel && videoModels.length > 0) {
+            // 如果当前模型不存在（比如选择了图像模型），重置为默认视频模型
+            console.warn(`当前选择的模型 "${videoModel}" 不是视频模型，重置为默认模型`);
+            const defaultVideoModel = videoModels[0].id;
+            setVideoModel(defaultVideoModel);
+            
+            // 使用默认模型的配置初始化
+            const defaultConfig = videoModels[0].config;
+            if (defaultConfig?.resolutions && defaultConfig.resolutions.length > 0) {
+              setResolution(defaultConfig.resolutions[0]);
+            }
+            if (defaultConfig?.aspectRatios && defaultConfig.aspectRatios.length > 0) {
+              setAspectRatio(defaultConfig.aspectRatios[0]);
+            }
+            return;
+          }
+          
+          // 使用当前模型的配置
           const currentConfig = currentModel?.config;
           
           if (currentConfig?.resolutions && currentConfig.resolutions.length > 0) {
             setResolution(currentConfig.resolutions[0]);
           }
-          console.log(currentConfig);
           
           if (currentConfig?.aspectRatios && currentConfig.aspectRatios.length > 0) {
             setAspectRatio(currentConfig.aspectRatios[0]);
           }
+          
+          console.log('当前模型配置:', currentConfig);
         }
       } catch (error) {
+        console.error('获取模型列表失败:', error);
         message.error('获取模型列表失败');
       } finally {
         setLoading(false);
@@ -102,7 +123,7 @@ function ImageToVideo() {
     };
 
     fetchModels();
-  }, [videoModel]);
+  }, [videoModel, setVideoModel]);
 
   // 获取当前选中的模型配置
   const currentModel = models.find((m) => m.id === videoModel) as ModelConfig | undefined;
@@ -333,7 +354,7 @@ function ImageToVideo() {
                     onChange={(value) => setDuration(value || 5)}
                     style={{ width: '100%' }}
                     placeholder="输入视频时长（1-15秒）"
-                    addonAfter="秒"
+                    suffix="秒"
                   />
                   <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
                     {modelConfig?.durations && modelConfig.durations.length > 0 ? (
@@ -375,7 +396,7 @@ function ImageToVideo() {
                           onClick={() => setAspectRatio(ratio)}
                           style={{ cursor: 'pointer', padding: '4px 12px' }}
                         >
-                          {ratio === '16:9' ? '16:9 (横屏)' : '9:16 (竖屏)'}
+                          {ratio === '16:9' ? '16:9 (电脑)' : ratio === '9:16' ? '9:16 (手机)' : ratio}
                         </Tag>
                       ))}
                     </div>
