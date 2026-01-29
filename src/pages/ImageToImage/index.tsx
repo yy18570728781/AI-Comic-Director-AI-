@@ -10,6 +10,7 @@ import {
   Spin,
   message,
   Tag,
+  Image,
   theme,
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
@@ -52,7 +53,7 @@ function ImageToImage() {
       console.log('✅ 图像生成完成:', taskId, result);
       if (result.images && result.images.length > 0) {
         const imageUrls = result.images.map((img: any) => img.url);
-        setGeneratedImages(prev => [...prev, ...imageUrls]);
+        setGeneratedImages((prev) => [...prev, ...imageUrls]);
         message.success(`图像生成完成！生成了 ${imageUrls.length} 张图片`);
       }
       setGenerating(false);
@@ -162,7 +163,7 @@ function ImageToImage() {
     setGenerating(true);
     try {
       let response;
-      
+
       // 判断是否为多图融合
       if (selectedImages.length > 1 && modelConfig?.supportMultiImageFusion) {
         // 多图融合
@@ -210,15 +211,19 @@ function ImageToImage() {
         if (aspectRatio && aspectRatio !== '1:1') {
           const [widthRatio, heightRatio] = aspectRatio.split(':').map(Number);
           const baseSize = requestData.width;
-          
+
           if (widthRatio > heightRatio) {
             // 横屏
             requestData.width = baseSize;
-            requestData.height = Math.round(baseSize * heightRatio / widthRatio);
+            requestData.height = Math.round(
+              (baseSize * heightRatio) / widthRatio,
+            );
           } else {
             // 竖屏
             requestData.height = baseSize;
-            requestData.width = Math.round(baseSize * widthRatio / heightRatio);
+            requestData.width = Math.round(
+              (baseSize * widthRatio) / heightRatio,
+            );
           }
         }
 
@@ -228,7 +233,7 @@ function ImageToImage() {
 
       if (response.success && response.data) {
         const { images, taskId } = response.data;
-        
+
         if (images && images.length > 0) {
           // 同步返回结果（如 Seedream）
           const imageUrls = images.map((img: any) => img.url);
@@ -251,7 +256,7 @@ function ImageToImage() {
       }
     } catch (error: any) {
       console.error('❌ 图像生成失败:', error);
-      
+
       // 根据错误类型提供更友好的提示
       let errorMessage = '生成失败，请重试';
       if (error.message?.includes('timeout')) {
@@ -263,7 +268,7 @@ function ImageToImage() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       message.error(errorMessage);
     } finally {
       setGenerating(false);
@@ -442,16 +447,18 @@ function ImageToImage() {
                   onClick={handleGenerate}
                   disabled={!selectedImages.length || !prompt.trim()}
                 >
-                  {selectedImages.length > 1 && modelConfig?.supportMultiImageFusion
+                  {selectedImages.length > 1 &&
+                  modelConfig?.supportMultiImageFusion
                     ? `多图融合 (${selectedImages.length}张图) - 消耗 30 点`
-                    : '图生图 - 消耗 30 点'
-                  }
+                    : '图生图 - 消耗 30 点'}
                 </Button>
 
                 {/* 任务状态显示 */}
                 {tasks.length > 0 && (
                   <div>
-                    <div style={{ marginBottom: 8, fontWeight: 500 }}>处理中的任务</div>
+                    <div style={{ marginBottom: 8, fontWeight: 500 }}>
+                      处理中的任务
+                    </div>
                     {tasks.map((task: any) => (
                       <div
                         key={task.taskId}
@@ -462,10 +469,21 @@ function ImageToImage() {
                           marginBottom: 4,
                         }}
                       >
-                        <div style={{ fontSize: 12, color: token.colorTextSecondary }}>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: token.colorTextSecondary,
+                          }}
+                        >
                           {task.model} - {task.taskId.substring(0, 8)}...
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                          }}
+                        >
                           <Spin size="small" />
                           <span style={{ fontSize: 12 }}>生成中...</span>
                         </div>
@@ -489,43 +507,6 @@ function ImageToImage() {
               minHeight: 500,
             }}
           >
-            {generating && tasks.length === 0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  minHeight: 400,
-                }}
-              >
-                <Spin tip="正在生成图像..." />
-              </div>
-            )}
-
-            {!generating && generatedImages.length === 0 && tasks.length === 0 && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  minHeight: 400,
-                  color: token.colorTextTertiary,
-                  flexDirection: 'column',
-                  gap: 16,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 48,
-                    color: token.colorBorder,
-                  }}
-                >
-                  📷
-                </div>
-                <div>点击"生成图像"开始创建</div>
-              </div>
-            )}
-
             {!generating && generatedImages.length > 0 && (
               <div
                 style={{
@@ -534,54 +515,48 @@ function ImageToImage() {
                   gap: 16,
                 }}
               >
-                {generatedImages.map((img, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      borderRadius: token.borderRadiusLG,
-                      overflow: 'hidden',
-                      border: `1px solid ${token.colorBorder}`,
-                      display: 'flex',
-                      flexDirection: 'column',
-                    }}
-                  >
-                    <img
-                      src={img}
-                      alt={`generated-${idx}`}
-                      style={{
-                        width: '100%',
-                        height: 250,
-                        objectFit: 'cover',
-                      }}
-                    />
+                <Image.PreviewGroup>
+                  {generatedImages.map((img, idx) => (
                     <div
+                      key={idx}
                       style={{
-                        padding: 12,
-                        borderTop: `1px solid ${token.colorBorder}`,
-                        backgroundColor: token.colorBgElevated,
+                        borderRadius: token.borderRadiusLG,
+                        overflow: 'hidden',
+                        border: `1px solid ${token.colorBorder}`,
                         display: 'flex',
-                        gap: 8,
+                        flexDirection: 'column',
                       }}
                     >
-                      <Button 
-                        type="link" 
-                        size="small" 
-                        block
-                        onClick={() => handleDownload(img, idx)}
+                      <Image
+                        src={img}
+                        alt={`generated-${idx}`}
+                        style={{
+                          width: '100%',
+                          height: 250,
+                          objectFit: 'cover',
+                        }}
+                        preview={{ mask: '预览' }}
+                        fallback="/images/placeholder.png"
+                      />
+                      <div
+                        style={{
+                          padding: 12,
+                          borderTop: `1px solid ${token.colorBorder}`,
+                          backgroundColor: token.colorBgElevated,
+                          display: 'flex',
+                          gap: 8,
+                        }}
                       >
-                        下载
-                      </Button>
-                      <Button 
-                        type="link" 
-                        size="small" 
-                        block
-                        onClick={() => handleFavorite(img, idx)}
-                      >
-                        收藏
-                      </Button>
+                        <Button type="link" size="small" block>
+                          下载
+                        </Button>
+                        <Button type="link" size="small" block>
+                          收藏
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </Image.PreviewGroup>
               </div>
             )}
           </Card>
