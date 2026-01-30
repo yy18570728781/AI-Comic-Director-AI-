@@ -45,6 +45,14 @@ service.interceptors.response.use(
         // 检查业务错误（success: false）
         if (data && typeof data === 'object' && 'success' in data && data.success === false) {
             const errorMessage = data.message || '操作失败'
+            
+            // 如果是认证相关错误，跳转到登录页
+            if (errorMessage.includes('登录') || errorMessage.includes('Token') || errorMessage.includes('认证')) {
+                localStorage.removeItem('token');
+                window.location.href = '/login';
+                return Promise.reject(new Error(errorMessage));
+            }
+            
             message.error(errorMessage)
             // 返回数据，让调用方可以处理
             return data
@@ -54,6 +62,15 @@ service.interceptors.response.use(
     },
     (error) => {
         console.error('响应错误:', error)
+        
+        // 处理HTTP状态码错误
+        if (error.response?.status === 401) {
+            message.error('登录已过期，请重新登录');
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+            return Promise.reject(error);
+        }
+        
         const errorMessage = error.response?.data?.message || error.message || '网络错误'
         message.error(errorMessage)
         return Promise.reject(error)
