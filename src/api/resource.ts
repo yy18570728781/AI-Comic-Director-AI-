@@ -102,7 +102,6 @@ export function saveToLibrary(data: {
  * 获取资源列表（剧本/分镜资源库）
  */
 export function getResourceList(params: {
-    userId?: number
     scriptId?: number | null
     type?: 'character' | 'scene' | 'prop' | 'blend'
     tags?: string[]
