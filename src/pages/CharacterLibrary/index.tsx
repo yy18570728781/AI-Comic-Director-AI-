@@ -4,6 +4,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { getScriptList } from '../../api/script';
 import { useNavigate } from 'react-router-dom';
 import { useScriptStore, Script } from '../../stores/useScriptStore';
+import { useUserStore } from '../../stores/useUserStore';
 import { 
   getScriptTableColumns, 
   statusFilterOptions, 
@@ -14,6 +15,7 @@ import {
 
 function CharacterLibrary() {
   const navigate = useNavigate();
+  const { currentUser } = useUserStore();
   const {
     loading,
     searchKeyword,
@@ -27,9 +29,15 @@ function CharacterLibrary() {
 
   // 获取剧本列表
   const fetchScripts = async () => {
+    if (!currentUser) {
+      message.error('请先登录');
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await getScriptList({
+        userId: currentUser.id, // 传递当前用户ID
         page: 1,
         pageSize: 100,
         keyword: searchKeyword,
@@ -48,8 +56,10 @@ function CharacterLibrary() {
   };
 
   useEffect(() => {
-    fetchScripts();
-  }, []);
+    if (currentUser) {
+      fetchScripts();
+    }
+  }, [currentUser]);
 
   // 搜索处理
   const handleSearch = () => {

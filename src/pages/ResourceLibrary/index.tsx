@@ -17,7 +17,6 @@ import {
 import {
   SearchOutlined,
   DeleteOutlined,
-  PlusOutlined,
 } from '@ant-design/icons';
 
 import { getResourceList, deleteResource } from '@/api/resource';
@@ -30,11 +29,10 @@ const { Title } = Typography;
  * 展示和管理所有资源（角色、场景、道具、融图）
  */
 export default function ResourceLibrary() {
-  const { user } = useUserStore();
+  const { currentUser } = useUserStore();
   const [resourceType, setResourceType] = useState<
     'character' | 'scene' | 'prop' | 'blend' | 'all'
   >('all');
-  const [scope, setScope] = useState<'all' | 'mine'>('all');
   const [keyword, setKeyword] = useState('');
   const [loading, setLoading] = useState(false);
   const [resources, setResources] = useState<any[]>([]);
@@ -50,7 +48,6 @@ export default function ResourceLibrary() {
     try {
       const res = await getResourceList({
         type: resourceType === 'all' ? undefined : resourceType,
-        userId: scope === 'mine' ? user?.id : undefined,
         keyword: keyword || undefined,
         page,
         pageSize: pagination.pageSize,
@@ -63,6 +60,11 @@ export default function ResourceLibrary() {
           current: page,
           total: res.data.total || 0,
         });
+        
+        // 如果有提示信息（比如未登录提示），显示给用户
+        if (res.message && res.data.list.length === 0) {
+          console.log(res.message); // 可以选择是否显示给用户
+        }
       } else {
         message.error(res.message || '获取资源列表失败');
       }
@@ -77,7 +79,7 @@ export default function ResourceLibrary() {
   // 当筛选条件变化时重新获取数据
   useEffect(() => {
     fetchResources(1);
-  }, [resourceType, scope]);
+  }, [resourceType]);
 
   // 搜索防抖
   useEffect(() => {
@@ -149,10 +151,10 @@ export default function ResourceLibrary() {
         {/* 页面标题 */}
         <div style={{ marginBottom: 24 }}>
           <Title level={4} style={{ margin: 0 }}>
-            资源库
+            我的资源库
           </Title>
           <div style={{ color: '#999', marginTop: 8 }}>
-            管理和浏览所有资源（角色、场景、道具、融图）
+            管理和浏览我的资源（角色、场景、道具、融图）
           </div>
         </div>
 
@@ -172,17 +174,6 @@ export default function ResourceLibrary() {
                   <Radio.Button value="scene">场景</Radio.Button>
                   <Radio.Button value="prop">道具</Radio.Button>
                   <Radio.Button value="blend">融图</Radio.Button>
-                </Radio.Group>
-              </div>
-              <div>
-                <span style={{ marginRight: 8, fontWeight: 500 }}>范围：</span>
-                <Radio.Group
-                  value={scope}
-                  onChange={(e) => setScope(e.target.value)}
-                  size="large"
-                >
-                  <Radio.Button value="all">全部</Radio.Button>
-                  <Radio.Button value="mine">我的</Radio.Button>
                 </Radio.Group>
               </div>
             </div>
@@ -210,18 +201,22 @@ export default function ResourceLibrary() {
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               description={
-                keyword
-                  ? '没有找到匹配的资源'
-                  : resourceType === 'all'
-                    ? '暂无资源'
-                    : `暂无${getTypeName(resourceType)}资源`
+                !currentUser
+                  ? '请登录后查看您的资源'
+                  : keyword
+                    ? '没有找到匹配的资源'
+                    : resourceType === 'all'
+                      ? '暂无资源'
+                      : `暂无${getTypeName(resourceType)}资源`
               }
               style={{ padding: '60px 0' }}
             >
               <div style={{ color: '#999', fontSize: 14 }}>
-                {keyword
-                  ? '尝试调整搜索关键词'
-                  : '请先创建资源并上传参考图'}
+                {!currentUser
+                  ? '登录后可以创建和管理您的专属资源'
+                  : keyword
+                    ? '尝试调整搜索关键词'
+                    : '请先创建资源并上传参考图'}
               </div>
             </Empty>
           </Card>
@@ -237,11 +232,6 @@ export default function ResourceLibrary() {
             >
               {resources.map((resource) => {
                 const imageUrl = getResourceImage(resource);
-                // 调试信息
-                console.log('资源:', resource.id, resource.name);
-                console.log('  images:', resource.images);
-                console.log('  referenceImages:', resource.referenceImages);
-                console.log('  imageUrl:', imageUrl);
 
                 return (
                   <Card
@@ -298,14 +288,6 @@ export default function ResourceLibrary() {
                                 <Spin size="small" />
                               </div>
                             }
-                            onError={(e) => {
-                              console.error('图片加载失败:', imageUrl);
-                              console.error('错误详情:', e);
-                              console.error('资源信息:', resource);
-                            }}
-                            onLoad={() => {
-                              console.log('✅ 图片加载成功:', imageUrl);
-                            }}
                           />
                           <div
                             style={{
@@ -319,33 +301,31 @@ export default function ResourceLibrary() {
                               {getTypeName(resource.type)}
                             </Tag>
                           </div>
-                          {scope === 'mine' && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                zIndex: 10,
-                              }}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 8,
+                              right: 8,
+                              zIndex: 10,
+                            }}
+                          >
+                            <Popconfirm
+                              title="确定要删除这个资源吗？"
+                              onConfirm={() => handleDelete(resource.id)}
+                              okText="确定"
+                              cancelText="取消"
                             >
-                              <Popconfirm
-                                title="确定要删除这个资源吗？"
-                                onConfirm={() => handleDelete(resource.id)}
-                                okText="确定"
-                                cancelText="取消"
-                              >
-                                <Button
-                                  type="text"
-                                  danger
-                                  icon={<DeleteOutlined />}
-                                  size="small"
-                                  style={{
-                                    background: 'rgba(255,255,255,0.9)',
-                                  }}
-                                />
-                              </Popconfirm>
-                            </div>
-                          )}
+                              <Button
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                                size="small"
+                                style={{
+                                  background: 'rgba(255,255,255,0.9)',
+                                }}
+                              />
+                            </Popconfirm>
+                          </div>
                         </div>
                       ) : (
                         <div
@@ -372,33 +352,31 @@ export default function ResourceLibrary() {
                               {getTypeName(resource.type)}
                             </Tag>
                           </div>
-                          {scope === 'mine' && (
-                            <div
-                              style={{
-                                position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                zIndex: 10,
-                              }}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 8,
+                              right: 8,
+                              zIndex: 10,
+                            }}
+                          >
+                            <Popconfirm
+                              title="确定要删除这个资源吗？"
+                              onConfirm={() => handleDelete(resource.id)}
+                              okText="确定"
+                              cancelText="取消"
                             >
-                              <Popconfirm
-                                title="确定要删除这个资源吗？"
-                                onConfirm={() => handleDelete(resource.id)}
-                                okText="确定"
-                                cancelText="取消"
-                              >
-                                <Button
-                                  type="text"
-                                  danger
-                                  icon={<DeleteOutlined />}
-                                  size="small"
-                                  style={{
-                                    background: 'rgba(255,255,255,0.9)',
-                                  }}
-                                />
-                              </Popconfirm>
-                            </div>
-                          )}
+                              <Button
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                                size="small"
+                                style={{
+                                  background: 'rgba(255,255,255,0.9)',
+                                }}
+                              />
+                            </Popconfirm>
+                          </div>
                           暂无图片
                         </div>
                       )

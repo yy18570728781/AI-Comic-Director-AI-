@@ -12,10 +12,12 @@ import {
 import { CopyOutlined } from '@ant-design/icons';
 
 import { useAICreationStore } from '@/stores/useAICreationStore';
+import { useUserStore } from '@/stores/useUserStore';
 
 const { TextArea } = Input;
 
 function AICreation() {
+  const { currentUser } = useUserStore();
   const [novelForm] = Form.useForm();
   const [scriptForm] = Form.useForm();
 
@@ -60,6 +62,11 @@ function AICreation() {
 
   // 生成小说（流式）
   const handleGenerateNovel = async (values: any) => {
+    if (!currentUser) {
+      message.error('请先登录');
+      return;
+    }
+
     setNovelLoading(true);
     setNovelResult(''); // 清空之前的结果
 
@@ -140,6 +147,11 @@ function AICreation() {
 
   // 生成剧本（流式）
   const handleGenerateScript = async (values: any) => {
+    if (!currentUser) {
+      message.error('请先登录');
+      return;
+    }
+
     setScriptLoading(true);
     setScriptResult(''); // 清空之前的结果
 

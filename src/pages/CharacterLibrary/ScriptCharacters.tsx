@@ -25,14 +25,19 @@ function ScriptCharacters() {
   const { scriptId } = useParams<{ scriptId: string }>();
   const location = useLocation();
   const script = location.state?.script as Script;
-  const { getDefaultUserId } = useUserStore();
+  const { currentUser } = useUserStore();
 
   // 获取已保存的角色列表
   const fetchSavedCharacters = async () => {
+    if (!currentUser) {
+      message.error('请先登录');
+      return;
+    }
+
     setLoadingSaved(true);
     try {
       const response = await getCharacterList({
-        userId: getDefaultUserId(),
+        userId: currentUser.id, // 使用当前用户ID
         page: 1,
         pageSize: 100,
       });
@@ -102,7 +107,7 @@ function ScriptCharacters() {
 
     setSaving(true);
     try {
-      const response = await batchSaveCharacters(charactersToSave, getDefaultUserId());
+      const response = await batchSaveCharacters(charactersToSave, currentUser.id);
       if (response.success) {
         message.success(messages.saveSuccess(charactersToSave.length));
         // 刷新已保存角色列表

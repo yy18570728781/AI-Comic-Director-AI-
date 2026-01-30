@@ -8,7 +8,6 @@ export function createScript(data: {
     content: string
     style?: string
     description?: string
-    userId?: number
     teamId?: number
 }) {
     return request({
@@ -22,7 +21,6 @@ export function createScript(data: {
  * 获取剧本列表
  */
 export function getScriptList(params: {
-    userId?: number
     teamId?: number
     page?: number
     pageSize?: number

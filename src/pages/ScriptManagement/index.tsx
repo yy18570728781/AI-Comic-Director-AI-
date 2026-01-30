@@ -21,12 +21,14 @@ import {
   SearchOutlined,
 } from '@ant-design/icons';
 import { getScriptList, createScript, deleteScript } from '@/api/script';
+import { useUserStore } from '@/stores/useUserStore';
 import dayjs from 'dayjs';
 
 const { TextArea } = Input;
 
 function ScriptManagement() {
   const navigate = useNavigate();
+  const { currentUser } = useUserStore();
   const [loading, setLoading] = useState(false);
   const [scripts, setScripts] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
@@ -39,10 +41,15 @@ function ScriptManagement() {
 
   // 加载剧本列表
   const loadScripts = async () => {
+    if (!currentUser) {
+      message.error('请先登录');
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await getScriptList({
-        // userId: 1, // 暂时不传 userId
+        // 不需要传递userId，后端会从token中获取
         page,
         pageSize,
         keyword: keyword || undefined,
@@ -57,16 +64,23 @@ function ScriptManagement() {
   };
 
   useEffect(() => {
-    loadScripts();
-  }, [page, keyword]);
+    if (currentUser) {
+      loadScripts();
+    }
+  }, [page, keyword, currentUser]);
 
   // 创建剧本
   const handleCreate = async (values: any) => {
+    if (!currentUser) {
+      message.error('请先登录');
+      return;
+    }
+
     setCreateLoading(true);
     try {
       await createScript({
         ...values,
-        // userId: 1, // 暂时不传 userId，等用户系统完善后再加
+        // 不需要传递userId，后端会从token中获取
       });
       message.success('剧本创建成功');
       setCreateModalVisible(false);
@@ -81,8 +95,13 @@ function ScriptManagement() {
 
   // 删除剧本
   const handleDelete = async (id: number) => {
+    if (!currentUser) {
+      message.error('请先登录');
+      return;
+    }
+
     try {
-      await deleteScript(id);
+      await deleteScript(id); // 不需要传递userId，后端会从token中获取
       message.success('剧本删除成功');
       loadScripts();
     } catch (error) {
