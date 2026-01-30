@@ -1,0 +1,113 @@
+.login-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-content {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+  color: white;
+}
+
+.login-header h1 {
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0 0 8px 0;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.login-header p {
+  font-size: 16px;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.login-card {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  border: none;
+}
+
+.login-card .ant-card-body {
+  padding: 32px;
+}
+
+.login-card .ant-tabs-tab {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.login-card .ant-form-item-label > label {
+  font-weight: 500;
+  color: #333;
+}
+
+.login-card .ant-input-affix-wrapper {
+  border-radius: 8px;
+}
+
+.login-card .ant-btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.login-card .ant-btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.login-card .ant-btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.login-tips {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.login-tips p {
+  margin: 0 0 8px 0;
+  font-weight: 500;
+  color: #333;
+}
+
+.login-tips ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.login-tips li {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 16px;
+  }
+  
+  .login-header h1 {
+    font-size: 28px;
+  }
+  
+  .login-card .ant-card-body {
+    padding: 24px;
+  }
+}
