@@ -395,6 +395,17 @@ export function getQueueJobStatus(queueName: 'image' | 'video' | 'storyboard', j
 }
 
 /**
+ * 批量查询队列任务状态
+ */
+export function batchGetQueueJobStatus(queueName: 'image' | 'video' | 'storyboard', jobIds: (string | number)[]) {
+    return request({
+        url: `/api/queue/jobs/${queueName}`,
+        method: 'post',
+        data: { jobIds },
+    })
+}
+
+/**
  * 查询队列统计
  */
 export function getQueueStats(queueName?: 'image' | 'video' | 'storyboard') {

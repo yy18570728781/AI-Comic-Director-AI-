@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { batchGetImageStatus } from '@/api/image';
 import { batchGetVideoStatus, getGeneralTaskStatus } from '@/api/video';
-import { getQueueJobStatus } from '@/api/ai';
+import { batchGetQueueJobStatus } from '@/api/ai';
 import { useTaskStore, GeneralTask } from '../stores/useTaskStore';
 
 /**
@@ -184,31 +184,32 @@ export function useQueueImagePolling(options?: {
         try {
             console.log(`🔄 [队列] 批量查询 ${queueImageJobs.length} 个图片任务状态`);
 
-            const results = await Promise.all(
-                queueImageJobs.map(async (job) => {
-                    try {
-                        const res: any = await getQueueJobStatus('image', job.jobId);
-                        if (res.success && res.data) {
-                            return {
-                                jobId: job.jobId,
-                                shotId: job.shotId,
-                                status: res.data.state,
-                                image: res.data.result?.savedImage, // 修复：从 result.savedImage 获取图片
-                                error: res.data.failedReason,
-                            };
-                        }
-                        return null;
-                    } catch (error) {
-                        console.error(`查询任务失败 (jobId: ${job.jobId}):`, error);
-                        return null;
-                    }
-                })
-            );
+            // 批量查询：1个HTTP请求查询所有任务
+            const jobIds = queueImageJobs.map(job => job.jobId);
+            const batchRes: any = await batchGetQueueJobStatus('image', jobIds);
 
-            const validResults = results.filter((r) => r !== null);
+            if (!batchRes.success || !batchRes.data) {
+                console.error('[队列] 批量查询失败:', batchRes);
+                return;
+            }
+
+            // 处理批量查询结果
+            const results = batchRes.data.map((item: any) => {
+                const job = queueImageJobs.find(j => j.jobId == item.jobId);
+                if (!job) return null;
+
+                return {
+                    jobId: item.jobId,
+                    shotId: job.shotId,
+                    status: item.state,
+                    image: item.result?.savedImage,
+                    error: item.failedReason || item.error,
+                };
+            }).filter((r: any) => r !== null);
+
             const finishedJobIds: (string | number)[] = [];
 
-            validResults.forEach((result: any) => {
+            results.forEach((result: any) => {
                 if (result.status === 'completed' || result.status === 'failed') {
                     finishedJobIds.push(result.jobId);
                 }
@@ -221,8 +222,8 @@ export function useQueueImagePolling(options?: {
             }
 
             // 通知完成
-            if (callbackRef.current && validResults.length > 0) {
-                callbackRef.current(validResults);
+            if (callbackRef.current && results.length > 0) {
+                callbackRef.current(results);
             }
         } catch (error: any) {
             console.error('[队列] 批量查询图片任务失败:', error);
@@ -276,31 +277,32 @@ export function useQueueVideoPolling(options?: {
         try {
             console.log(`🔄 [队列] 批量查询 ${queueVideoJobs.length} 个视频任务状态`);
 
-            const results = await Promise.all(
-                queueVideoJobs.map(async (job) => {
-                    try {
-                        const res: any = await getQueueJobStatus('video', job.jobId);
-                        if (res.success && res.data) {
-                            return {
-                                jobId: job.jobId,
-                                shotId: job.shotId,
-                                status: res.data.state,
-                                video: res.data.result?.savedVideo, // 修复：从 result.savedVideo 获取视频
-                                error: res.data.failedReason,
-                            };
-                        }
-                        return null;
-                    } catch (error) {
-                        console.error(`查询任务失败 (jobId: ${job.jobId}):`, error);
-                        return null;
-                    }
-                })
-            );
+            // 批量查询：1个HTTP请求查询所有任务
+            const jobIds = queueVideoJobs.map(job => job.jobId);
+            const batchRes: any = await batchGetQueueJobStatus('video', jobIds);
 
-            const validResults = results.filter((r) => r !== null);
+            if (!batchRes.success || !batchRes.data) {
+                console.error('[队列] 批量查询失败:', batchRes);
+                return;
+            }
+
+            // 处理批量查询结果
+            const results = batchRes.data.map((item: any) => {
+                const job = queueVideoJobs.find(j => j.jobId == item.jobId);
+                if (!job) return null;
+
+                return {
+                    jobId: item.jobId,
+                    shotId: job.shotId,
+                    status: item.state,
+                    video: item.result?.savedVideo,
+                    error: item.failedReason || item.error,
+                };
+            }).filter((r: any) => r !== null);
+
             const finishedJobIds: (string | number)[] = [];
 
-            validResults.forEach((result: any) => {
+            results.forEach((result: any) => {
                 if (result.status === 'completed' || result.status === 'failed') {
                     finishedJobIds.push(result.jobId);
                 }
@@ -313,8 +315,8 @@ export function useQueueVideoPolling(options?: {
             }
 
             // 通知完成
-            if (callbackRef.current && validResults.length > 0) {
-                callbackRef.current(validResults);
+            if (callbackRef.current && results.length > 0) {
+                callbackRef.current(results);
             }
         } catch (error: any) {
             console.error('[队列] 批量查询视频任务失败:', error);
