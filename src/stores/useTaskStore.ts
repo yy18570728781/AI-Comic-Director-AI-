@@ -16,6 +16,20 @@ export interface VideoTask {
   createdAt: number;
 }
 
+// 队列任务类型（使用 jobId）
+export interface QueueImageJob {
+  jobId: string | number;
+  shotId: number;
+  createdAt: number;
+}
+
+export interface QueueVideoJob {
+  jobId: string | number;
+  shotId: number;
+  model: string;
+  createdAt: number;
+}
+
 // 通用任务类型（用于独立页面）
 export interface GeneralTask {
   taskId: string;
@@ -28,26 +42,46 @@ export interface GeneralTask {
 export interface TaskState {
   imageTasks: ImageTask[];
   videoTasks: VideoTask[];
-  generalTasks: GeneralTask[]; // 新增：独立页面任务
-  
+  generalTasks: GeneralTask[];
+
+  // 队列任务（新增）
+  queueImageJobs: QueueImageJob[];
+  queueVideoJobs: QueueVideoJob[];
+
   // 添加任务
   addImageTask: (task: Omit<ImageTask, 'createdAt'>) => void;
   addVideoTask: (task: Omit<VideoTask, 'createdAt'>) => void;
   addGeneralTask: (task: Omit<GeneralTask, 'createdAt'>) => void;
-  
+
+  // 添加队列任务（新增）
+  addQueueImageJob: (job: Omit<QueueImageJob, 'createdAt'>) => void;
+  addQueueVideoJob: (job: Omit<QueueVideoJob, 'createdAt'>) => void;
+
   // 移除任务
   removeImageTask: (taskId: string) => void;
   removeVideoTask: (taskId: string) => void;
   removeGeneralTask: (taskId: string) => void;
-  
+
+  // 移除队列任务（新增）
+  removeQueueImageJob: (jobId: string | number) => void;
+  removeQueueVideoJob: (jobId: string | number) => void;
+
   // 清空任务
   clearImageTasks: () => void;
   clearVideoTasks: () => void;
   clearGeneralTasks: () => void;
-  
+
+  // 清空队列任务（新增）
+  clearQueueImageJobs: () => void;
+  clearQueueVideoJobs: () => void;
+
   // 批量移除（已完成/失败）
   removeFinishedImageTasks: (finishedTaskIds: string[]) => void;
   removeFinishedGeneralTasks: (finishedTaskIds: string[]) => void;
+
+  // 批量移除队列任务（新增）
+  removeFinishedQueueImageJobs: (finishedJobIds: (string | number)[]) => void;
+  removeFinishedQueueVideoJobs: (finishedJobIds: (string | number)[]) => void;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -56,6 +90,8 @@ export const useTaskStore = create<TaskState>()(
       imageTasks: [],
       videoTasks: [],
       generalTasks: [],
+      queueImageJobs: [],
+      queueVideoJobs: [],
 
       addImageTask: (task) =>
         set((state) => ({
@@ -81,6 +117,22 @@ export const useTaskStore = create<TaskState>()(
           ],
         })),
 
+      addQueueImageJob: (job) =>
+        set((state) => ({
+          queueImageJobs: [
+            ...state.queueImageJobs,
+            { ...job, createdAt: Date.now() },
+          ],
+        })),
+
+      addQueueVideoJob: (job) =>
+        set((state) => ({
+          queueVideoJobs: [
+            ...state.queueVideoJobs,
+            { ...job, createdAt: Date.now() },
+          ],
+        })),
+
       removeImageTask: (taskId) =>
         set((state) => ({
           imageTasks: state.imageTasks.filter((t) => t.taskId !== taskId),
@@ -96,9 +148,21 @@ export const useTaskStore = create<TaskState>()(
           generalTasks: state.generalTasks.filter((t) => t.taskId !== taskId),
         })),
 
+      removeQueueImageJob: (jobId) =>
+        set((state) => ({
+          queueImageJobs: state.queueImageJobs.filter((j) => j.jobId !== jobId),
+        })),
+
+      removeQueueVideoJob: (jobId) =>
+        set((state) => ({
+          queueVideoJobs: state.queueVideoJobs.filter((j) => j.jobId !== jobId),
+        })),
+
       clearImageTasks: () => set({ imageTasks: [] }),
       clearVideoTasks: () => set({ videoTasks: [] }),
       clearGeneralTasks: () => set({ generalTasks: [] }),
+      clearQueueImageJobs: () => set({ queueImageJobs: [] }),
+      clearQueueVideoJobs: () => set({ queueVideoJobs: [] }),
 
       removeFinishedImageTasks: (finishedTaskIds) =>
         set((state) => ({
@@ -113,6 +177,20 @@ export const useTaskStore = create<TaskState>()(
             (t) => !finishedTaskIds.includes(t.taskId)
           ),
         })),
+
+      removeFinishedQueueImageJobs: (finishedJobIds) =>
+        set((state) => ({
+          queueImageJobs: state.queueImageJobs.filter(
+            (j) => !finishedJobIds.includes(j.jobId)
+          ),
+        })),
+
+      removeFinishedQueueVideoJobs: (finishedJobIds) =>
+        set((state) => ({
+          queueVideoJobs: state.queueVideoJobs.filter(
+            (j) => !finishedJobIds.includes(j.jobId)
+          ),
+        })),
     }),
     {
       name: 'task-storage', // localStorage key
@@ -120,4 +198,3 @@ export const useTaskStore = create<TaskState>()(
     }
   )
 );
-

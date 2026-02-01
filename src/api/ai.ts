@@ -297,3 +297,109 @@ export function getModels() {
         method: 'get',
     })
 }
+
+/**
+ * ========================================
+ * 队列异步接口
+ * ========================================
+ */
+
+/**
+ * 异步生成图像（使用队列）
+ */
+export function generateImageAsync(data: {
+    prompt: string
+    model?: string
+    width?: number
+    height?: number
+    style?: string
+    referenceImages?: string[]
+    seed?: number
+    shotId?: number
+    scriptId?: number
+}) {
+    return request({
+        url: '/api/ai/image/generate-async',
+        method: 'post',
+        data,
+    })
+}
+
+/**
+ * 批量异步生成图像（使用队列）
+ */
+export function batchGenerateImagesAsync(data: {
+    shots: Array<{
+        id: number
+        prompt: string
+        model?: string
+        params?: any
+    }>
+    scriptId?: number
+}) {
+    return request({
+        url: '/api/ai/image/batch-generate-async',
+        method: 'post',
+        data,
+    })
+}
+
+/**
+ * 异步生成视频（使用队列）
+ */
+export function generateVideoAsync(data: {
+    prompt: string
+    model?: string
+    duration?: number
+    referenceImage?: string
+    referenceImages?: string[]
+    fps?: number
+    resolution?: string
+    shotId?: number
+    scriptId?: number
+}) {
+    return request({
+        url: '/api/ai/video/generate-async',
+        method: 'post',
+        data,
+    })
+}
+
+/**
+ * 批量异步生成视频（使用队列）
+ */
+export function batchGenerateVideosAsync(data: {
+    shots: Array<{
+        id: number
+        imageUrl: string
+        model?: string
+        params?: any
+    }>
+    scriptId?: number
+}) {
+    return request({
+        url: '/api/ai/video/batch-generate-async',
+        method: 'post',
+        data,
+    })
+}
+
+/**
+ * 查询队列任务状态
+ */
+export function getQueueJobStatus(queueName: 'image' | 'video' | 'storyboard', jobId: string | number) {
+    return request({
+        url: `/api/queue/job/${queueName}/${jobId}`,
+        method: 'get',
+    })
+}
+
+/**
+ * 查询队列统计
+ */
+export function getQueueStats(queueName?: 'image' | 'video' | 'storyboard') {
+    return request({
+        url: queueName ? `/api/queue/stats/${queueName}` : '/api/queue/stats',
+        method: 'get',
+    })
+}

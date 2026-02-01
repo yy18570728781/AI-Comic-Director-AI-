@@ -20,7 +20,6 @@ import {
   MergeCellsOutlined,
 } from '@ant-design/icons';
 
-import { generateImage } from '@/api/image';
 import { setFirstFrame, setLastFrame, deleteImage } from '@/api/image-action';
 import {
   getScriptDetail,
@@ -28,8 +27,11 @@ import {
   updateShot,
   deleteShot,
 } from '@/api/script';
-import { generateVideo } from '@/api/video';
-import { useImagePolling, useVideoPolling } from '@/hooks/useTaskPolling';
+import { generateImageAsync, generateVideoAsync } from '@/api/ai';
+import {
+  useQueueImagePolling,
+  useQueueVideoPolling,
+} from '@/hooks/useTaskPolling';
 import { useTaskStore } from '@/stores/useTaskStore';
 
 // 导入标签页组件
@@ -58,9 +60,8 @@ function ScriptDetail() {
   ); // 正在生成视频的镜头ID
   const [blendModalVisible, setBlendModalVisible] = useState(false);
 
-  // 使用全局任务状态
-  const { addImageTask } = useTaskStore();
-  const { addVideoTask } = useTaskStore();
+  // 使用全局任务状态（队列版本）
+  const { addQueueImageJob, addQueueVideoJob } = useTaskStore();
 
   // 加载剧本详情
   const loadScript = async () => {
@@ -178,12 +179,12 @@ function ScriptDetail() {
     [updateShotVideo],
   );
 
-  // 启用轮询
-  useImagePolling({
+  // 启用队列轮询
+  useQueueImagePolling({
     onComplete: handleImageComplete,
   });
 
-  useVideoPolling({
+  useQueueVideoPolling({
     onComplete: handleVideoComplete,
   });
 
@@ -337,11 +338,11 @@ function ScriptDetail() {
     }
   };
 
-  // 生成图像
+  // 生成图像（使用队列）
   const handleGenerateImage = async (shot: any, config?: any) => {
     const shotId = shot.id;
 
-    console.log('🎨 前端：准备生成图片');
+    console.log('🎨 前端：准备生成图片（队列）');
     console.log('📋 shot 对象:', shot);
     console.log('🆔 shotId:', shotId);
     console.log('⚙️ 配置:', config);
@@ -356,7 +357,7 @@ function ScriptDetail() {
 
     try {
       message.loading({
-        content: '正在生成图像...',
+        content: '正在提交到队列...',
         key: `gen-${shotId}`,
         duration: 2,
       });
@@ -379,28 +380,30 @@ function ScriptDetail() {
 
       const prompt = config?.imagePrompt || shot.imagePrompt;
 
-      const res = await generateImage({
+      // 使用队列异步API
+      const res = await generateImageAsync({
         prompt,
-        model: config?.model || 'wanx', // 使用传入的模型，如果没有则使用 wanx
+        model: config?.model || 'wanx',
         width,
         height,
         referenceImages: config?.referenceImages || [],
+        shotId,
+        scriptId: script?.id,
       });
 
-      if (res.success && res.data.taskId) {
-        // 添加到全局任务列表
-        console.log('✅ 前端：添加图片任务到全局列表', {
-          taskId: res.data.taskId,
+      if (res.success && res.data.jobId) {
+        // 添加到队列任务列表
+        console.log('✅ 前端：添加图片任务到队列', {
+          jobId: res.data.jobId,
           shotId,
         });
-        addImageTask({
-          taskId: res.data.taskId,
+        addQueueImageJob({
+          jobId: res.data.jobId,
           shotId,
-          isBlend: false,
         });
 
         message.info({
-          content: '图像生成任务已提交，正在处理中...',
+          content: '图像任务已提交到队列，正在处理中...',
           key: `gen-${shotId}`,
         });
       } else {
@@ -419,7 +422,7 @@ function ScriptDetail() {
     }
   };
 
-  // 多图融合
+  // 多图融合（保持使用旧API，因为融图不走队列）
   const handleBlendImages = async (config: any) => {
     console.log('🎨 前端：准备融图');
     console.log('⚙️ 配置:', config);
@@ -444,12 +447,7 @@ function ScriptDetail() {
       });
 
       if (res.success && res.data.taskId) {
-        // 添加到全局任务列表
-        addImageTask({
-          taskId: res.data.taskId,
-          shotId: 0,
-          isBlend: true,
-        });
+        // 融图使用旧的轮询机制（不走队列）
         message.success({
           content: '融图任务已提交，完成后将自动保存到资源库',
           key: 'blend',
@@ -465,11 +463,11 @@ function ScriptDetail() {
     }
   };
 
-  // 生成视频
+  // 生成视频（使用队列）
   const handleGenerateVideo = async (shot: any, config: any) => {
     const shotId = shot.id;
 
-    console.log('🎬 前端：准备生成视频');
+    console.log('🎬 前端：准备生成视频（队列）');
     console.log('📋 shot 对象:', shot);
     console.log('🆔 shotId:', shotId);
     console.log('⚙️ 配置:', config);
@@ -491,7 +489,7 @@ function ScriptDetail() {
 
     try {
       message.loading({
-        content: '正在生成视频...',
+        content: '正在提交到队列...',
         key: `gen-video-${shotId}`,
         duration: 2,
       });
@@ -507,6 +505,8 @@ function ScriptDetail() {
           '',
         model: config.model || 'wan2.6-i2v-flash',
         duration: config.duration || 5,
+        shotId,
+        scriptId: script?.id,
       };
 
       if (lastFrameImage) {
@@ -519,23 +519,24 @@ function ScriptDetail() {
         console.log('🎬 使用单图（首帧）生成视频');
       }
 
-      const res = await generateVideo(params);
+      // 使用队列异步API
+      const res = await generateVideoAsync(params);
 
-      if (res.success && res.data.taskId) {
-        // 添加到全局任务列表
-        console.log('✅ 前端：添加视频任务到全局列表', {
-          taskId: res.data.taskId,
+      if (res.success && res.data.jobId) {
+        // 添加到队列任务列表
+        console.log('✅ 前端：添加视频任务到队列', {
+          jobId: res.data.jobId,
           shotId,
           model: params.model,
         });
-        addVideoTask({
-          taskId: res.data.taskId,
+        addQueueVideoJob({
+          jobId: res.data.jobId,
           shotId,
           model: params.model,
         });
 
         message.info({
-          content: '视频生成任务已提交，正在处理中（预计1-2分钟）...',
+          content: '视频任务已提交到队列，正在处理中（预计1-2分钟）...',
           key: `gen-video-${shotId}`,
         });
       } else {

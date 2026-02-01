@@ -1,10 +1,11 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { batchGetImageStatus } from '@/api/image';
 import { batchGetVideoStatus, getGeneralTaskStatus } from '@/api/video';
+import { getQueueJobStatus } from '@/api/ai';
 import { useTaskStore, GeneralTask } from '../stores/useTaskStore';
 
 /**
- * 图片任务轮询 Hook
+ * 图片任务轮询 Hook（旧版，使用 taskId）
  * - 页面切换后继续轮询
  * - 刷新后从 localStorage 恢复任务并继续轮询
  */
@@ -84,7 +85,7 @@ export function useImagePolling(options?: {
 }
 
 /**
- * 视频任务轮询 Hook
+ * 视频任务轮询 Hook（旧版，使用 taskId）
  */
 export function useVideoPolling(options?: {
     interval?: number;
@@ -161,6 +162,190 @@ export function useVideoPolling(options?: {
 }
 
 /**
+ * 队列图片任务轮询 Hook（新版，使用 jobId）
+ */
+export function useQueueImagePolling(options?: {
+    interval?: number;
+    onComplete?: (result: any) => void;
+    onError?: (error: any) => void;
+}) {
+    const { queueImageJobs, removeFinishedQueueImageJobs } = useTaskStore();
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const callbackRef = useRef(options?.onComplete);
+
+    callbackRef.current = options?.onComplete;
+
+    const pollJobs = useCallback(async () => {
+        if (queueImageJobs.length === 0) {
+            timerRef.current = null;
+            return;
+        }
+
+        try {
+            console.log(`🔄 [队列] 批量查询 ${queueImageJobs.length} 个图片任务状态`);
+
+            const results = await Promise.all(
+                queueImageJobs.map(async (job) => {
+                    try {
+                        const res: any = await getQueueJobStatus('image', job.jobId);
+                        if (res.success && res.data) {
+                            return {
+                                jobId: job.jobId,
+                                shotId: job.shotId,
+                                status: res.data.state,
+                                image: res.data.returnvalue?.image,
+                                error: res.data.failedReason,
+                            };
+                        }
+                        return null;
+                    } catch (error) {
+                        console.error(`查询任务失败 (jobId: ${job.jobId}):`, error);
+                        return null;
+                    }
+                })
+            );
+
+            const validResults = results.filter((r) => r !== null);
+            const finishedJobIds: (string | number)[] = [];
+
+            validResults.forEach((result: any) => {
+                if (result.status === 'completed' || result.status === 'failed') {
+                    finishedJobIds.push(result.jobId);
+                }
+            });
+
+            // 移除已完成的任务
+            if (finishedJobIds.length > 0) {
+                removeFinishedQueueImageJobs(finishedJobIds);
+                console.log(`✅ [队列] 移除 ${finishedJobIds.length} 个已完成任务`);
+            }
+
+            // 通知完成
+            if (callbackRef.current && validResults.length > 0) {
+                callbackRef.current(validResults);
+            }
+        } catch (error: any) {
+            console.error('[队列] 批量查询图片任务失败:', error);
+            options?.onError?.(error);
+        }
+
+        // 继续轮询
+        if (queueImageJobs.length > 0) {
+            timerRef.current = setTimeout(pollJobs, options?.interval || 3500);
+        } else {
+            timerRef.current = null;
+        }
+    }, [queueImageJobs, removeFinishedQueueImageJobs, options?.interval, options?.onError]);
+
+    // 启动轮询
+    useEffect(() => {
+        if (queueImageJobs.length > 0 && !timerRef.current) {
+            console.log('🚀 [队列] 启动图片任务轮询');
+            timerRef.current = setTimeout(pollJobs, options?.interval || 3500);
+        }
+
+        return () => {
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+                timerRef.current = null;
+            }
+        };
+    }, [queueImageJobs.length, pollJobs, options?.interval]);
+}
+
+/**
+ * 队列视频任务轮询 Hook（新版，使用 jobId）
+ */
+export function useQueueVideoPolling(options?: {
+    interval?: number;
+    onComplete?: (result: any) => void;
+    onError?: (error: any) => void;
+}) {
+    const { queueVideoJobs, removeFinishedQueueVideoJobs } = useTaskStore();
+    const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const callbackRef = useRef(options?.onComplete);
+
+    callbackRef.current = options?.onComplete;
+
+    const pollJobs = useCallback(async () => {
+        if (queueVideoJobs.length === 0) {
+            timerRef.current = null;
+            return;
+        }
+
+        try {
+            console.log(`🔄 [队列] 批量查询 ${queueVideoJobs.length} 个视频任务状态`);
+
+            const results = await Promise.all(
+                queueVideoJobs.map(async (job) => {
+                    try {
+                        const res: any = await getQueueJobStatus('video', job.jobId);
+                        if (res.success && res.data) {
+                            return {
+                                jobId: job.jobId,
+                                shotId: job.shotId,
+                                status: res.data.state,
+                                video: res.data.returnvalue?.video,
+                                error: res.data.failedReason,
+                            };
+                        }
+                        return null;
+                    } catch (error) {
+                        console.error(`查询任务失败 (jobId: ${job.jobId}):`, error);
+                        return null;
+                    }
+                })
+            );
+
+            const validResults = results.filter((r) => r !== null);
+            const finishedJobIds: (string | number)[] = [];
+
+            validResults.forEach((result: any) => {
+                if (result.status === 'completed' || result.status === 'failed') {
+                    finishedJobIds.push(result.jobId);
+                }
+            });
+
+            // 移除已完成的任务
+            if (finishedJobIds.length > 0) {
+                removeFinishedQueueVideoJobs(finishedJobIds);
+                console.log(`✅ [队列] 移除 ${finishedJobIds.length} 个已完成视频任务`);
+            }
+
+            // 通知完成
+            if (callbackRef.current && validResults.length > 0) {
+                callbackRef.current(validResults);
+            }
+        } catch (error: any) {
+            console.error('[队列] 批量查询视频任务失败:', error);
+            options?.onError?.(error);
+        }
+
+        // 继续轮询
+        if (queueVideoJobs.length > 0) {
+            timerRef.current = setTimeout(pollJobs, options?.interval || 5000);
+        } else {
+            timerRef.current = null;
+        }
+    }, [queueVideoJobs, removeFinishedQueueVideoJobs, options?.interval, options?.onError]);
+
+    // 启动轮询
+    useEffect(() => {
+        if (queueVideoJobs.length > 0 && !timerRef.current) {
+            console.log('🚀 [队列] 启动视频任务轮询');
+            timerRef.current = setTimeout(pollJobs, options?.interval || 5000);
+        }
+
+        return () => {
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+                timerRef.current = null;
+            }
+        };
+    }, [queueVideoJobs.length, pollJobs, options?.interval]);
+}
+
+/**
  * 通用任务轮询 Hook（用于独立页面）
  */
 export function useTaskPolling(options: {
@@ -197,10 +382,10 @@ export function useTaskPolling(options: {
         for (const task of tasks) {
             try {
                 const res = await getGeneralTaskStatus(task.taskId, task.type, task.model);
-                
+
                 if (res.success && res.data) {
                     const { status, videos, images, error } = res.data;
-                    
+
                     if (status === 'completed') {
                         console.log(`✅ 任务完成: ${task.taskId}`);
                         options.onTaskComplete?.(task.taskId, { videos, images });
@@ -256,4 +441,6 @@ export function clearAllPolling() {
     useTaskStore.getState().clearImageTasks();
     useTaskStore.getState().clearVideoTasks();
     useTaskStore.getState().clearGeneralTasks();
+    useTaskStore.getState().clearQueueImageJobs();
+    useTaskStore.getState().clearQueueVideoJobs();
 }
