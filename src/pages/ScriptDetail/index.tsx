@@ -344,7 +344,6 @@ function ScriptDetail() {
 
     console.log('🎨 前端：准备生成图片（队列）');
     console.log('📋 shot 对象:', shot);
-    console.log('🆔 shotId:', shotId);
     console.log('⚙️ 配置:', config);
 
     // 防止重复生成
@@ -469,7 +468,6 @@ function ScriptDetail() {
 
     console.log('🎬 前端：准备生成视频（队列）');
     console.log('📋 shot 对象:', shot);
-    console.log('🆔 shotId:', shotId);
     console.log('⚙️ 配置:', config);
 
     // 防止重复生成
