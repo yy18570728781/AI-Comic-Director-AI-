@@ -46,6 +46,7 @@ function ImageToImage() {
   const [selectorVisible, setSelectorVisible] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [batchCount, setBatchCount] = useState<number>(1); // 批量生成数量，默认1，最大5
 
   // 使用任务轮询 Hook
   const { addTask, removeTask, tasks } = useTaskPolling({
@@ -423,6 +424,28 @@ function ImageToImage() {
                     </div>
                   )}
 
+                {/* 生成数量 */}
+                <div>
+                  <div style={{ marginBottom: 12, fontWeight: 500 }}>
+                    生成数量
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {[1, 2, 3, 4, 5].map((count) => (
+                      <Tag
+                        key={count}
+                        color={batchCount === count ? 'blue' : 'default'}
+                        onClick={() => setBatchCount(count)}
+                        style={{ cursor: 'pointer', padding: '4px 12px' }}
+                      >
+                        {count}张
+                      </Tag>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
+                    💡 每次最多生成5张图片，消耗点数 = 30 × 数量
+                  </div>
+                </div>
+
                 {/* 提示词 */}
                 <div>
                   <div style={{ marginBottom: 8, fontWeight: 500 }}>提示词</div>
@@ -449,8 +472,8 @@ function ImageToImage() {
                 >
                   {selectedImages.length > 1 &&
                   modelConfig?.supportMultiImageFusion
-                    ? `多图融合 (${selectedImages.length}张图) - 消耗 30 点`
-                    : '图生图 - 消耗 30 点'}
+                    ? `多图融合 (${selectedImages.length}张图) - 消耗 ${30 * batchCount} 点`
+                    : `图生图 (${batchCount}张) - 消耗 ${30 * batchCount} 点`}
                 </Button>
 
                 {/* 任务状态显示 */}

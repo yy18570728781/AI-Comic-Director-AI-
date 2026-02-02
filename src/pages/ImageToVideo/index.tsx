@@ -52,6 +52,7 @@ function ImageToVideo() {
   const [selectorVisible, setSelectorVisible] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [generatedVideos, setGeneratedVideos] = useState<string[]>([]);
+  const [batchCount, setBatchCount] = useState<number>(1); // 批量生成数量，默认1，最大5
 
   // 使用任务轮询 Hook
   const { addTask, tasks } = useTaskPolling({
@@ -449,6 +450,26 @@ function ImageToVideo() {
                   />
                 </div>
 
+                {/* 生成数量 */}
+                <div>
+                  <div style={{ marginBottom: 12, fontWeight: 500 }}>生成数量</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {[1, 2, 3, 4, 5].map((count) => (
+                      <Tag
+                        key={count}
+                        color={batchCount === count ? 'blue' : 'default'}
+                        onClick={() => setBatchCount(count)}
+                        style={{ cursor: 'pointer', padding: '4px 12px' }}
+                      >
+                        {count}个
+                      </Tag>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
+                    💡 每次最多生成5个视频，消耗点数 = 50 × 数量
+                  </div>
+                </div>
+
                 {/* 生成按钮 */}
                 <Button
                   type="primary"
@@ -459,7 +480,7 @@ function ImageToVideo() {
                   disabled={!selectedImages.length || !prompt.trim()}
                   icon={<PlayCircleOutlined />}
                 >
-                  生成视频 - 消耗 50 点
+                  生成视频 ({batchCount}个) - 消耗 {50 * batchCount} 点
                 </Button>
 
                 {/* 任务状态显示 */}
