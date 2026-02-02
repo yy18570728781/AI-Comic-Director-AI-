@@ -1,7 +1,7 @@
 import { request } from './request'
 
 /**
- * 生成视频
+ * 生成视频（同步）
  */
 export function generateVideo(data: {
     prompt: string
@@ -17,6 +17,49 @@ export function generateVideo(data: {
         method: 'post',
         data,
         timeout: 120000, // 2分钟超时
+    })
+}
+
+/**
+ * 异步生成视频（使用队列）
+ * 立即返回 jobId，任务在后台队列中处理
+ */
+export function generateVideoAsync(data: {
+    prompt: string
+    model?: string
+    duration?: number
+    referenceImage?: string
+    referenceImages?: string[]
+    resolution?: string
+    aspectRatio?: string
+    shotId?: number
+    scriptId?: number
+}) {
+    return request({
+        url: '/api/ai/video/generate-async',
+        method: 'post',
+        data,
+        timeout: 30000, // 30秒超时（立即返回）
+    })
+}
+
+/**
+ * 批量异步生成视频（使用队列）
+ */
+export function batchGenerateVideosAsync(data: {
+    shots: Array<{
+        id: number
+        imageUrl: string
+        model?: string
+        params?: any
+    }>
+    scriptId?: number
+}) {
+    return request({
+        url: '/api/ai/video/batch-generate-async',
+        method: 'post',
+        data,
+        timeout: 30000,
     })
 }
 

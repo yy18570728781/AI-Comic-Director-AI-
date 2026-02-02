@@ -1,7 +1,7 @@
 import { request } from './request'
 
 /**
- * 生成图像
+ * 生成图像（同步）
  */
 export function generateImage(data: {
   prompt: string
@@ -17,6 +17,49 @@ export function generateImage(data: {
     method: 'post',
     data,
     timeout: 120000, // 2分钟超时
+  })
+}
+
+/**
+ * 异步生成图像（使用队列）
+ * 立即返回 jobId，任务在后台队列中处理
+ */
+export function generateImageAsync(data: {
+  prompt: string
+  model?: string
+  width?: number
+  height?: number
+  style?: string
+  referenceImages?: string[]
+  seed?: number
+  shotId?: number
+  scriptId?: number
+}) {
+  return request({
+    url: '/api/ai/image/generate-async',
+    method: 'post',
+    data,
+    timeout: 30000, // 30秒超时（立即返回）
+  })
+}
+
+/**
+ * 批量异步生成图像（使用队列）
+ */
+export function batchGenerateImagesAsync(data: {
+  shots: Array<{
+    id: number
+    prompt: string
+    model?: string
+    params?: any
+  }>
+  scriptId?: number
+}) {
+  return request({
+    url: '/api/ai/image/batch-generate-async',
+    method: 'post',
+    data,
+    timeout: 30000,
   })
 }
 
