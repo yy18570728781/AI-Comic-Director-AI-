@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Card,
   Radio,
@@ -14,10 +14,7 @@ import {
   Space,
   Typography,
 } from 'antd';
-import {
-  SearchOutlined,
-  DeleteOutlined,
-} from '@ant-design/icons';
+import { SearchOutlined, DeleteOutlined } from '@ant-design/icons';
 
 import { getResourceList, deleteResource } from '@/api/resource';
 import { useUserStore } from '@/stores/useUserStore';
@@ -36,63 +33,48 @@ export default function ResourceLibrary() {
   const [keyword, setKeyword] = useState('');
   const [loading, setLoading] = useState(false);
   const [resources, setResources] = useState<any[]>([]);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 24,
-    total: 0,
-  });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+  const [total, setTotal] = useState(0);
 
   // 获取资源列表
-  const fetchResources = async (page = 1) => {
-    setLoading(true);
-    try {
-      const res = await getResourceList({
-        type: resourceType === 'all' ? undefined : resourceType,
-        keyword: keyword || undefined,
-        page,
-        pageSize: pagination.pageSize,
-      });
-
-      if (res.success && res.data) {
-        setResources(res.data.list || []);
-        setPagination({
-          ...pagination,
-          current: page,
-          total: res.data.total || 0,
+  const fetchResources = useCallback(
+    async (pageNum = 1) => {
+      setLoading(true);
+      try {
+        const res = await getResourceList({
+          type: resourceType === 'all' ? undefined : resourceType,
+          keyword: keyword || undefined,
+          page: pageNum,
+          pageSize: pageSize,
         });
-        
-        // 如果有提示信息（比如未登录提示），显示给用户
-        if (res.message && res.data.list.length === 0) {
-          console.log(res.message); // 可以选择是否显示给用户
-        }
-      } else {
-        message.error(res.message || '获取资源列表失败');
-      }
-    } catch (error: any) {
-      console.error('获取资源列表失败:', error);
-      message.error('获取资源列表失败');
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // 当筛选条件变化时重新获取数据
+        if (res.success && res.data) {
+          setResources(res.data.list || []);
+          setPage(pageNum);
+          setTotal(res.data.total || 0);
+
+          if (res.message && res.data.list.length === 0) {
+            console.log(res.message);
+          }
+        } else {
+          message.error(res.message || '获取资源列表失败');
+        }
+      } catch (error: any) {
+        console.error('获取资源列表失败:', error);
+        message.error('获取资源列表失败');
+      } finally {
+        setLoading(false);
+      }
+    },
+    [resourceType, keyword, pageSize],
+  );
+
+  // 当条件变化时重新获取数据（包括初始加载）
   useEffect(() => {
     fetchResources(1);
-  }, [resourceType]);
-
-  // 搜索防抖
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (pagination.current === 1) {
-        fetchResources(1);
-      } else {
-        setPagination({ ...pagination, current: 1 });
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [keyword]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resourceType, keyword]);
 
   // 删除资源
   const handleDelete = async (id: number) => {
@@ -100,7 +82,7 @@ export default function ResourceLibrary() {
       const res = await deleteResource(id);
       if (res.success) {
         message.success('删除成功');
-        fetchResources(pagination.current);
+        fetchResources(page);
       } else {
         message.error(res.message || '删除失败');
       }
@@ -112,11 +94,13 @@ export default function ResourceLibrary() {
 
   // 获取资源的显示图片
   const getResourceImage = (resource: any): string | null => {
-    // 使用 images 数组的第一个图片（后端已确保只有一个）
-    if (resource.images && resource.images.length > 0 && resource.images[0]?.url) {
+    if (
+      resource.images &&
+      resource.images.length > 0 &&
+      resource.images[0]?.url
+    ) {
       return resource.images[0].url;
     }
-    // 其次使用 referenceImages（参考图）作为备用
     if (resource.referenceImages && resource.referenceImages.length > 0) {
       return resource.referenceImages[0];
     }
@@ -161,9 +145,18 @@ export default function ResourceLibrary() {
         {/* 筛选条件 */}
         <Card style={{ marginBottom: 24 }}>
           <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 16,
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               <div>
-                <span style={{ marginRight: 8, fontWeight: 500 }}>资源类型：</span>
+                <span style={{ marginRight: 8, fontWeight: 500 }}>
+                  资源类型：
+                </span>
                 <Radio.Group
                   value={resourceType}
                   onChange={(e) => setResourceType(e.target.value)}
@@ -412,12 +405,24 @@ export default function ResourceLibrary() {
                             </div>
                           )}
                           {resource.tags && resource.tags.length > 0 && (
-                            <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                              {resource.tags.slice(0, 3).map((tag: string, index: number) => (
-                                <Tag key={index} style={{ margin: 0, fontSize: 11 }}>
-                                  {tag}
-                                </Tag>
-                              ))}
+                            <div
+                              style={{
+                                marginTop: 8,
+                                display: 'flex',
+                                gap: 4,
+                                flexWrap: 'wrap',
+                              }}
+                            >
+                              {resource.tags
+                                .slice(0, 3)
+                                .map((tag: string, index: number) => (
+                                  <Tag
+                                    key={index}
+                                    style={{ margin: 0, fontSize: 11 }}
+                                  >
+                                    {tag}
+                                  </Tag>
+                                ))}
                               {resource.tags.length > 3 && (
                                 <Tag style={{ margin: 0, fontSize: 11 }}>
                                   +{resource.tags.length - 3}
@@ -434,18 +439,18 @@ export default function ResourceLibrary() {
             </div>
 
             {/* 分页 */}
-            {pagination.total > pagination.pageSize && (
+            {total > pageSize && (
               <div style={{ textAlign: 'center', marginTop: 24 }}>
                 <Pagination
-                  current={pagination.current}
-                  pageSize={pagination.pageSize}
-                  total={pagination.total}
-                  onChange={(page) => fetchResources(page)}
+                  current={page}
+                  pageSize={pageSize}
+                  total={total}
+                  onChange={(p) => fetchResources(p)}
                   showSizeChanger
-                  showTotal={(total) => `共 ${total} 项`}
+                  showTotal={(t) => `共 ${t} 项`}
                   pageSizeOptions={['12', '24', '48', '96']}
-                  onShowSizeChange={(current, size) => {
-                    setPagination({ ...pagination, pageSize: size, current: 1 });
+                  onShowSizeChange={(_, size) => {
+                    setPageSize(size);
                     fetchResources(1);
                   }}
                 />
