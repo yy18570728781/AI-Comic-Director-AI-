@@ -50,7 +50,6 @@ export interface VideoParams {
   model?: string;
   duration?: number;
   resolution?: string;
-  referenceImage?: string;
   referenceImages?: string[];
   shotId?: number;
   scriptId?: number;
@@ -157,7 +156,7 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
 
   // 生成视频
   const generateVideo = useCallback(async (params: VideoParams): Promise<string | null> => {
-    const { shotId, scriptId, referenceImage, referenceImages, ...rest } = params;
+    const { shotId, scriptId, referenceImages, ...rest } = params;
 
     const requestData: any = {
       prompt: rest.prompt || '',
@@ -168,11 +167,9 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
       scriptId,
     };
 
+    // 统一使用 referenceImages 数组
     if (referenceImages?.length) {
       requestData.referenceImages = referenceImages;
-      requestData.referenceImage = referenceImages[0];
-    } else if (referenceImage) {
-      requestData.referenceImage = referenceImage;
     }
 
     try {

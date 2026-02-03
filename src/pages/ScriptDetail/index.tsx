@@ -340,8 +340,9 @@ function ScriptDetail() {
       prompt: config.videoPrompt || shot.videoPrompt || shot.visualDescription || '',
       model: config.model || 'doubao-seedance-1-0-lite-i2v-250428',
       duration: config.duration || 5,
-      referenceImage: firstFrameImage.url,
-      referenceImages: lastFrameImage ? [firstFrameImage.url, lastFrameImage.url] : undefined,
+      referenceImages: lastFrameImage 
+        ? [firstFrameImage.url, lastFrameImage.url] 
+        : [firstFrameImage.url],
       shotId,
       scriptId: script?.id,
     });
