@@ -118,12 +118,22 @@ export default function ImageGenerateModalQueue({
 
       setGenerating(true);
 
+      // 根据选择的模型设置合适的尺寸
+      let width = 1024;
+      let height = 1024;
+
+      // doubao-seedream-4-5-251128 需要更高分辨率
+      if (imageModel === 'doubao-seedream-4-5-251128') {
+        width = 1920;
+        height = 1920;
+      }
+
       // 调用异步接口
       const res = await generateImageAsync({
         prompt: values.imagePrompt,
         model: imageModel,
-        width: 1920, // 更新为满足火山引擎最小像素要求的尺寸
-        height: 1920,
+        width,
+        height,
         referenceImages:
           referenceImages.length > 0 ? referenceImages : undefined,
         shotId: shot.id,

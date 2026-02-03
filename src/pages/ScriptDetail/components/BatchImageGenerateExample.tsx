@@ -79,10 +79,10 @@ export default function BatchImageGenerateExample({
       const shotData = shots.map((shot) => ({
         id: shot.id,
         prompt: shot.imagePrompt || shot.prompt,
-        model: 'doubao-seedream-4-5-251128',
+        model: 'doubao-seedream-4-0-250828', // 使用4.0版本，支持1024x1024
         params: {
-          width: 1920,
-          height: 1920,
+          width: 1024,
+          height: 1024,
         },
       }));
 
