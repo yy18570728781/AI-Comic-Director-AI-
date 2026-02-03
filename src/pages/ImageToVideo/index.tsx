@@ -64,11 +64,10 @@ function ImageToVideo() {
         console.log('✅ [ImageToVideo] 收到任务完成事件:', event);
         
         if (event.result) {
-          // result 可能是数组或单个对象
-          const videos = Array.isArray(event.result) ? event.result : [event.result];
-          const videoUrls = videos.map((v: any) => v.url || v).filter(Boolean);
-          if (videoUrls.length > 0) {
-            setGeneratedVideos(prev => [...prev, ...videoUrls]);
+          // 后端返回格式: { savedVideo: { id, url, shotId } }
+          const videoUrl = event.result.savedVideo?.url || event.result.url;
+          if (videoUrl) {
+            setGeneratedVideos(prev => [...prev, videoUrl]);
           }
         }
         setGenerating(false);
