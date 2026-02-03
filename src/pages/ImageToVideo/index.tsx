@@ -29,7 +29,7 @@ interface ModelConfig {
   config?: {
     resolutions?: string[];
     aspectRatios?: string[];
-    durations?: number[];
+    maxDuration?: number;
     supportFirstLastFrame?: boolean;
     supportCameraMovement?: boolean;
     supportWatermark?: boolean;
@@ -283,19 +283,15 @@ function ImageToVideo() {
                   <div style={{ marginBottom: 12, fontWeight: 500 }}>时长 (秒)</div>
                   <InputNumber
                     min={1}
-                    max={15}
+                    max={modelConfig?.maxDuration || 15}
                     value={duration}
                     onChange={(value) => setDuration(value || 5)}
                     style={{ width: '100%' }}
-                    placeholder="输入视频时长（1-15秒）"
+                    placeholder={`输入视频时长（1-${modelConfig?.maxDuration || 15}秒）`}
                     suffix="秒"
                   />
                   <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
-                    {modelConfig?.durations && modelConfig.durations.length > 0 ? (
-                      <>💡 建议时长：{modelConfig.durations.join('、')}秒</>
-                    ) : (
-                      <>💡 建议时长：3-10秒，最长不超过15秒</>
-                    )}
+                    💡 默认 5 秒，最长不超过 {modelConfig?.maxDuration || 15} 秒
                   </div>
                 </div>
 
