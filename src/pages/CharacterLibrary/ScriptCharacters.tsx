@@ -17,6 +17,8 @@ import {
   UserAddOutlined,
   ReloadOutlined,
   UserOutlined,
+  PictureOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import {
   extractCharacters,
@@ -29,17 +31,13 @@ import { useUserStore } from '../../stores/useUserStore';
 import {
   ExtractedCharacter,
   SavedCharacter,
-  characterTableColumns,
-  savedCharacterTableColumns,
-  characterTableConfig,
-  savedCharacterTableConfig,
-  getCharacterExpandedContent,
   getScriptDescriptionItems,
   emptyStates,
   buttonTexts,
   messages,
   confirmDialogs,
 } from './ScriptCharacters/config';
+import CharacterImageActions from '../../components/CharacterImageGenerateModal/index';
 
 function ScriptCharacters() {
   const navigate = useNavigate();
@@ -89,6 +87,10 @@ function ScriptCharacters() {
   const [saving, setSaving] = useState(false);
   const [loadingSaved, setLoadingSaved] = useState(false);
   const [hasExtracted, setHasExtracted] = useState(false);
+
+  // 角色图像生成相关状态
+  const [selectedCharacterForImage, setSelectedCharacterForImage] =
+    useState<SavedCharacter | null>(null);
 
   // 提取角色信息
   const handleExtractCharacters = async () => {
@@ -170,6 +172,24 @@ function ScriptCharacters() {
   // 返回角色库首页
   const handleBack = () => {
     navigate('/character-library');
+  };
+
+  // 生成角色图像
+  const handleGenerateCharacterImage = (character: SavedCharacter) => {
+    setSelectedCharacterForImage(character);
+  };
+
+  // 上传角色图像
+  const handleUploadCharacterImage = (character: SavedCharacter) => {
+    // TODO: 实现图像上传功能
+    message.info('图像上传功能开发中...');
+  };
+
+  // 角色图像生成成功回调
+  const handleImageGenerateSuccess = () => {
+    message.success('角色图像生成成功！');
+    // 刷新角色列表
+    fetchSavedCharacters();
   };
 
   return (
@@ -359,6 +379,7 @@ function ScriptCharacters() {
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
+                          marginBottom: 8,
                         }}
                       >
                         <span>创建时间</span>
@@ -366,6 +387,11 @@ function ScriptCharacters() {
                           {new Date(character.createdAt).toLocaleDateString()}
                         </span>
                       </div>
+                      {/* 操作按钮 */}
+                      <CharacterImageActions
+                        character={character}
+                        onImageGenerated={handleImageGenerateSuccess}
+                      />
                     </div>
                   }
                 />
@@ -493,34 +519,21 @@ function ScriptCharacters() {
                               position: 'relative',
                             }}
                           >
-                            {character.imageUrl ? (
-                              <Image
-                                src={character.imageUrl}
-                                alt={character.name}
-                                style={{
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                }}
-                                preview={false}
-                                fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E暂无图片%3C/text%3E%3C/svg%3E"
+                            {/* 提取的角色没有图片，显示占位符 */}
+                            <div
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#999',
+                              }}
+                            >
+                              <UserOutlined
+                                style={{ fontSize: 48, marginBottom: 8 }}
                               />
-                            ) : (
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: '#999',
-                                }}
-                              >
-                                <UserOutlined
-                                  style={{ fontSize: 48, marginBottom: 8 }}
-                                />
-                                <div style={{ fontSize: 12 }}>暂无角色图片</div>
-                              </div>
-                            )}
+                              <div style={{ fontSize: 12 }}>暂无角色图片</div>
+                            </div>
                             <Checkbox
                               checked={isSelected}
                               style={{
@@ -630,6 +643,8 @@ function ScriptCharacters() {
           </div>
         )}
       </Card>
+
+      {/* 角色图像操作已集成到 CharacterImageActions 组件中 */}
     </div>
   );
 }
