@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Empty,
   Checkbox,
@@ -10,6 +10,7 @@ import {
   Pagination,
   message,
 } from 'antd';
+import { debounce } from 'lodash';
 import { SearchOutlined } from '@ant-design/icons';
 
 import { getResourceList } from '@/api/resource';
@@ -75,23 +76,24 @@ export default function ResourceLibraryTab({
     }
   };
 
-  // 当筛选条件变化时重新获取数据
-  useEffect(() => {
-    fetchResources(1);
-  }, [resourceType, scope, scriptId]);
+  // 防抖的搜索函数
+  const debouncedFetchResources = useMemo(
+    () => debounce(() => fetchResources(1), 500),
+    [fetchResources],
+  );
 
-  // 搜索防抖
+  // 当条件变化时请求数据（筛选条件立即请求，搜索防抖请求）
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (pagination.current === 1) {
-        fetchResources(1);
-      } else {
-        setPagination({ ...pagination, current: 1 });
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [keyword]);
+    if (keyword) {
+      debouncedFetchResources();
+    } else {
+      fetchResources(1);
+    }
+    return () => {
+      debouncedFetchResources.cancel();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resourceType, scope, scriptId, keyword]);
 
   // 选择/取消选择图片
   const handleToggleImage = (url: string) => {
