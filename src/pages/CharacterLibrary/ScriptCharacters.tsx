@@ -1,18 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Button,
-  Table,
   Space,
   Card,
   Descriptions,
   message,
   Modal,
   Spin,
+  Image,
+  Tag,
+  Checkbox,
+  Empty,
 } from 'antd';
 import {
   ArrowLeftOutlined,
   UserAddOutlined,
   ReloadOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import {
   extractCharacters,
@@ -220,15 +224,155 @@ function ScriptCharacters() {
           </Button>
         </div>
 
-        <Table
-          dataSource={savedCharacters}
-          columns={savedCharacterTableColumns}
-          {...savedCharacterTableConfig}
-          loading={loadingSaved}
-          locale={{
-            emptyText: '暂无已保存的角色',
-          }}
-        />
+        {/* 已保存角色卡片列表 */}
+        {loadingSaved ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <Spin size="large" tip="加载中..." />
+          </div>
+        ) : savedCharacters.length === 0 ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="暂无已保存的角色"
+            style={{ padding: '40px 0' }}
+          >
+            <div style={{ color: '#999', fontSize: 12 }}>
+              请先提取并保存角色到角色库
+            </div>
+          </Empty>
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: 16,
+            }}
+          >
+            {savedCharacters.map((character) => (
+              <Card
+                key={character.id}
+                hoverable
+                style={{
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                }}
+                cover={
+                  <div
+                    style={{
+                      width: '100%',
+                      height: 200,
+                      backgroundColor: '#f5f5f5',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      position: 'relative',
+                    }}
+                  >
+                    {character.imageUrl ? (
+                      <Image
+                        src={character.imageUrl}
+                        alt={character.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                        }}
+                        preview={{
+                          mask: (
+                            <div>
+                              <div style={{ color: '#fff', fontSize: 14 }}>
+                                {character.name}
+                              </div>
+                            </div>
+                          ),
+                        }}
+                        fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E暂无图片%3C/text%3E%3C/svg%3E"
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#999',
+                        }}
+                      >
+                        <UserOutlined
+                          style={{ fontSize: 48, marginBottom: 8 }}
+                        />
+                        <div style={{ fontSize: 12 }}>暂无角色图片</div>
+                      </div>
+                    )}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        background: 'rgba(0,0,0,0.6)',
+                        borderRadius: 4,
+                        padding: '2px 6px',
+                      }}
+                    >
+                      <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
+                        {character.id}
+                      </Tag>
+                    </div>
+                  </div>
+                }
+              >
+                <Card.Meta
+                  title={
+                    <div
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 600,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {character.name}
+                    </div>
+                  }
+                  description={
+                    <div>
+                      {character.description && (
+                        <div
+                          style={{
+                            fontSize: 13,
+                            color: '#666',
+                            marginBottom: 8,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            lineHeight: '1.4',
+                          }}
+                        >
+                          {character.description}
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: '#999',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <span>创建时间</span>
+                        <span>
+                          {new Date(character.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  }
+                />
+              </Card>
+            ))}
+          </div>
+        )}
       </Card>
 
       {/* 操作区域 */}
@@ -294,43 +438,162 @@ function ScriptCharacters() {
           <>
             {extractedCharacters.length > 0 ? (
               <>
+                {/* 提取的角色卡片列表 */}
                 <div style={{ marginBottom: '16px' }}>
                   <p>
                     提取到 <strong>{extractedCharacters.length}</strong>{' '}
-                    个角色， 请选择要保存到角色库的角色：
+                    个角色，请选择要保存到角色库的角色：
                   </p>
                 </div>
-                <Table
-                  dataSource={extractedCharacters}
-                  columns={characterTableColumns}
-                  {...characterTableConfig}
-                  rowSelection={{
-                    selectedRowKeys: selectedCharacters,
-                    onChange: (selectedRowKeys) => {
-                      setSelectedCharacters(selectedRowKeys as string[]);
-                    },
-                    onSelectAll: (selected) => {
-                      if (selected) {
-                        setSelectedCharacters(
-                          extractedCharacters.map((c) => c.name),
-                        );
-                      } else {
-                        setSelectedCharacters([]);
-                      }
-                    },
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns:
+                      'repeat(auto-fill, minmax(280px, 1fr))',
+                    gap: 16,
                   }}
-                  expandable={{
-                    expandedRowRender: (record) => (
-                      <div style={{ padding: '8px 0' }}>
-                        <Descriptions
-                          size="small"
-                          column={1}
-                          items={getCharacterExpandedContent(record)}
+                >
+                  {extractedCharacters.map((character) => {
+                    const isSelected = selectedCharacters.includes(
+                      character.name,
+                    );
+                    return (
+                      <Card
+                        key={character.name}
+                        hoverable
+                        style={{
+                          borderRadius: 8,
+                          overflow: 'hidden',
+                          border: isSelected
+                            ? '2px solid #1890ff'
+                            : '1px solid #d9d9d9',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedCharacters((prev) =>
+                              prev.filter((name) => name !== character.name),
+                            );
+                          } else {
+                            setSelectedCharacters((prev) => [
+                              ...prev,
+                              character.name,
+                            ]);
+                          }
+                        }}
+                        cover={
+                          <div
+                            style={{
+                              width: '100%',
+                              height: 200,
+                              backgroundColor: '#f5f5f5',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              position: 'relative',
+                            }}
+                          >
+                            {character.imageUrl ? (
+                              <Image
+                                src={character.imageUrl}
+                                alt={character.name}
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                }}
+                                preview={false}
+                                fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E暂无图片%3C/text%3E%3C/svg%3E"
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  color: '#999',
+                                }}
+                              >
+                                <UserOutlined
+                                  style={{ fontSize: 48, marginBottom: 8 }}
+                                />
+                                <div style={{ fontSize: 12 }}>暂无角色图片</div>
+                              </div>
+                            )}
+                            <Checkbox
+                              checked={isSelected}
+                              style={{
+                                position: 'absolute',
+                                top: 8,
+                                right: 8,
+                                zIndex: 10,
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        }
+                      >
+                        <Card.Meta
+                          title={
+                            <div
+                              style={{
+                                fontSize: 16,
+                                fontWeight: 600,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {character.name}
+                            </div>
+                          }
+                          description={
+                            <div>
+                              {character.description && (
+                                <div
+                                  style={{
+                                    fontSize: 13,
+                                    color: '#666',
+                                    marginBottom: 8,
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    lineHeight: '1.4',
+                                  }}
+                                >
+                                  {character.description}
+                                </div>
+                              )}
+                              {character.appearance && (
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    color: '#999',
+                                    marginTop: 4,
+                                  }}
+                                >
+                                  <strong>外貌：</strong>
+                                  <span
+                                    style={{
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 2,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden',
+                                    }}
+                                  >
+                                    {character.appearance}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          }
                         />
-                      </div>
-                    ),
-                  }}
-                />
+                      </Card>
+                    );
+                  })}
+                </div>
               </>
             ) : (
               <div
