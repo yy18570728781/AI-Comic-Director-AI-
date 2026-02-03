@@ -384,7 +384,7 @@ function ImageToImage() {
                     </div>
                     {pendingTasks.slice(0, 5).map((task: any) => (
                       <div
-                        key={task.taskId}
+                        key={task.jobId}
                         style={{
                           padding: 8,
                           backgroundColor: token.colorBgElevated,
@@ -399,7 +399,7 @@ function ImageToImage() {
                           }}
                         >
                           {task.model || '图片'} -
-                          {String(task.taskId).substring(0, 8)}...
+                          {String(task.jobId).substring(0, 8)}...
                         </div>
                         <div
                           style={{
