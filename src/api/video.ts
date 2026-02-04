@@ -1,11 +1,15 @@
 import { request } from './request'
 
+// 视频生成模式
+export type VideoMode = 't2v' | 'i2v' | 'flf2v' | 'ref2v'
+
 /**
  * 生成视频（同步）
  */
 export function generateVideo(data: {
     prompt: string
     model?: string
+    mode: VideoMode  // 必传！
     duration?: number
     referenceImages?: string[]
     resolution?: string
@@ -26,6 +30,7 @@ export function generateVideo(data: {
 export function generateVideoAsync(data: {
     prompt: string
     model?: string
+    mode: VideoMode  // 必传！
     duration?: number
     referenceImages?: string[]
     resolution?: string
@@ -48,6 +53,8 @@ export function batchGenerateVideosAsync(data: {
     shots: Array<{
         id: number
         imageUrl: string
+        lastImageUrl?: string  // 首尾帧模式的尾帧图
+        mode: VideoMode  // 必传！
         model?: string
         params?: any
     }>
