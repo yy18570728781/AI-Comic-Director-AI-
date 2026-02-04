@@ -197,6 +197,7 @@ function ImageToVideo() {
         referenceImages: selectedImages,
         duration,
         resolution,
+        ratio: aspectRatio,
       });
     }
   };

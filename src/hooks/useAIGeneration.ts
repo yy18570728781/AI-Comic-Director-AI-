@@ -51,6 +51,7 @@ export interface VideoParams {
   mode?: 't2v' | 'i2v' | 'flf2v' | 'ref2v';  // 视频生成模式
   duration?: number;
   resolution?: string;
+  ratio?: string;  // 画面比例
   referenceImages?: string[];
   shotId?: number;
   scriptId?: number;
@@ -175,6 +176,7 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
       mode,
       duration: rest.duration || 5,
       resolution: rest.resolution || '720p',
+      ratio: rest.ratio,  // 画面比例
       shotId,
       scriptId,
     };
