@@ -280,6 +280,7 @@ export function batchGenerateImages(data: { requests: any[] }) {
 export function generateVideo(data: {
     prompt: string
     model?: string
+    mode: 't2v' | 'i2v' | 'flf2v' | 'ref2v'  // 必传！
     duration?: number
     referenceImages?: string[]
     fps?: number
