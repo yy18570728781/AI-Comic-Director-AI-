@@ -335,10 +335,14 @@ function ScriptDetail() {
     // 检查是否有尾帧
     const lastFrameImage = shot.images?.find((img: any) => img.isLastFrame);
 
+    // 分镜页面：有尾帧用首尾帧模式，否则用单图模式
+    const mode = lastFrameImage ? 'flf2v' : 'i2v';
+
     // 使用 hook 生成视频
     await generateVideo({
       prompt: config.videoPrompt || shot.videoPrompt || shot.visualDescription || '',
       model: config.model || 'doubao-seedance-1-0-lite-i2v-250428',
+      mode,
       duration: config.duration || 5,
       referenceImages: lastFrameImage 
         ? [firstFrameImage.url, lastFrameImage.url] 
