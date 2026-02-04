@@ -148,23 +148,56 @@ export default function CustomUploadTab({
 
   return (
     <div style={{ padding: '24px 0' }}>
-      <Upload
-        listType="picture-card"
-        fileList={fileList}
-        customRequest={customUpload}
-        beforeUpload={beforeUpload}
-        onRemove={handleRemove}
-        onPreview={handlePreview}
-        maxCount={maxCount}
-        accept="image/*"
-        showUploadList={{
-          showPreviewIcon: true,
-          showRemoveIcon: true,
-          showDownloadIcon: false, // 禁用下载按钮
-        }}
-      >
-        {fileList.length >= maxCount ? null : uploadButton}
-      </Upload>
+      <style>
+        {`
+          .custom-upload-tab .ant-upload-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+          }
+          .custom-upload-tab .ant-upload-list-picture-card {
+            display: contents;
+          }
+          .custom-upload-tab .ant-upload-list-picture-card .ant-upload-list-item-container {
+            width: 150px !important;
+            height: 150px !important;
+            margin: 0 !important;
+          }
+          .custom-upload-tab .ant-upload-list-picture-card .ant-upload-list-item {
+            width: 150px !important;
+            height: 150px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .custom-upload-tab .ant-upload-list-picture-card .ant-upload-list-item-thumbnail img {
+            object-fit: cover !important;
+          }
+          .custom-upload-tab .ant-upload.ant-upload-select {
+            width: 150px !important;
+            height: 150px !important;
+            margin: 0 !important;
+          }
+        `}
+      </style>
+      <div className="custom-upload-tab">
+        <Upload
+          listType="picture-card"
+          fileList={fileList}
+          customRequest={customUpload}
+          beforeUpload={beforeUpload}
+          onRemove={handleRemove}
+          onPreview={handlePreview}
+          maxCount={maxCount}
+          accept="image/*"
+          showUploadList={{
+            showPreviewIcon: true,
+            showRemoveIcon: true,
+            showDownloadIcon: false,
+          }}
+        >
+          {fileList.length >= maxCount ? null : uploadButton}
+        </Upload>
+      </div>
       <div style={{ marginTop: 8, color: '#999', fontSize: 12 }}>
         支持 jpg、png、webp、gif 格式，原始文件不超过 50MB，最多上传 {maxCount} 张
         <br />

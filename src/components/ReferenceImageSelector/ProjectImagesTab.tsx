@@ -78,8 +78,8 @@ export default function ProjectImagesTab({
     <div style={{ padding: '24px 0' }}>
       <div
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+          display: 'flex',
+          flexWrap: 'wrap',
           gap: 16,
         }}
       >
@@ -94,14 +94,19 @@ export default function ProjectImagesTab({
                 : '2px solid transparent',
               borderRadius: 4,
               overflow: 'hidden',
+              width: 150,
+              height: 150,
+              flexShrink: 0,
             }}
             onClick={() => handleToggleImage(url)}
           >
             <Image
               src={url}
               alt="项目图像"
+              width={150}
+              height={150}
               preview={false}
-              style={{ width: '100%', height: 120, objectFit: 'cover' }}
+              style={{ objectFit: 'cover' }}
             />
             <Checkbox
               checked={selectedImages.includes(url)}

@@ -235,8 +235,8 @@ export default function ResourceLibraryTab({
           {/* 资源列表 */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+              display: 'flex',
+              flexWrap: 'wrap',
               gap: 16,
             }}
           >
@@ -255,7 +255,9 @@ export default function ResourceLibraryTab({
                       borderRadius: 8,
                       overflow: 'hidden',
                       background: '#f0f0f0',
-                      height: 160,
+                      width: 150,
+                      height: 150,
+                      flexShrink: 0,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -299,6 +301,9 @@ export default function ResourceLibraryTab({
                     overflow: 'hidden',
                     transition: 'all 0.3s',
                     background: '#fff',
+                    width: 150,
+                    height: 150,
+                    flexShrink: 0,
                   }}
                   onClick={() => handleToggleImage(imageUrl)}
                   onMouseEnter={(e) => {
@@ -312,17 +317,17 @@ export default function ResourceLibraryTab({
                   <Image
                     src={imageUrl}
                     alt={resource.name}
+                    width={150}
+                    height={150}
                     preview={false}
                     style={{
-                      width: '100%',
-                      height: 160,
                       objectFit: 'cover',
                     }}
                     placeholder={
                       <div
                         style={{
-                          width: '100%',
-                          height: 160,
+                          width: 150,
+                          height: 150,
                           background: '#f0f0f0',
                           display: 'flex',
                           alignItems: 'center',
