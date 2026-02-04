@@ -281,7 +281,7 @@ export function generateVideo(data: {
     prompt: string
     model?: string
     duration?: number
-    referenceImage?: string
+    referenceImages?: string[]
     fps?: number
     resolution?: string
 }) {
@@ -371,7 +371,6 @@ export function generateVideoAsync(data: {
     prompt: string
     model?: string
     duration?: number
-    referenceImage?: string
     referenceImages?: string[]
     fps?: number
     resolution?: string
