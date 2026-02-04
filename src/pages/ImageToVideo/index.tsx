@@ -13,6 +13,7 @@ import {
   theme,
   Switch,
   InputNumber,
+  Image,
 } from 'antd';
 import { PlusOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useModelStore } from '@/stores/useModelStore';
@@ -27,10 +28,12 @@ interface ModelConfig {
   name: string;
   description: string;
   config?: {
+    supportedModes?: string[];  // 支持的生成模式
     resolutions?: string[];
     aspectRatios?: string[];
     maxDuration?: number;
-    supportFirstLastFrame?: boolean;
+    maxImages?: number;  // 最大参考图数量
+    supportFirstLastFrame?: boolean;  // 兼容旧字段
     supportCameraMovement?: boolean;
     supportWatermark?: boolean;
   };
@@ -121,6 +124,15 @@ function ImageToVideo() {
   // 获取当前选中的模型配置
   const currentModel = models.find((m) => m.id === videoModel) as ModelConfig | undefined;
   const modelConfig = currentModel?.config;
+
+  // 根据模型支持的 mode 计算最大图片数量
+  const getMaxImageCount = () => {
+    const modes = modelConfig?.supportedModes || [];
+    if (modes.includes('ref2v')) return modelConfig?.maxImages || 4;
+    if (modes.includes('flf2v')) return 2;
+    return 1;
+  };
+  const maxImageCount = getMaxImageCount();
  
   
 
@@ -185,7 +197,7 @@ function ImageToVideo() {
   };
 
   return (
-    <div style={{ maxWidth: 1400, margin: '0 auto' }}>
+    <div style={{ padding: '0 24px' }}>
       <Row gutter={[24, 24]} style={{ minHeight: '100vh' }}>
         {/* 左侧：输入控件 */}
         <Col xs={24} lg={10}>
@@ -202,7 +214,7 @@ function ImageToVideo() {
                 {/* 参考图部分 */}
                 <div>
                   <div style={{ marginBottom: 12, fontWeight: 500 }}>
-                    参考图片 {modelConfig?.supportFirstLastFrame && '(支持首尾帧)'}
+                    参考图片 (最多{maxImageCount}张)
                   </div>
                   <div
                     style={{
@@ -219,38 +231,39 @@ function ImageToVideo() {
                     }}
                   >
                     {selectedImages.length > 0 ? (
-                      <div>
-                        <div style={{ marginBottom: 16 }}>
+                      <div style={{ width: '100%' }}>
+                        <div style={{ marginBottom: 12, textAlign: 'center' }}>
                           已选择 {selectedImages.length} 张参考图
-                          {selectedImages.length === 2 && ' (首帧 + 尾帧)'}
                         </div>
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(2, 1fr)',
-                            gap: 8,
-                            maxHeight: 150,
-                            overflowY: 'auto',
-                            marginBottom: 12,
-                          }}
-                        >
-                          {selectedImages.map((img, idx) => (
-                            <div key={idx} style={{ textAlign: 'center' }}>
-                              <img
-                                src={img}
-                                alt={`reference-${idx}`}
-                                style={{
-                                  maxWidth: '100%',
-                                  maxHeight: 80,
-                                  borderRadius: 4,
-                                }}
-                              />
-                              <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
-                                {idx === 0 ? '首帧' : '尾帧'}
+                        <Image.PreviewGroup>
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              justifyContent: 'flex-start',
+                              gap: 16,
+                              marginBottom: 12,
+                            }}
+                          >
+                            {selectedImages.map((img, idx) => (
+                              <div key={idx} style={{ textAlign: 'center' }}>
+                                <Image
+                                  src={img}
+                                  alt={`reference-${idx}`}
+                                  width={200}
+                                  height={200}
+                                  style={{
+                                    objectFit: 'cover',
+                                    borderRadius: 4,
+                                  }}
+                                />
+                                <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
+                                  第{idx + 1}张
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        </Image.PreviewGroup>
                       </div>
                     ) : (
                       <div style={{ color: token.colorTextTertiary }}>
@@ -562,7 +575,7 @@ function ImageToVideo() {
           setSelectedImages(images);
           setSelectorVisible(false);
         }}
-        maxCount={modelConfig?.supportFirstLastFrame ? 2 : 1}
+        maxCount={maxImageCount}
         defaultImages={selectedImages}
       />
     </div>
