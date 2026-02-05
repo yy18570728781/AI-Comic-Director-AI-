@@ -50,3 +50,24 @@ export function ensureDefaultUser() {
     method: 'POST',
   });
 }
+
+/**
+ * 获取用户积分余额
+ */
+export function getUserPoints(userId: number) {
+  return request({
+    url: `/api/user/${userId}/points`,
+    method: 'GET',
+  });
+}
+
+/**
+ * 获取用户积分流水
+ */
+export function getPointRecords(userId: number, params?: { page?: number; pageSize?: number }) {
+  return request({
+    url: `/api/user/${userId}/point-records`,
+    method: 'GET',
+    params,
+  });
+}

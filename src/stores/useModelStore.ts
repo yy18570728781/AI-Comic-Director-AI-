@@ -27,6 +27,13 @@ export interface ModelOption {
     provider: string;
     features: string[];
     available: boolean;
+    // 图片模型积分
+    creditsPerImage?: number;
+    // 视频模型定价
+    pricing?: Array<{
+        resolution: string;
+        creditsPerSecond: number;
+    }>;
 }
 
 // 模型列表状态（纯内存，不持久化）

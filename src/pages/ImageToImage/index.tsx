@@ -15,6 +15,7 @@ import {
 } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useModelStore } from '@/stores/useModelStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { useAIGeneration, GeneratedImage } from '@/hooks/useAIGeneration';
 import ReferenceImageSelector from '@/components/ReferenceImageSelector';
 import { getModelList } from '@/api/model';
@@ -25,6 +26,7 @@ interface ModelConfig {
   id: string;
   name: string;
   description: string;
+  creditsPerImage?: number;
   config?: {
     aspectRatios?: string[];
     qualities?: string[];
@@ -36,6 +38,7 @@ interface ModelConfig {
 function ImageToImage() {
   const { token } = theme.useToken();
   const { imageModel, setImageModel } = useModelStore();
+  const { currentUser, refreshPoints } = useUserStore();
   const [models, setModels] = useState<ModelConfig[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -50,6 +53,8 @@ function ImageToImage() {
   const { generateImage, tasks, generatingImageIds } = useAIGeneration({
     onImageComplete: (image) => {
       setGeneratedImages(prev => [...prev, image]);
+      // 任务完成后刷新积分
+      refreshPoints();
     },
     showMessage: true,
   });
@@ -100,6 +105,11 @@ function ImageToImage() {
     | ModelConfig
     | undefined;
   const modelConfig = currentModel?.config;
+
+  // 计算当前积分消费
+  const creditsPerImage = currentModel?.creditsPerImage ?? 5;  // 默认5积分
+  const totalCredits = creditsPerImage * batchCount;
+  const hasEnoughPoints = (currentUser?.points ?? 0) >= totalCredits;
 
   // 当模型改变时，重置配置
   const handleModelChange = (value: string) => {
@@ -342,7 +352,7 @@ function ImageToImage() {
                       marginTop: 4,
                     }}
                   >
-                    💡 每次最多生成5张图片，消耗点数 = 30 × 数量
+                    💡 每次最多生成5张图片，消耗积分 = {creditsPerImage} × 数量
                   </div>
                 </div>
 
@@ -368,13 +378,25 @@ function ImageToImage() {
                   block
                   loading={generating}
                   onClick={handleGenerate}
-                  disabled={!selectedImages.length || !prompt.trim()}
+                  disabled={!selectedImages.length || !prompt.trim() || !hasEnoughPoints}
                 >
                   {selectedImages.length > 1 &&
                   modelConfig?.supportMultiImageFusion
-                    ? `多图融合 (${selectedImages.length}张图) - 消耗 ${30 * batchCount} 点`
-                    : `图生图 (${batchCount}张) - 消耗 ${30 * batchCount} 点`}
+                    ? `多图融合 (${selectedImages.length}张图) - 消耗 ${totalCredits} 积分`
+                    : `图生图 (${batchCount}张) - 消耗 ${totalCredits} 积分`}
                 </Button>
+                
+                {/* 积分不足提示 */}
+                {!hasEnoughPoints && (
+                  <div style={{ 
+                    color: '#ff4d4f', 
+                    fontSize: 12, 
+                    marginTop: 8,
+                    textAlign: 'center',
+                  }}>
+                    ⚠️ 积分不足，当前余额 {currentUser?.points ?? 0} 积分
+                  </div>
+                )}
 
                 {/* 任务状态显示 */}
                 {pendingTasks.length > 0 && (

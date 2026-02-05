@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout as AntdLayout, Menu, theme, Button, Space, Dropdown, Avatar } from 'antd';
 import type { MenuProps } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -66,12 +66,19 @@ const menuItems: MenuItem[] = [
 function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, logout } = useUserStore();
+  const { currentUser, logout, refreshPoints } = useUserStore();
   const [collapsed, setCollapsed] = useState(false);
   const [modelModalVisible, setModelModalVisible] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  // 登录后获取积分
+  useEffect(() => {
+    if (currentUser?.id) {
+      refreshPoints();
+    }
+  }, [currentUser?.id, refreshPoints]);
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     navigate(e.key);
@@ -155,6 +162,16 @@ function Layout() {
                       src={currentUser?.avatar}
                     />
                     <span>{currentUser?.username || currentUser?.email || '用户'}</span>
+                    <span style={{ 
+                      color: '#faad14', 
+                      fontSize: 12,
+                      backgroundColor: '#fffbe6',
+                      padding: '2px 8px',
+                      borderRadius: 10,
+                      marginLeft: 4,
+                    }}>
+                      💰 {currentUser?.points ?? 0}
+                    </span>
                   </div>
                 </Dropdown>
               </Space>

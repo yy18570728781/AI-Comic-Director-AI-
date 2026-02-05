@@ -17,6 +17,7 @@ import {
 } from 'antd';
 import { PlusOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { useModelStore } from '@/stores/useModelStore';
+import { useUserStore } from '@/stores/useUserStore';
 import { useAIGeneration, GeneratedVideo } from '@/hooks/useAIGeneration';
 import ReferenceImageSelector from '@/components/ReferenceImageSelector';
 import { getModelList } from '@/api/model';
@@ -34,6 +35,10 @@ interface ModelConfig {
   id: string;
   name: string;
   description: string;
+  pricing?: Array<{
+    resolution: string;
+    creditsPerSecond: number;
+  }>;
   config?: {
     supportedModes?: string[];  // 支持的生成模式
     resolutions?: string[];
@@ -49,6 +54,7 @@ interface ModelConfig {
 function ImageToVideo() {
   const { token } = theme.useToken();
   const { videoModel, setVideoModel } = useModelStore();
+  const { currentUser, refreshPoints } = useUserStore();
   const [models, setModels] = useState<ModelConfig[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
@@ -66,6 +72,8 @@ function ImageToVideo() {
   const { generateVideo, tasks, generatingVideoIds } = useAIGeneration({
     onVideoComplete: (video) => {
       setGeneratedVideos(prev => [...prev, video]);
+      // 任务完成后刷新积分
+      refreshPoints();
     },
     showMessage: true,
   });
@@ -131,6 +139,16 @@ function ImageToVideo() {
   // 获取当前选中的模型配置
   const currentModel = models.find((m) => m.id === videoModel) as ModelConfig | undefined;
   const modelConfig = currentModel?.config;
+
+  // 计算当前积分消费
+  const getCreditsPerSecond = () => {
+    if (!currentModel?.pricing) return 2;  // 默认 2积分/秒
+    const tier = currentModel.pricing.find(p => p.resolution === resolution);
+    return tier?.creditsPerSecond ?? currentModel.pricing[0]?.creditsPerSecond ?? 2;
+  };
+  const creditsPerSecond = getCreditsPerSecond();
+  const totalCredits = creditsPerSecond * duration * batchCount;
+  const hasEnoughPoints = (currentUser?.points ?? 0) >= totalCredits;
 
   // 根据模型支持的 mode 计算最大图片数量
   const maxImageCount = getMaxImageCount(
@@ -470,7 +488,7 @@ function ImageToVideo() {
                     ))}
                   </div>
                   <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
-                    💡 每次最多生成5个视频，消耗点数 = 50 × 数量
+                    💡 每次最多生成5个视频，消耗积分 = {creditsPerSecond}/秒 × {duration}秒 × 数量
                   </div>
                 </div>
 
@@ -481,11 +499,23 @@ function ImageToVideo() {
                   block
                   loading={generating}
                   onClick={handleGenerate}
-                  disabled={!selectedImages.length || !prompt.trim()}
+                  disabled={!selectedImages.length || !prompt.trim() || !hasEnoughPoints}
                   icon={<PlayCircleOutlined />}
                 >
-                  生成视频 ({batchCount}个) - 消耗 {50 * batchCount} 点
+                  生成视频 ({batchCount}个) - 消耗 {totalCredits} 积分
                 </Button>
+                
+                {/* 积分不足提示 */}
+                {!hasEnoughPoints && (
+                  <div style={{ 
+                    color: '#ff4d4f', 
+                    fontSize: 12, 
+                    marginTop: 8,
+                    textAlign: 'center',
+                  }}>
+                    ⚠️ 积分不足，当前余额 {currentUser?.points ?? 0} 积分
+                  </div>
+                )}
 
                 {/* 任务状态显示 */}
                 {pendingTasks.length > 0 && (
