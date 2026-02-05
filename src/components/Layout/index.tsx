@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout as AntdLayout, Menu, theme, Button, Space, Dropdown, Avatar } from 'antd';
+import { Layout as AntdLayout, Menu, theme, Button, Space, Avatar, Modal, Divider, message } from 'antd';
 import type { MenuProps } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -12,6 +12,11 @@ import {
   VideoCameraOutlined,
   CameraOutlined,
   LogoutOutlined,
+  LockOutlined,
+  WalletOutlined,
+  FileTextOutlined as RecordOutlined,
+  CustomerServiceOutlined,
+  RightOutlined,
 } from '@ant-design/icons';
 
 import ModelSettingsModal from '@/components/ModelSettingsModal';
@@ -69,6 +74,7 @@ function Layout() {
   const { currentUser, logout, refreshPoints } = useUserStore();
   const [collapsed, setCollapsed] = useState(false);
   const [modelModalVisible, setModelModalVisible] = useState(false);
+  const [userModalVisible, setUserModalVisible] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -92,28 +98,36 @@ function Layout() {
       // 即使API调用失败，也要清除本地状态
     } finally {
       logout();
+      setUserModalVisible(false);
       navigate('/login');
     }
   };
 
-  // 用户下拉菜单
-  const userMenuItems: MenuProps['items'] = [
+  // 用户弹窗菜单项
+  const userMenuList = [
     {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: '个人信息',
-      onClick: () => {
-        // TODO: 跳转到个人信息页面
-      },
+      key: 'password',
+      icon: <LockOutlined />,
+      label: '修改密码',
+      onClick: () => message.info('功能开发中'),
     },
     {
-      type: 'divider',
+      key: 'recharge',
+      icon: <WalletOutlined />,
+      label: '点数充值',
+      onClick: () => message.info('功能开发中'),
     },
     {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-      onClick: handleLogout,
+      key: 'records',
+      icon: <RecordOutlined />,
+      label: '充值记录',
+      onClick: () => message.info('功能开发中'),
+    },
+    {
+      key: 'service',
+      icon: <CustomerServiceOutlined />,
+      label: '联系客服',
+      onClick: () => message.info('功能开发中'),
     },
   ];
 
@@ -153,27 +167,36 @@ function Layout() {
                   模型设置
                 </Button>
                 
-                {/* 用户信息 */}
-                <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-                  <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Avatar 
-                      size="small" 
-                      icon={<UserOutlined />} 
-                      src={currentUser?.avatar}
-                    />
-                    <span>{currentUser?.username || currentUser?.email || '用户'}</span>
+                {/* 积分显示 - 点击打开用户弹窗 */}
+                <div 
+                  onClick={() => setUserModalVisible(true)}
+                  style={{ 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 12,
+                    padding: '4px 12px',
+                    borderRadius: 8,
+               
+                  }}
+                >
+                  <Avatar 
+                    size={32} 
+                    icon={<UserOutlined />} 
+                    src={currentUser?.avatar}
+                    style={{ backgroundColor: '#7265e6' }}
+                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ color: '#666', fontSize: 13 }}>可用积分</span>
                     <span style={{ 
-                      color: '#faad14', 
-                      fontSize: 12,
-                      backgroundColor: '#fffbe6',
-                      padding: '2px 8px',
-                      borderRadius: 10,
-                      marginLeft: 4,
+                      color: '#52c41a', 
+                      fontSize: 16,
+                      fontWeight: 600,
                     }}>
-                      💰 {currentUser?.points ?? 0}
+                      {currentUser?.points ?? 0}
                     </span>
                   </div>
-                </Dropdown>
+                </div>
               </Space>
             </div>
           </Header>
@@ -195,6 +218,148 @@ function Layout() {
             open={modelModalVisible}
             onClose={() => setModelModalVisible(false)}
           />
+
+          {/* 用户信息弹窗 */}
+          <Modal
+            open={userModalVisible}
+            onCancel={() => setUserModalVisible(false)}
+            footer={null}
+            width={360}
+            centered
+            styles={{
+              content: {
+                backgroundColor: '#1a1a1a',
+                padding: 0,
+                borderRadius: 16,
+              },
+            }}
+            closeIcon={<span style={{ color: '#999' }}>×</span>}
+          >
+            <div style={{ padding: '32px 24px 24px', textAlign: 'center' }}>
+              {/* 头像 */}
+              <div style={{ position: 'relative', display: 'inline-block', marginBottom: 16 }}>
+                <Avatar 
+                  size={80} 
+                  icon={<UserOutlined />} 
+                  src={currentUser?.avatar}
+                  style={{ backgroundColor: '#7265e6' }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  bottom: 4,
+                  right: 4,
+                  width: 12,
+                  height: 12,
+                  backgroundColor: '#52c41a',
+                  borderRadius: '50%',
+                  border: '2px solid #1a1a1a',
+                }} />
+              </div>
+              
+              {/* 用户名/手机号 */}
+              <div style={{ fontSize: 20, fontWeight: 600, color: '#fff', marginBottom: 8 }}>
+                {currentUser?.phone || currentUser?.username || currentUser?.email || '用户'}
+              </div>
+              
+              {/* 会员标签 */}
+              <div style={{
+                display: 'inline-block',
+                padding: '4px 16px',
+                backgroundColor: '#2a2a2a',
+                borderRadius: 16,
+                color: '#999',
+                fontSize: 12,
+                marginBottom: 24,
+              }}>
+                AI 创意工坊会员
+              </div>
+              
+              {/* 积分和到期时间 */}
+              <div style={{ 
+                display: 'flex', 
+                gap: 12, 
+                marginBottom: 24,
+              }}>
+                <div style={{
+                  flex: 1,
+                  backgroundColor: '#2a2a2a',
+                  borderRadius: 12,
+                  padding: '16px 12px',
+                  textAlign: 'left',
+                }}>
+                  <div style={{ color: '#999', fontSize: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <WalletOutlined /> 剩余点数
+                  </div>
+                  <div style={{ color: '#fff', fontSize: 28, fontWeight: 600 }}>
+                    {currentUser?.points ?? 0}
+                  </div>
+                </div>
+                <div style={{
+                  flex: 1,
+                  backgroundColor: '#2a2a2a',
+                  borderRadius: 12,
+                  padding: '16px 12px',
+                  textAlign: 'left',
+                }}>
+                  <div style={{ color: '#999', fontSize: 12, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    📅 到期时间
+                  </div>
+                  <div style={{ color: '#fff', fontSize: 20, fontWeight: 600 }}>
+                    2099-12-31
+                  </div>
+                </div>
+              </div>
+              
+              {/* 常用功能 */}
+              <div style={{ textAlign: 'left', marginBottom: 16 }}>
+                <div style={{ color: '#999', fontSize: 12, marginBottom: 12 }}>常用功能</div>
+                <div style={{
+                  backgroundColor: '#2a2a2a',
+                  borderRadius: 12,
+                  overflow: 'hidden',
+                }}>
+                  {userMenuList.map((item, index) => (
+                    <div
+                      key={item.key}
+                      onClick={item.onClick}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '14px 16px',
+                        cursor: 'pointer',
+                        borderBottom: index < userMenuList.length - 1 ? '1px solid #333' : 'none',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, color: '#fff' }}>
+                        <span style={{ color: '#999' }}>{item.icon}</span>
+                        {item.label}
+                      </div>
+                      <RightOutlined style={{ color: '#666', fontSize: 12 }} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* 退出按钮 */}
+              <Button
+                block
+                size="large"
+                onClick={handleLogout}
+                style={{
+                  backgroundColor: 'transparent',
+                  border: '1px solid #d4a574',
+                  color: '#d4a574',
+                  borderRadius: 24,
+                  height: 48,
+                  fontSize: 15,
+                }}
+                icon={<LogoutOutlined />}
+              >
+                退出当前账号
+              </Button>
+            </div>
+          </Modal>
         </AntdLayout>
       </AntdLayout>
     </AuthGuard>
