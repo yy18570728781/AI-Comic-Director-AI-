@@ -46,8 +46,11 @@ service.interceptors.response.use(
         if (data && typeof data === 'object' && 'success' in data && data.success === false) {
             const errorMessage = data.message || '操作失败'
             
-            // 如果是认证相关错误，跳转到登录页
-            if (errorMessage.includes('登录') || errorMessage.includes('Token') || errorMessage.includes('认证')) {
+            // 如果是认证相关错误，跳转到登录页（排除微信绑定提示）
+            if (
+                (errorMessage.includes('登录') || errorMessage.includes('Token') || errorMessage.includes('认证')) &&
+                !errorMessage.includes('微信')
+            ) {
                 localStorage.removeItem('token');
                 window.location.href = '/login';
                 return Promise.reject(new Error(errorMessage));

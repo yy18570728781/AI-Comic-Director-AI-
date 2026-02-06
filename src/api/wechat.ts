@@ -20,3 +20,18 @@ export function getWechatLoginStatus(sceneId: string) {
     method: 'GET',
   });
 }
+
+
+/**
+ * 获取当前用户的微信 openid（需要在微信浏览器内）
+ */
+export function getWechatOpenid(): Promise<{
+  success: boolean;
+  openid?: string;
+  message?: string;
+}> {
+  return request({
+    url: '/api/wechat/openid',
+    method: 'GET',
+  });
+}

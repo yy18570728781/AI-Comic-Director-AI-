@@ -11,12 +11,17 @@ import ScriptCharacters from '@/pages/CharacterLibrary/ScriptCharacters';
 import TeamSpace from '@/pages/TeamSpace';
 import ImageToVideo from '@/pages/ImageToVideo';
 import ImageToImage from '@/pages/ImageToImage';
+import Recharge from '@/pages/Recharge';
+import Pay from '@/pages/Pay';
 
 function AppRouter() {
   return (
     <Routes>
       {/* 登录页面 - 不需要认证 */}
       <Route path="/login" element={<Login />} />
+      
+      {/* 微信内支付页面 - 不需要认证 */}
+      <Route path="/pay" element={<Pay />} />
       
       {/* 主应用路由 - 需要认证 */}
       <Route path="/" element={
@@ -34,6 +39,7 @@ function AppRouter() {
         <Route path="character-library" element={<CharacterLibrary />} />
         <Route path="character-library/script/:scriptId" element={<ScriptCharacters />} />
         <Route path="team-space" element={<TeamSpace />} />
+        <Route path="recharge" element={<Recharge />} />
       </Route>
     </Routes>
   );

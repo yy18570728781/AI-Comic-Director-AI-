@@ -46,7 +46,10 @@ function UserProfileModal({ open, onClose }: UserProfileModalProps) {
       key: 'recharge',
       icon: <WalletOutlined />,
       label: '积分充值',
-      onClick: () => message.info('功能开发中'),
+      onClick: () => {
+        onClose();
+        navigate('/recharge');
+      },
     },
     {
       key: 'records',
