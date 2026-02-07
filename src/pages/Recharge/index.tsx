@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, Button, Tag, Modal, message, Spin, Space, Typography, QRCode, InputNumber } from 'antd';
 import { CheckCircleFilled, CrownFilled, FireFilled, EditOutlined } from '@ant-design/icons';
 import {
@@ -11,6 +11,7 @@ import {
   RechargePackage,
 } from '../../api/payment';
 import { useUserStore } from '../../stores/useUserStore';
+import { usePolling } from '@/hooks/usePolling';
 
 const { Title, Text } = Typography;
 
@@ -35,18 +36,54 @@ const RechargePage: React.FC = () => {
   const [payUrl, setPayUrl] = useState('');
   const [orderNo, setOrderNo] = useState('');
   const [paying, setPaying] = useState(false);
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [countdown, setCountdown] = useState(0);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const { refreshPoints } = useUserStore();
+
+  // 倒计时时长（秒）
+  const COUNTDOWN_SECONDS = 5 * 60; // 5分钟
+
+  // 订单状态轮询
+  const { start: startPolling, stop: stopPolling } = usePolling(
+    useCallback(() => {
+      if (!orderNo) return Promise.resolve({ status: 'pending' });
+      return queryOrderStatus(orderNo);
+    }, [orderNo]),
+    {
+      interval: 5000,
+      shouldStop: (res) => res.status === 'paid',
+      onSuccess: (res) => {
+        if (res.status === 'paid') {
+          message.success('支付成功！积分已到账');
+          refreshPoints();
+          // 关闭弹窗的逻辑会在下面的 effect 里通过 stopPolling 触发
+          setPayModalVisible(false);
+          setPayUrl('');
+          setOrderNo('');
+          setCountdown(0);
+          if (countdownRef.current) {
+            clearInterval(countdownRef.current);
+            countdownRef.current = null;
+          }
+        }
+      },
+    }
+  );
 
   // 加载套餐列表
   useEffect(() => {
     loadPackages();
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
-    };
   }, []);
+
+  // 当 orderNo 设置且弹窗打开时，开始轮询
+  useEffect(() => {
+    if (orderNo && payModalVisible) {
+      startPolling();
+    }
+    return () => {
+      stopPolling();
+    };
+  }, [orderNo, payModalVisible]);
 
   const loadPackages = async () => {
     try {
@@ -101,8 +138,8 @@ const RechargePage: React.FC = () => {
           setOrderNo(res.data.orderNo);
           setPayUrl(res.data.payUrl);
           setPayModalVisible(true);
-          // 开始轮询订单状态
-          startPolling(res.data.orderNo);
+          // 开始倒计时和轮询
+          startCountdown();
         } else {
           message.error(res.message || '创建订单失败');
         }
@@ -133,45 +170,42 @@ const RechargePage: React.FC = () => {
     });
   };
 
-  // 轮询订单状态
-  const startPolling = (orderNo: string) => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-    }
-
-    pollingRef.current = setInterval(async () => {
-      try {
-        const res = await queryOrderStatus(orderNo);
-        if (res.status === 'paid') {
-          clearInterval(pollingRef.current!);
-          pollingRef.current = null;
-          setPayModalVisible(false);
-          message.success('支付成功！积分已到账');
-          refreshPoints();
+  // 倒计时
+  const startCountdown = () => {
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    
+    setCountdown(COUNTDOWN_SECONDS);
+    
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          handleClosePayModal();
+          message.warning('支付超时，请重新下单');
+          return 0;
         }
-      } catch (error) {
-        // 忽略轮询错误
-      }
-    }, 2000);
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
-    // 5分钟后停止轮询
-    setTimeout(() => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-        pollingRef.current = null;
-      }
-    }, 5 * 60 * 1000);
+  // 格式化倒计时
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   // 关闭支付弹窗
   const handleClosePayModal = () => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
+    stopPolling();
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
     }
     setPayModalVisible(false);
     setPayUrl('');
     setOrderNo('');
+    setCountdown(0);
   };
 
   if (loading) {
@@ -338,16 +372,25 @@ const RechargePage: React.FC = () => {
         width={360}
       >
         <div style={{ textAlign: 'center', padding: '20px 0' }}>
-          {payUrl && (
-            <QRCode value={payUrl} size={200} />
-          )}
-          <div style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            {payUrl && <QRCode value={payUrl} size={200} />}
+          </div>
+          <div>
             <Text>请使用微信扫码，在微信内完成支付</Text>
           </div>
-          <div style={{ marginTop: 8 }}>
+          <div style={{ marginTop: 12 }}>
             <Text type="secondary">支付金额：</Text>
-            <Text strong style={{ color: '#f5222d', fontSize: 18 }}>
+            <Text strong style={{ color: '#f5222d', fontSize: 20 }}>
               ¥{isCustomMode ? customAmount : selectedPkg?.amountYuan}
+            </Text>
+          </div>
+          <div style={{ marginTop: 8 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>订单号：{orderNo}</Text>
+          </div>
+          <div style={{ marginTop: 16, padding: '8px 16px', background: '#f5f5f5', borderRadius: 4 }}>
+            <Text type="secondary">剩余支付时间：</Text>
+            <Text strong style={{ color: countdown < 60 ? '#f5222d' : '#1890ff', fontSize: 16 }}>
+              {formatCountdown(countdown)}
             </Text>
           </div>
           <div style={{ marginTop: 16 }}>

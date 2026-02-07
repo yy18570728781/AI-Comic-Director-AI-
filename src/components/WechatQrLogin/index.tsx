@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Spin, Button, message } from 'antd';
 import { ReloadOutlined, WechatOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { generateWechatQrCode, getWechatLoginStatus } from '@/api/wechat';
+import { usePolling } from '@/hooks/usePolling';
 
 interface WechatQrLoginProps {
   onSuccess: (token: string, userInfo: any) => void;
@@ -13,80 +14,48 @@ const WechatQrLogin: React.FC<WechatQrLoginProps> = ({ onSuccess }) => {
   const [status, setStatus] = useState<LoginStatus>('loading');
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [sceneId, setSceneId] = useState<string>('');
-  const [expireTime, setExpireTime] = useState<number>(0);
   const [countdown, setCountdown] = useState<number>(0);
   
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const onSuccessRef = useRef(onSuccess);
+  
+  // 保持 onSuccess 最新引用
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
 
-  // 生成二维码
-  const generateQrCode = useCallback(async () => {
-    try {
-      setStatus('loading');
-      
-      const response: any = await generateWechatQrCode();
-      
-      if (response.success) {
-        setQrCodeUrl(response.data.qrCodeUrl);
-        setSceneId(response.data.sceneId);
-        setExpireTime(response.data.expireTime);
-        setStatus('waiting');
+  // 使用轮询 hook
+  const { start: startPolling, stop: stopPolling } = usePolling(
+    useCallback(() => {
+      if (!sceneId) return Promise.resolve({ success: false, data: {} });
+      return getWechatLoginStatus(sceneId);
+    }, [sceneId]),
+    {
+      interval: 3500,
+      shouldStop: (res: any) => {
+        const loginStatus = res?.data?.status;
+        return loginStatus === 'confirmed' || loginStatus === 'expired';
+      },
+      onSuccess: (res: any) => {
+        if (!res.success) return;
+        const { status: loginStatus, token, userInfo } = res.data;
         
-        // 计算倒计时秒数
-        const seconds = Math.floor((response.data.expireTime - Date.now()) / 1000);
-        setCountdown(seconds);
-        
-        // 开始轮询状态
-        startPolling(response.data.sceneId);
-        // 开始倒计时
-        startCountdown();
-      } else {
-        setStatus('error');
-        message.error(response.message || '生成二维码失败');
-      }
-    } catch (error) {
-      setStatus('error');
-    }
-  }, []);
-
-  // 轮询登录状态
-  const startPolling = (sid: string) => {
-    // 清除之前的轮询
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-    }
-
-    pollingRef.current = setInterval(async () => {
-      try {
-        const response: any = await getWechatLoginStatus(sid);
-        
-        if (response.success) {
-          const { status: loginStatus, token, userInfo } = response.data;
-          
-          if (loginStatus === 'scanned') {
-            setStatus('scanned');
-          } else if (loginStatus === 'confirmed' && token) {
-            setStatus('confirmed');
-            stopPolling();
-            // 登录成功回调
-            onSuccess(token, userInfo);
-          } else if (loginStatus === 'expired') {
-            setStatus('expired');
-            stopPolling();
-          }
+        if (loginStatus === 'scanned') {
+          setStatus('scanned');
+        } else if (loginStatus === 'confirmed' && token) {
+          setStatus('confirmed');
+          stopCountdown();
+          onSuccessRef.current(token, userInfo);
+        } else if (loginStatus === 'expired') {
+          setStatus('expired');
+          stopCountdown();
         }
-      } catch (error) {
-        console.error('轮询登录状态失败:', error);
-      }
-    }, 3000); // 每3秒轮询一次
-  };
-
-  // 停止轮询
-  const stopPolling = () => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
+      },
     }
+  );
+
+  // 停止倒计时
+  const stopCountdown = () => {
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
       countdownRef.current = null;
@@ -94,10 +63,9 @@ const WechatQrLogin: React.FC<WechatQrLoginProps> = ({ onSuccess }) => {
   };
 
   // 倒计时
-  const startCountdown = () => {
-    if (countdownRef.current) {
-      clearInterval(countdownRef.current);
-    }
+  const startCountdown = (seconds: number) => {
+    stopCountdown();
+    setCountdown(seconds);
 
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
@@ -111,14 +79,48 @@ const WechatQrLogin: React.FC<WechatQrLoginProps> = ({ onSuccess }) => {
     }, 1000);
   };
 
+  // 生成二维码
+  const generateQrCode = useCallback(async () => {
+    try {
+      setStatus('loading');
+      stopPolling();
+      stopCountdown();
+      
+      const response: any = await generateWechatQrCode();
+      
+      if (response.success) {
+        setQrCodeUrl(response.data.qrCodeUrl);
+        setSceneId(response.data.sceneId);
+        setStatus('waiting');
+        
+        // 计算倒计时秒数
+        const seconds = Math.floor((response.data.expireTime - Date.now()) / 1000);
+        startCountdown(seconds);
+      } else {
+        setStatus('error');
+        message.error(response.message || '生成二维码失败');
+      }
+    } catch (error) {
+      setStatus('error');
+    }
+  }, [stopPolling]);
+
+  // sceneId 变化时开始轮询
+  useEffect(() => {
+    if (sceneId && status === 'waiting') {
+      startPolling();
+    }
+  }, [sceneId, status, startPolling]);
+
   // 组件挂载时生成二维码
   useEffect(() => {
     generateQrCode();
     
     return () => {
       stopPolling();
+      stopCountdown();
     };
-  }, [generateQrCode]);
+  }, []);
 
   // 渲染状态提示
   const renderStatusTip = () => {
