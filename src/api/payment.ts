@@ -80,6 +80,34 @@ export async function createJsapiOrder(packageId: number): Promise<{
 }
 
 /**
+ * 创建自定义金额预订单（PC端）
+ */
+export async function createCustomPreOrder(amountYuan: number): Promise<{
+  success: boolean;
+  message: string;
+  data?: {
+    orderNo: string;
+    payUrl: string;
+  };
+}> {
+  return request.post('/api/payment/preorder/custom', { amountYuan });
+}
+
+/**
+ * 创建自定义金额 JSAPI 订单（微信内）
+ */
+export async function createCustomJsapiOrder(amountYuan: number): Promise<{
+  success: boolean;
+  message: string;
+  data?: {
+    orderNo: string;
+    payParams: any;
+  };
+}> {
+  return request.post('/api/payment/jsapi/custom', { amountYuan });
+}
+
+/**
  * 查询订单状态
  */
 export async function queryOrderStatus(orderNo: string): Promise<{

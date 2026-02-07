@@ -11,6 +11,7 @@ import {
   SettingOutlined,
   VideoCameraOutlined,
   CameraOutlined,
+  WalletOutlined,
 } from '@ant-design/icons';
 
 import ModelSettingsModal from '@/components/ModelSettingsModal';
@@ -59,6 +60,11 @@ const menuItems: MenuItem[] = [
     key: '/team-space',
     icon: <TeamOutlined />,
     label: '团队空间',
+  },
+  {
+    key: '/recharge',
+    icon: <WalletOutlined />,
+    label: '积分充值',
   },
 ];
 

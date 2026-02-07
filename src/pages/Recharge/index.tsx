@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, Button, Tag, Modal, message, Spin, Space, Typography, QRCode } from 'antd';
-import { CheckCircleFilled, CrownFilled, FireFilled } from '@ant-design/icons';
+import { Card, Button, Tag, Modal, message, Spin, Space, Typography, QRCode, InputNumber } from 'antd';
+import { CheckCircleFilled, CrownFilled, FireFilled, EditOutlined } from '@ant-design/icons';
 import {
   getRechargePackages,
   createPreOrder,
   createJsapiOrder,
+  createCustomPreOrder,
+  createCustomJsapiOrder,
   queryOrderStatus,
   RechargePackage,
 } from '../../api/payment';
@@ -27,6 +29,8 @@ const RechargePage: React.FC = () => {
   const [packages, setPackages] = useState<RechargePackage[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPkg, setSelectedPkg] = useState<RechargePackage | null>(null);
+  const [customAmount, setCustomAmount] = useState<number | null>(null);
+  const [isCustomMode, setIsCustomMode] = useState(false);
   const [payModalVisible, setPayModalVisible] = useState(false);
   const [payUrl, setPayUrl] = useState('');
   const [orderNo, setOrderNo] = useState('');
@@ -60,7 +64,17 @@ const RechargePage: React.FC = () => {
 
   // 开始支付
   const handlePay = async () => {
-    if (!selectedPkg) {
+    // 自定义金额模式
+    if (isCustomMode) {
+      if (!customAmount || customAmount < 10) {
+        message.warning('充值金额不能低于10元');
+        return;
+      }
+      if (customAmount > 10000) {
+        message.warning('单笔充值金额不能超过10000元');
+        return;
+      }
+    } else if (!selectedPkg) {
       message.warning('请选择充值套餐');
       return;
     }
@@ -70,7 +84,9 @@ const RechargePage: React.FC = () => {
     try {
       if (isWechatBrowser()) {
         // 微信内使用 JSAPI 支付
-        const res = await createJsapiOrder(selectedPkg.id);
+        const res = isCustomMode
+          ? await createCustomJsapiOrder(customAmount!)
+          : await createJsapiOrder(selectedPkg!.id);
         if (res.success && res.data) {
           callWechatPay(res.data.payParams);
         } else {
@@ -78,7 +94,9 @@ const RechargePage: React.FC = () => {
         }
       } else {
         // PC 端生成二维码，用户扫码后在微信内支付
-        const res = await createPreOrder(selectedPkg.id);
+        const res = isCustomMode
+          ? await createCustomPreOrder(customAmount!)
+          : await createPreOrder(selectedPkg!.id);
         if (res.success && res.data) {
           setOrderNo(res.data.orderNo);
           setPayUrl(res.data.payUrl);
@@ -176,9 +194,12 @@ const RechargePage: React.FC = () => {
           <Card
             key={pkg.id}
             hoverable
-            onClick={() => setSelectedPkg(pkg)}
+            onClick={() => {
+              setSelectedPkg(pkg);
+              setIsCustomMode(false);
+            }}
             style={{
-              border: selectedPkg?.id === pkg.id ? '2px solid #1890ff' : '1px solid #d9d9d9',
+              border: !isCustomMode && selectedPkg?.id === pkg.id ? '2px solid #1890ff' : '1px solid #d9d9d9',
               position: 'relative',
             }}
           >
@@ -196,6 +217,12 @@ const RechargePage: React.FC = () => {
             <div style={{ textAlign: 'center' }}>
               <Text strong style={{ fontSize: 18 }}>{pkg.name}</Text>
               <div style={{ margin: '16px 0' }}>
+                {/* 计算原价：积分数 * 0.1 = 原价（1积分=0.1元） */}
+                {pkg.points * 0.1 > pkg.amountYuan && (
+                  <Text delete type="secondary" style={{ fontSize: 16, marginRight: 8 }}>
+                    ¥{(pkg.points * 0.1).toFixed(0)}
+                  </Text>
+                )}
                 <Text style={{ fontSize: 32, color: '#f5222d', fontWeight: 'bold' }}>
                   ¥{pkg.amountYuan}
                 </Text>
@@ -212,7 +239,7 @@ const RechargePage: React.FC = () => {
               )}
             </div>
 
-            {selectedPkg?.id === pkg.id && (
+            {!isCustomMode && selectedPkg?.id === pkg.id && (
               <CheckCircleFilled
                 style={{
                   position: 'absolute',
@@ -225,6 +252,62 @@ const RechargePage: React.FC = () => {
             )}
           </Card>
         ))}
+
+        {/* 自定义金额卡片 */}
+        <Card
+          hoverable
+          onClick={() => {
+            setIsCustomMode(true);
+            setSelectedPkg(null);
+          }}
+          style={{
+            border: isCustomMode ? '2px solid #1890ff' : '1px solid #d9d9d9',
+            position: 'relative',
+          }}
+        >
+          <Tag color="purple" style={{ position: 'absolute', top: 8, right: 8 }}>
+            <EditOutlined /> 自定义
+          </Tag>
+
+          <div style={{ textAlign: 'center' }}>
+            <Text strong style={{ fontSize: 18 }}>自定义金额</Text>
+            <div style={{ margin: '16px 0' }}>
+              <InputNumber
+                value={customAmount}
+                onChange={(val) => setCustomAmount(val)}
+                min={10}
+                max={10000}
+                precision={0}
+                placeholder="输入金额"
+                prefix="¥"
+                style={{ width: 140, fontSize: 18 }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+            <div>
+              <Text type="secondary">获得 </Text>
+              <Text strong style={{ color: '#faad14', fontSize: 20 }}>
+                {customAmount ? customAmount * 10 : 0}
+              </Text>
+              <Text type="secondary"> 积分</Text>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>最低10元，无折扣</Text>
+            </div>
+          </div>
+
+          {isCustomMode && (
+            <CheckCircleFilled
+              style={{
+                position: 'absolute',
+                bottom: 8,
+                right: 8,
+                fontSize: 20,
+                color: '#1890ff',
+              }}
+            />
+          )}
+        </Card>
       </div>
 
       <div style={{ marginTop: 32, textAlign: 'center' }}>
@@ -234,7 +317,7 @@ const RechargePage: React.FC = () => {
             size="large"
             onClick={handlePay}
             loading={paying}
-            disabled={!selectedPkg}
+            disabled={!isCustomMode && !selectedPkg}
             style={{ width: 200, height: 48 }}
           >
             {isWechatBrowser() ? '立即支付' : '微信扫码支付'}
@@ -264,7 +347,7 @@ const RechargePage: React.FC = () => {
           <div style={{ marginTop: 8 }}>
             <Text type="secondary">支付金额：</Text>
             <Text strong style={{ color: '#f5222d', fontSize: 18 }}>
-              ¥{selectedPkg?.amountYuan}
+              ¥{isCustomMode ? customAmount : selectedPkg?.amountYuan}
             </Text>
           </div>
           <div style={{ marginTop: 16 }}>
