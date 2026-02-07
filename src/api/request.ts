@@ -30,12 +30,6 @@ service.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`
         }
 
-        // 调试日志
-        console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
-            baseURL: config.baseURL,
-            hasToken: !!token
-        });
-
         return config
     },
     (error) => {
