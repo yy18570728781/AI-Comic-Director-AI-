@@ -88,6 +88,16 @@ service.interceptors.response.use(
             return Promise.reject(error);
         }
 
+        if (error.response?.status === 403) {
+            message.error('没有权限访问，请重新登录');
+            localStorage.removeItem('token');
+            if (!window.location.pathname.includes('/login')) {
+                console.log('[API] 403错误，跳转到登录页');
+                window.location.href = '/login';
+            }
+            return Promise.reject(error);
+        }
+
         const errorMessage = error.response?.data?.message || error.message || '网络错误'
         message.error(errorMessage)
         return Promise.reject(error)

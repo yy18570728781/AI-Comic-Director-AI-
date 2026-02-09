@@ -16,18 +16,27 @@ export async function generateNovelStream(
     onDone?: () => void
 ) {
     const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7001';
+    const token = localStorage.getItem('token');
 
     try {
         const response = await fetch(`${apiBaseURL}/api/ai/novel/generate-stream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             },
             body: JSON.stringify(data),
         });
 
         if (!response.ok) {
-            throw new Error('请求失败');
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem('token');
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
+                throw new Error('登录已过期，请重新登录');
+            }
+            throw new Error(`请求失败: ${response.status}`);
         }
 
         const reader = response.body?.getReader();
@@ -86,18 +95,27 @@ export async function generateScriptStream(
     onDone?: () => void
 ) {
     const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7001';
+    const token = localStorage.getItem('token');
 
     try {
         const response = await fetch(`${apiBaseURL}/api/ai/script/generate-stream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
             },
             body: JSON.stringify(data),
         });
 
         if (!response.ok) {
-            throw new Error('请求失败');
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem('token');
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
+                throw new Error('登录已过期，请重新登录');
+            }
+            throw new Error(`请求失败: ${response.status}`);
         }
 
         const reader = response.body?.getReader();

@@ -22,6 +22,7 @@ export interface TaskCompleteEvent {
   type: TaskType;
   jobId: string | number;
   shotId?: number;
+  characterId?: number;
   result: any;
 }
 
@@ -29,6 +30,7 @@ export interface TaskFailedEvent {
   type: TaskType;
   jobId: string | number;
   shotId?: number;
+  characterId?: number;
   error: string;
 }
 
@@ -94,6 +96,7 @@ export function GlobalTaskPoller() {
               type: item.type,
               jobId: item.jobId,
               shotId: task.shotId,
+              characterId: task.characterId,
               result: item.result,
             });
           } else if (item.state === 'failed') {
@@ -102,6 +105,7 @@ export function GlobalTaskPoller() {
               type: item.type,
               jobId: item.jobId,
               shotId: task.shotId,
+              characterId: task.characterId,
               error: item.failedReason || '生成失败',
             });
           }

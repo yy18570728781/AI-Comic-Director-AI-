@@ -11,6 +11,7 @@ export interface Task {
   jobId: string | number;
   type: 'image' | 'video';
   shotId?: number;      // 关联的分镜ID（可选）
+  characterId?: number; // 关联的角色ID（可选）
   model?: string;       // 使用的模型
   videoId?: number;     // 视频任务的数据库记录ID（用于查询状态）
   createdAt: number;
