@@ -261,7 +261,7 @@ export const confirmDialogs = {
   saveSuccess: {
     title: '保存成功',
     content: '角色已保存到角色库。是否要重新提取角色信息？',
-    okText: '重新提取',
-    cancelText: '保持当前',
+    okText: '保持当前',
+    cancelText: '重新提取',
   },
 };
