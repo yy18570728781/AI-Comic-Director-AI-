@@ -24,7 +24,7 @@ import {
   extractCharacters,
   batchSaveCharacters,
   getCharacterList,
-} from '../../api/script';
+} from '@/api/script';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { Script } from '../../stores/useScriptStore';
 import { useUserStore } from '../../stores/useUserStore';
@@ -37,7 +37,11 @@ import {
   messages,
   confirmDialogs,
 } from './ScriptCharacters/config';
-import CharacterImageActions from '../../components/CharacterImageGenerateModal/index';
+import ImageGenerateModal from '../../components/ImageGenerateModal';
+import type { ImageGenerateSubmitValues } from '../../components/ImageGenerateModal';
+import { generateImageAsync } from '@/api/ai';
+import { useTaskStore } from '../../stores/useTaskStore';
+import { useModelStore } from '../../stores/useModelStore';
 
 function ScriptCharacters() {
   const navigate = useNavigate();
@@ -45,6 +49,8 @@ function ScriptCharacters() {
   const location = useLocation();
   const script = location.state?.script as Script;
   const { currentUser } = useUserStore();
+  const { addTask } = useTaskStore();
+  const { imageModel } = useModelStore();
 
   // 获取已保存的角色列表
   const fetchSavedCharacters = async () => {
@@ -56,7 +62,7 @@ function ScriptCharacters() {
     setLoadingSaved(true);
     try {
       const response = await getCharacterList({
-        userId: currentUser.id, // 使用当前用户ID
+        userId: currentUser.id,
         page: 1,
         pageSize: 100,
       });
@@ -73,14 +79,11 @@ function ScriptCharacters() {
     }
   };
 
-  // 页面加载时获取已保存的角色
   useEffect(() => {
     fetchSavedCharacters();
   }, []);
 
-  const [extractedCharacters, setExtractedCharacters] = useState<
-    ExtractedCharacter[]
-  >([]);
+  const [extractedCharacters, setExtractedCharacters] = useState<ExtractedCharacter[]>([]);
   const [savedCharacters, setSavedCharacters] = useState<SavedCharacter[]>([]);
   const [selectedCharacters, setSelectedCharacters] = useState<string[]>([]);
   const [extracting, setExtracting] = useState(false);
@@ -89,8 +92,9 @@ function ScriptCharacters() {
   const [hasExtracted, setHasExtracted] = useState(false);
 
   // 角色图像生成相关状态
-  const [selectedCharacterForImage, setSelectedCharacterForImage] =
-    useState<SavedCharacter | null>(null);
+  const [generateModalVisible, setGenerateModalVisible] = useState(false);
+  const [generateLoading, setGenerateLoading] = useState(false);
+  const [selectedCharacterForImage, setSelectedCharacterForImage] = useState<SavedCharacter | null>(null);
 
   // 提取角色信息
   const handleExtractCharacters = async () => {
@@ -105,9 +109,7 @@ function ScriptCharacters() {
       if (response.success) {
         const characters = response.data.characters || [];
         setExtractedCharacters(characters);
-        setSelectedCharacters(
-          characters.map((c: ExtractedCharacter) => c.name),
-        );
+        setSelectedCharacters(characters.map((c: ExtractedCharacter) => c.name));
         setHasExtracted(true);
         message.success(messages.extractSuccess(characters.length));
       } else {
@@ -115,9 +117,7 @@ function ScriptCharacters() {
       }
     } catch (error: any) {
       console.error('提取角色失败:', error);
-      message.error(
-        messages.extractError + ': ' + (error.message || '未知错误'),
-      );
+      message.error(messages.extractError + ': ' + (error.message || '未知错误'));
     } finally {
       setExtracting(false);
     }
@@ -141,15 +141,10 @@ function ScriptCharacters() {
 
     setSaving(true);
     try {
-      const response = await batchSaveCharacters(
-        charactersToSave,
-        currentUser.id,
-      );
+      const response = await batchSaveCharacters(charactersToSave, currentUser.id);
       if (response.success) {
         message.success(messages.saveSuccess(charactersToSave.length));
-        // 刷新已保存角色列表
         fetchSavedCharacters();
-        // 保存成功后可以选择是否清空当前提取结果
         Modal.confirm({
           ...confirmDialogs.saveSuccess,
           onOk: () => {
@@ -169,27 +164,60 @@ function ScriptCharacters() {
     }
   };
 
-  // 返回角色库首页
   const handleBack = () => {
     navigate('/character-library');
   };
 
-  // 生成角色图像
+  // 打开图像生成弹窗
   const handleGenerateCharacterImage = (character: SavedCharacter) => {
     setSelectedCharacterForImage(character);
+    setGenerateModalVisible(true);
   };
 
-  // 上传角色图像
-  const handleUploadCharacterImage = (character: SavedCharacter) => {
-    // TODO: 实现图像上传功能
-    message.info('图像上传功能开发中...');
-  };
+  // 图像生成提交 - 调用异步队列接口
+  const handleImageSubmit = async (values: ImageGenerateSubmitValues) => {
+    if (!selectedCharacterForImage) return;
 
-  // 角色图像生成成功回调
-  const handleImageGenerateSuccess = () => {
-    message.success('角色图像生成成功！');
-    // 刷新角色列表
-    fetchSavedCharacters();
+    setGenerateLoading(true);
+    try {
+      let width = 1024;
+      let height = 1024;
+      if (values.model === 'doubao-seedream-4-5-251128') {
+        width = 1920;
+        height = 1920;
+      }
+
+      const res = await generateImageAsync({
+        prompt: values.imagePrompt,
+        model: values.model,
+        width,
+        height,
+        referenceImages: values.referenceImages.length > 0 ? values.referenceImages : undefined,
+        scriptId: scriptId ? parseInt(scriptId) : undefined,
+        characterId: selectedCharacterForImage.id,
+        saveToLibrary: true,
+        libraryName: `角色图像_${selectedCharacterForImage.name}`,
+        libraryTags: ['角色图像', 'AI生成'],
+      });
+
+      if (res.success && res.data?.jobId) {
+        addTask({
+          jobId: res.data.jobId,
+          type: 'image',
+          shotId: selectedCharacterForImage.id,
+        });
+        message.info('图像生成任务已提交到队列');
+        setGenerateModalVisible(false);
+        setSelectedCharacterForImage(null);
+      } else {
+        throw new Error('提交任务失败');
+      }
+    } catch (error: any) {
+      console.error('生成图像失败:', error);
+      message.error(error.message || '生成图像失败');
+    } finally {
+      setGenerateLoading(false);
+    }
   };
 
   return (
@@ -244,7 +272,6 @@ function ScriptCharacters() {
           </Button>
         </div>
 
-        {/* 已保存角色卡片列表 */}
         {loadingSaved ? (
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <Spin size="large" tip="加载中..." />
@@ -271,10 +298,7 @@ function ScriptCharacters() {
               <Card
                 key={character.id}
                 hoverable
-                style={{
-                  borderRadius: 8,
-                  overflow: 'hidden',
-                }}
+                style={{ borderRadius: 8, overflow: 'hidden' }}
                 cover={
                   <div
                     style={{
@@ -291,17 +315,11 @@ function ScriptCharacters() {
                       <Image
                         src={character.imageUrl}
                         alt={character.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                        }}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         preview={{
                           mask: (
                             <div>
-                              <div style={{ color: '#fff', fontSize: 14 }}>
-                                {character.name}
-                              </div>
+                              <div style={{ color: '#fff', fontSize: 14 }}>{character.name}</div>
                             </div>
                           ),
                         }}
@@ -317,9 +335,7 @@ function ScriptCharacters() {
                           color: '#999',
                         }}
                       >
-                        <UserOutlined
-                          style={{ fontSize: 48, marginBottom: 8 }}
-                        />
+                        <UserOutlined style={{ fontSize: 48, marginBottom: 8 }} />
                         <div style={{ fontSize: 12 }}>暂无角色图片</div>
                       </div>
                     )}
@@ -383,15 +399,25 @@ function ScriptCharacters() {
                         }}
                       >
                         <span>创建时间</span>
-                        <span>
-                          {new Date(character.createdAt).toLocaleDateString()}
-                        </span>
+                        <span>{new Date(character.createdAt).toLocaleDateString()}</span>
                       </div>
-                      {/* 操作按钮 */}
-                      <CharacterImageActions
-                        character={character}
-                        onImageGenerated={handleImageGenerateSuccess}
-                      />
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <Button
+                          size="small"
+                          type="primary"
+                          icon={<PictureOutlined />}
+                          onClick={() => handleGenerateCharacterImage(character)}
+                        >
+                          生成图像
+                        </Button>
+                        <Button
+                          size="small"
+                          icon={<UploadOutlined />}
+                          onClick={() => message.info('图像上传功能开发中...')}
+                        >
+                          上传图像
+                        </Button>
+                      </div>
                     </div>
                   }
                 />
@@ -449,7 +475,6 @@ function ScriptCharacters() {
           </Space>
         </div>
 
-        {/* 提取中的加载状态 */}
         {extracting && (
           <div style={{ textAlign: 'center', padding: '40px' }}>
             <Spin size="large" />
@@ -459,30 +484,24 @@ function ScriptCharacters() {
           </div>
         )}
 
-        {/* 角色列表 */}
         {!extracting && hasExtracted && (
           <>
             {extractedCharacters.length > 0 ? (
               <>
-                {/* 提取的角色卡片列表 */}
                 <div style={{ marginBottom: '16px' }}>
                   <p>
-                    提取到 <strong>{extractedCharacters.length}</strong>{' '}
-                    个角色，请选择要保存到角色库的角色：
+                    提取到 <strong>{extractedCharacters.length}</strong> 个角色，请选择要保存到角色库的角色：
                   </p>
                 </div>
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns:
-                      'repeat(auto-fill, minmax(280px, 1fr))',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
                     gap: 16,
                   }}
                 >
                   {extractedCharacters.map((character) => {
-                    const isSelected = selectedCharacters.includes(
-                      character.name,
-                    );
+                    const isSelected = selectedCharacters.includes(character.name);
                     return (
                       <Card
                         key={character.name}
@@ -490,21 +509,14 @@ function ScriptCharacters() {
                         style={{
                           borderRadius: 8,
                           overflow: 'hidden',
-                          border: isSelected
-                            ? '2px solid #1890ff'
-                            : '1px solid #d9d9d9',
+                          border: isSelected ? '2px solid #1890ff' : '1px solid #d9d9d9',
                           cursor: 'pointer',
                         }}
                         onClick={() => {
                           if (isSelected) {
-                            setSelectedCharacters((prev) =>
-                              prev.filter((name) => name !== character.name),
-                            );
+                            setSelectedCharacters((prev) => prev.filter((name) => name !== character.name));
                           } else {
-                            setSelectedCharacters((prev) => [
-                              ...prev,
-                              character.name,
-                            ]);
+                            setSelectedCharacters((prev) => [...prev, character.name]);
                           }
                         }}
                         cover={
@@ -519,7 +531,6 @@ function ScriptCharacters() {
                               position: 'relative',
                             }}
                           >
-                            {/* 提取的角色没有图片，显示占位符 */}
                             <div
                               style={{
                                 display: 'flex',
@@ -529,19 +540,12 @@ function ScriptCharacters() {
                                 color: '#999',
                               }}
                             >
-                              <UserOutlined
-                                style={{ fontSize: 48, marginBottom: 8 }}
-                              />
+                              <UserOutlined style={{ fontSize: 48, marginBottom: 8 }} />
                               <div style={{ fontSize: 12 }}>暂无角色图片</div>
                             </div>
                             <Checkbox
                               checked={isSelected}
-                              style={{
-                                position: 'absolute',
-                                top: 8,
-                                right: 8,
-                                zIndex: 10,
-                              }}
+                              style={{ position: 'absolute', top: 8, right: 8, zIndex: 10 }}
                               onClick={(e) => e.stopPropagation()}
                             />
                           </div>
@@ -580,13 +584,7 @@ function ScriptCharacters() {
                                 </div>
                               )}
                               {character.appearance && (
-                                <div
-                                  style={{
-                                    fontSize: 12,
-                                    color: '#999',
-                                    marginTop: 4,
-                                  }}
-                                >
+                                <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
                                   <strong>外貌：</strong>
                                   <span
                                     style={{
@@ -609,9 +607,7 @@ function ScriptCharacters() {
                 </div>
               </>
             ) : (
-              <div
-                style={{ textAlign: 'center', padding: '40px', color: '#666' }}
-              >
+              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
                 <p>{emptyStates.noCharacters.title}</p>
                 <p>可能的原因：</p>
                 <ul style={{ textAlign: 'left', display: 'inline-block' }}>
@@ -624,27 +620,33 @@ function ScriptCharacters() {
           </>
         )}
 
-        {/* 初始状态提示 */}
         {!extracting && !hasExtracted && (
           <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-            <div
-              style={{
-                fontSize: '48px',
-                color: '#d9d9d9',
-                marginBottom: '16px',
-              }}
-            >
+            <div style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }}>
               {emptyStates.initial.icon}
             </div>
             <p>{emptyStates.initial.title}</p>
-            <p style={{ fontSize: '12px' }}>
-              {emptyStates.initial.description}
-            </p>
+            <p style={{ fontSize: '12px' }}>{emptyStates.initial.description}</p>
           </div>
         )}
       </Card>
 
-      {/* 角色图像操作已集成到 CharacterImageActions 组件中 */}
+      {/* 角色图像生成弹窗 - 使用通用组件，不传 onSave（角色库不需要保存按钮） */}
+      <ImageGenerateModal
+        visible={generateModalVisible}
+        title={selectedCharacterForImage ? `生成角色图像 - ${selectedCharacterForImage.name}` : '生成图像'}
+        initialValues={{
+          shotType: '近景',
+          imagePrompt: selectedCharacterForImage?.description || '',
+        }}
+        scriptId={scriptId ? parseInt(scriptId) : undefined}
+        loading={generateLoading}
+        onCancel={() => {
+          setGenerateModalVisible(false);
+          setSelectedCharacterForImage(null);
+        }}
+        onSubmit={handleImageSubmit}
+      />
     </div>
   );
 }
