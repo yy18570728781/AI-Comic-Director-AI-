@@ -279,39 +279,51 @@ export default function ResourceLibrary() {
                             position: 'relative',
                           }}
                         >
-                          <Image
-                            src={imageUrl}
-                            alt={resource.name}
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                              objectFit: 'cover',
-                            }}
-                            preview={{
-                              mask: (
-                                <div>
-                                  <div style={{ color: '#fff', fontSize: 14 }}>
-                                    {resource.name}
+                          {resource.mediaType === 'video' ? (
+                            <video
+                              src={imageUrl}
+                              controls
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                              }}
+                            />
+                          ) : (
+                            <Image
+                              src={imageUrl}
+                              alt={resource.name}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                              }}
+                              preview={{
+                                mask: (
+                                  <div>
+                                    <div style={{ color: '#fff', fontSize: 14 }}>
+                                      {resource.name}
+                                    </div>
                                   </div>
+                                ),
+                              }}
+                              fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E图片加载失败%3C/text%3E%3C/svg%3E"
+                              placeholder={
+                                <div
+                                  style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    background: '#f0f0f0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                  }}
+                                >
+                                  <Spin size="small" />
                                 </div>
-                              ),
-                            }}
-                            fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E图片加载失败%3C/text%3E%3C/svg%3E"
-                            placeholder={
-                              <div
-                                style={{
-                                  width: '100%',
-                                  height: '100%',
-                                  background: '#f0f0f0',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }}
-                              >
-                                <Spin size="small" />
-                              </div>
-                            }
-                          />
+                              }
+                            />
+                          )}
                           <div
                             style={{
                               position: 'absolute',
