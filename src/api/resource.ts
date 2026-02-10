@@ -104,6 +104,7 @@ export function saveToLibrary(data: {
 export function getResourceList(params: {
     scriptId?: number | null
     type?: 'character' | 'scene' | 'prop' | 'blend'
+    mediaType?: 'image' | 'video'
     tags?: string[]
     page?: number
     pageSize?: number
