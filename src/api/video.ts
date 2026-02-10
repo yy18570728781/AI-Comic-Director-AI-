@@ -37,6 +37,9 @@ export function generateVideoAsync(data: {
     aspectRatio?: string
     shotId?: number
     scriptId?: number
+    saveToLibrary?: boolean
+    libraryName?: string
+    libraryTags?: string[]
 }) {
     return request({
         url: '/api/ai/video/generate-async',

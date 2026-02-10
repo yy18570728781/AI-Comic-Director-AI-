@@ -43,6 +43,9 @@ export interface ImageParams {
   referenceImages?: string[];
   shotId?: number;
   scriptId?: number;
+  saveToLibrary?: boolean;
+  libraryName?: string;
+  libraryTags?: string[];
 }
 
 export interface VideoParams {
@@ -55,6 +58,9 @@ export interface VideoParams {
   referenceImages?: string[];
   shotId?: number;
   scriptId?: number;
+  saveToLibrary?: boolean;
+  libraryName?: string;
+  libraryTags?: string[];
 }
 
 export interface UseAIGenerationOptions {
@@ -115,7 +121,7 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
 
   // 生成图片
   const generateImage = useCallback(async (params: ImageParams): Promise<string | null> => {
-    const { shotId, scriptId, aspectRatio, ...rest } = params;
+    const { shotId, scriptId, aspectRatio, saveToLibrary, libraryName, libraryTags, ...rest } = params;
 
     // 解析宽高
     let width = rest.width || 1024;
@@ -141,6 +147,7 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
         referenceImages: rest.referenceImages,
         shotId,
         scriptId,
+        ...(saveToLibrary ? { saveToLibrary, libraryName, libraryTags } : {}),
       });
 
       if (res.success && res.data?.jobId) {
@@ -179,6 +186,11 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
       ratio: rest.ratio,  // 画面比例
       shotId,
       scriptId,
+      ...(rest.saveToLibrary ? {
+        saveToLibrary: true,
+        libraryName: rest.libraryName,
+        libraryTags: rest.libraryTags,
+      } : {}),
     };
 
     // 统一使用 referenceImages 数组

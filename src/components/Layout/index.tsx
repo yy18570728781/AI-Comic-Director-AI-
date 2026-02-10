@@ -101,6 +101,11 @@ function Layout() {
         <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
           <div className="logo">
             <h2>{collapsed ? 'AI' : 'AI漫剧工作台'}</h2>
+            <img
+              style={{ width: 40 }}
+              src="../../../public/image/logo2.png"
+              alt=""
+            />
           </div>
           <Menu
             theme="dark"
@@ -125,33 +130,38 @@ function Layout() {
                 >
                   模型设置
                 </Button>
-                
+
                 {/* 积分显示 - 点击打开用户弹窗 */}
-                <div 
+                <div
                   onClick={() => setUserModalVisible(true)}
-                  style={{ 
-                    cursor: 'pointer', 
-                    display: 'flex', 
-                    alignItems: 'center', 
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 12,
                     padding: '4px 12px',
                     borderRadius: 8,
-               
                   }}
                 >
-                  <Avatar 
-                    size={32} 
-                    icon={<UserOutlined />} 
+                  <Avatar
+                    size={32}
+                    icon={<UserOutlined />}
                     src={currentUser?.avatar}
                     style={{ backgroundColor: '#7265e6' }}
                   />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ color: '#666', fontSize: 13 }}>可用积分</span>
-                    <span style={{ 
-                      color: '#52c41a', 
-                      fontSize: 16,
-                      fontWeight: 600,
-                    }}>
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+                  >
+                    <span style={{ color: '#666', fontSize: 13 }}>
+                      可用积分
+                    </span>
+                    <span
+                      style={{
+                        color: '#52c41a',
+                        fontSize: 16,
+                        fontWeight: 600,
+                      }}
+                    >
                       {currentUser?.points ?? 0}
                     </span>
                   </div>

@@ -31,6 +31,7 @@ export default function ResourceLibrary() {
   const [resourceType, setResourceType] = useState<
     'character' | 'scene' | 'prop' | 'blend' | 'all'
   >('all');
+  const [mediaType, setMediaType] = useState<'image' | 'video' | 'all'>('all');
   const [keyword, setKeyword] = useState('');
   const [loading, setLoading] = useState(false);
   const [resources, setResources] = useState<any[]>([]);
@@ -45,6 +46,7 @@ export default function ResourceLibrary() {
       try {
         const res = await getResourceList({
           type: resourceType === 'all' ? undefined : resourceType,
+          mediaType: mediaType === 'all' ? undefined : mediaType,
           keyword: keyword || undefined,
           page: pageNum,
           pageSize: pageSize,
@@ -68,7 +70,7 @@ export default function ResourceLibrary() {
         setLoading(false);
       }
     },
-    [resourceType, keyword, pageSize],
+    [resourceType, mediaType, keyword, pageSize],
   );
 
   // 防抖的搜索函数
@@ -81,7 +83,7 @@ export default function ResourceLibrary() {
   useEffect(() => {
     fetchResources(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resourceType]);
+  }, [resourceType, mediaType]);
 
   useEffect(() => {
     debouncedFetchResources();
@@ -181,6 +183,20 @@ export default function ResourceLibrary() {
                   <Radio.Button value="scene">场景</Radio.Button>
                   <Radio.Button value="prop">道具</Radio.Button>
                   <Radio.Button value="blend">融图</Radio.Button>
+                </Radio.Group>
+              </div>
+              <div>
+                <span style={{ marginRight: 8, fontWeight: 500 }}>
+                  媒体类型：
+                </span>
+                <Radio.Group
+                  value={mediaType}
+                  onChange={(e) => setMediaType(e.target.value)}
+                  size="large"
+                >
+                  <Radio.Button value="all">全部</Radio.Button>
+                  <Radio.Button value="image">图片</Radio.Button>
+                  <Radio.Button value="video">视频</Radio.Button>
                 </Radio.Group>
               </div>
             </div>
