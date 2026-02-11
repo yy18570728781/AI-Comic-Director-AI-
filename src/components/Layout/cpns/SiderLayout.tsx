@@ -12,6 +12,7 @@ import {
   VideoCameraOutlined,
   CameraOutlined,
   WalletOutlined,
+  HomeOutlined,
 } from '@ant-design/icons';
 
 import ModelSettingsModal from '@/components/ModelSettingsModal';
@@ -24,6 +25,7 @@ import './sider.css';
 const { Header, Sider, Content } = AntdLayout;
 
 const menuItems: MenuProps['items'] = [
+  { key: '/', icon: <HomeOutlined />, label: '首页' },
   { key: '/ai-creation', icon: <EditOutlined />, label: 'AI创作' },
   { key: '/script-management', icon: <FileTextOutlined />, label: '剧本管理' },
   { key: '/image-to-video', icon: <VideoCameraOutlined />, label: '图生视频' },

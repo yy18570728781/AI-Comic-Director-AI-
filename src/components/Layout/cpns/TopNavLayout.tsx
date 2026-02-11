@@ -40,7 +40,7 @@ export default function TopNavLayout() {
 
   return (
     <AuthGuard>
-      <AntdLayout style={{ minHeight: '100vh', background: '#06061a' }}>
+      <AntdLayout style={{ height: '100vh', background: '#06061a' }}>
         <Header className="topnav-header">
           <div className="topnav-left">
             <div className="topnav-logo" onClick={() => navigate('/')}>
@@ -56,7 +56,7 @@ export default function TopNavLayout() {
             />
           </div>
           <Space className="topnav-right">
-            <Button type="primary" danger size="small" icon={<WalletOutlined />} onClick={() => navigate('/recharge')}>
+            <Button className="topnav-recharge-btn" size="small" icon={<WalletOutlined />} onClick={() => navigate('/recharge')}>
               积分充值
             </Button>
             <span className="topnav-points">
@@ -70,7 +70,7 @@ export default function TopNavLayout() {
           </Space>
         </Header>
 
-        <Content style={{ padding: '16px 24px', minHeight: 'calc(100vh - 64px)' }}>
+        <Content style={{ flex: 1, overflow: 'auto', padding: '16px 24px' }}>
           <div style={{ padding: 24, minHeight: '100%', background: colorBgContainer, borderRadius: borderRadiusLG }}>
             <Outlet />
           </div>

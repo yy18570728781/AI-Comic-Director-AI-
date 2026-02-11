@@ -102,9 +102,18 @@ export default function Home() {
       {/* ========== 主题2 导航：简约风格 ========== */}
       {theme === 'theme2' && (
         <nav className="home-nav home-nav-theme2">
-          <div className="home-nav-logo">
-            <img src="/image/logo2.png" alt="logo" className="home-logo-img" />
-            <span className="home-logo-text">AI 漫剧工作台</span>
+          <div className="home-nav-left">
+            <div className="home-nav-logo">
+              <img src="/image/logo2.png" alt="logo" className="home-logo-img" />
+              <span className="home-logo-text">AI 漫剧工作台</span>
+            </div>
+            <Menu
+              mode="horizontal"
+              selectedKeys={['/']}
+              items={topMenuItems}
+              onClick={handleMenuClick}
+              className="topnav-menu"
+            />
           </div>
           <div className="home-nav-actions">
             <Tooltip title="切换主题">
