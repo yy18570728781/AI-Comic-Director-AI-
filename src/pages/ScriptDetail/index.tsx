@@ -421,7 +421,14 @@ function ScriptDetail() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'script':
-        return <ScriptTab content={script.content} />;
+        return (
+          <ScriptTab 
+            content={script.content} 
+            hasShots={script.shots?.length > 0}
+            generateLoading={generateLoading}
+            onRegenerateStoryboard={handleGenerateStoryboard}
+          />
+        );
       case 'shots':
         return (
           <ShotsTab
@@ -567,17 +574,11 @@ function ScriptDetail() {
           <Form.Item label="角色" name="characters">
             <Input placeholder="多个角色用逗号分隔，例如：#id:ABC123 诺士英, 沉默" />
           </Form.Item>
-          <Form.Item label="对白" name="dialogue">
-            <TextArea rows={2} placeholder="角色对白" />
-          </Form.Item>
-          <Form.Item label="画面描述" name="visualDescription">
-            <TextArea rows={3} placeholder="详细描述画面内容" />
-          </Form.Item>
           <Form.Item label="图像提示词" name="imagePrompt">
-            <TextArea rows={3} placeholder="用于生成图像的提示词（英文）" />
+            <TextArea rows={3} placeholder="用于生成分镜图片的提示词" />
           </Form.Item>
           <Form.Item label="视频提示词" name="videoPrompt">
-            <TextArea rows={4} placeholder="时间轴格式的视频提示词" />
+            <TextArea rows={6} placeholder="用于生成分镜视频的完整提示词，包含运镜、时间轴、画面细节、对白/旁白等" />
           </Form.Item>
           <Space>
             <Form.Item

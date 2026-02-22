@@ -163,19 +163,19 @@ export default function ShotsTab({
                 ))}
               </div>
             )}
-            {shot.dialogue && (
-              <div style={{ marginBottom: 8 }}>
-                <strong>对白：</strong>
-                <div style={{ marginTop: 4, color: '#666' }}>
-                  {shot.dialogue}
-                </div>
-              </div>
-            )}
             {shot.imagePrompt && (
               <div style={{ marginBottom: 8 }}>
                 <strong>图像提示词：</strong>
-                <div style={{ marginTop: 4, color: '#666' }}>
+                <div style={{ marginTop: 4, color: '#666', whiteSpace: 'pre-wrap' }}>
                   {shot.imagePrompt}
+                </div>
+              </div>
+            )}
+            {shot.videoPrompt && (
+              <div style={{ marginBottom: 8 }}>
+                <strong>视频提示词：</strong>
+                <div style={{ marginTop: 4, color: '#666', whiteSpace: 'pre-wrap' }}>
+                  {shot.videoPrompt}
                 </div>
               </div>
             )}
