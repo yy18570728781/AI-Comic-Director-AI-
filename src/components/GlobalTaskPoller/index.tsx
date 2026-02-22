@@ -83,6 +83,7 @@ export function GlobalTaskPoller() {
         })),
       });
 
+
       if (res.success && res.data) {
         const finishedIds: (string | number)[] = [];
 
@@ -90,20 +91,26 @@ export function GlobalTaskPoller() {
           const task = currentTasks.find(t => String(t.jobId) === String(item.jobId));
           if (!task) return;
 
+          console.log(`🔍 [检查任务] #${task.jobId}:`, {
+            state: item.state,
+            hasRedirect: !!item.redirectTo,
+            redirectTo: item.redirectTo,
+          });
+
           if (item.state === 'completed') {
-            finishedIds.push(item.jobId);
+            finishedIds.push(task.jobId);
             emitComplete({
               type: item.type,
-              jobId: item.jobId,
+              jobId: task.jobId,
               shotId: task.shotId,
               characterId: task.characterId,
               result: item.result,
             });
           } else if (item.state === 'failed') {
-            finishedIds.push(item.jobId);
+            finishedIds.push(task.jobId);
             emitFailed({
               type: item.type,
-              jobId: item.jobId,
+              jobId: task.jobId,
               shotId: task.shotId,
               characterId: task.characterId,
               error: item.failedReason || '生成失败',

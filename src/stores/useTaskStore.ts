@@ -8,12 +8,12 @@ import { persist, createJSONStorage } from 'zustand/middleware';
  * type 区分队列类型：image（图片生成，包含融图）、video（视频生成）
  */
 export interface Task {
-  jobId: string | number;
+  jobId: string | number;        // Bull 队列 job ID（统一标识）
   type: 'image' | 'video';
-  shotId?: number;      // 关联的分镜ID（可选）
+  shotId?: number; // 关联的分镜ID（可选）
   characterId?: number; // 关联的角色ID（可选）
-  model?: string;       // 使用的模型
-  videoId?: number;     // 视频任务的数据库记录ID（用于查询状态）
+  model?: string; // 使用的模型
+  videoId?: number;              // 视频任务数据库 ID（从 Bull result 获取）
   createdAt: number;
 }
 
