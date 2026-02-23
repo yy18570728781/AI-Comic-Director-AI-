@@ -443,13 +443,13 @@ export default function VideoGenerateModal({
             </div>
           )}
 
-          {/* 音画同步开关 - 仅支持的模型显示 */}
+          {/* 输出声音开关 - 仅支持的模型显示 */}
           {modelConfig?.supportGenerateAudio && (
             <Form.Item
-              label="音画同步"
+              label="输出声音"
               name="generateAudio"
               valuePropName="checked"
-              extra="开启后将生成与画面同步的声音"
+              extra="开启后将生成带声音的视频"
             >
               <Switch />
             </Form.Item>
