@@ -347,6 +347,8 @@ function ScriptDetail() {
       referenceImages: lastFrameImage 
         ? [firstFrameImage.url, lastFrameImage.url] 
         : [firstFrameImage.url],
+      aspectRatio: config.aspectRatio,
+      generateAudio: config.generateAudio ?? false,
       shotId,
       scriptId: script?.id,
     });

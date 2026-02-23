@@ -8,6 +8,7 @@ import {
   message,
   InputNumber,
   Tag,
+  Switch,
 } from 'antd';
 import { ThunderboltOutlined, SyncOutlined } from '@ant-design/icons';
 import { useModelStore } from '@/stores/useModelStore';
@@ -34,6 +35,7 @@ interface ModelConfig {
     supportFirstLastFrame?: boolean;
     supportCameraMovement?: boolean;
     supportWatermark?: boolean;
+    supportGenerateAudio?: boolean;
   };
 }
 
@@ -92,7 +94,8 @@ export default function VideoGenerateModal({
     if (visible && shot) {
       form.setFieldsValue({
         videoPrompt: shot.videoPrompt || shot.visualDescription || '',
-        duration: shot.duration || 5, // 使用后端返回的duration值
+        duration: shot.duration || 5,
+        generateAudio: false,  // 默认不生成音频
       });
     }
   }, [visible, shot, form]);
@@ -438,6 +441,18 @@ export default function VideoGenerateModal({
                 ))}
               </div>
             </div>
+          )}
+
+          {/* 音画同步开关 - 仅支持的模型显示 */}
+          {modelConfig?.supportGenerateAudio && (
+            <Form.Item
+              label="音画同步"
+              name="generateAudio"
+              valuePropName="checked"
+              extra="开启后将生成与画面同步的声音"
+            >
+              <Switch />
+            </Form.Item>
           )}
         </div>
 

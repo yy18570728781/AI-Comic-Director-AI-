@@ -51,10 +51,12 @@ export interface ImageParams {
 export interface VideoParams {
   prompt?: string;
   model?: string;
-  mode?: 't2v' | 'i2v' | 'flf2v' | 'ref2v';  // 视频生成模式
+  mode?: 't2v' | 'i2v' | 'flf2v' | 'ref2v';
   duration?: number;
   resolution?: string;
-  ratio?: string;  // 画面比例
+  ratio?: string;
+  aspectRatio?: string;
+  generateAudio?: boolean;  // 是否输出声音
   referenceImages?: string[];
   shotId?: number;
   scriptId?: number;
@@ -73,13 +75,13 @@ export interface UseAIGenerationOptions {
 // ==================== Hook ====================
 
 export function useAIGeneration(options: UseAIGenerationOptions = {}) {
-  const { 
-    onImageComplete, 
-    onVideoComplete, 
+  const {
+    onImageComplete,
+    onVideoComplete,
     onError,
-    showMessage = true 
+    showMessage = true
   } = options;
-  
+
   const { tasks, addTask } = useTaskStore();
 
   // 监听全局任务完成事件
@@ -126,7 +128,7 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
     // 解析宽高
     let width = rest.width || 1024;
     let height = rest.height || 1024;
-    
+
     if (aspectRatio) {
       const map: Record<string, [number, number]> = {
         '1:1': [1024, 1024],
@@ -165,9 +167,9 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
 
   // 生成视频
   const generateVideo = useCallback(async (params: VideoParams): Promise<string | null> => {
-    const { shotId, scriptId, referenceImages, ...rest } = params;
+    const { shotId, scriptId, referenceImages, aspectRatio, ...rest } = params;
 
-    // 根据图片数量自动推断 mode（如果没传的话）
+    // 根据图片数量自动推断 mode
     const imageCount = referenceImages?.length || 0;
     let mode = rest.mode;
     if (!mode) {
@@ -183,7 +185,8 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
       mode,
       duration: rest.duration || 5,
       resolution: rest.resolution || '720p',
-      ratio: rest.ratio,  // 画面比例
+      ratio: rest.ratio || aspectRatio,
+      generateAudio: rest.generateAudio ?? false,
       shotId,
       scriptId,
       ...(rest.saveToLibrary ? {
@@ -193,7 +196,6 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
       } : {}),
     };
 
-    // 统一使用 referenceImages 数组
     if (referenceImages?.length) {
       requestData.referenceImages = referenceImages;
     }
