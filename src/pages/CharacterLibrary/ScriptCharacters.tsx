@@ -763,7 +763,7 @@ function ScriptCharacters() {
           shotType: '全景',
           scene: '纯白色背景',
           imagePrompt: selectedCharacterForImage?.description || '',
-          aspectRatio: '1:1',
+          // aspectRatio: '16:9',
         }}
         scriptId={scriptId ? parseInt(scriptId) : undefined}
         loading={generateLoading}
