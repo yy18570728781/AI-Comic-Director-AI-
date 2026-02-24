@@ -71,3 +71,14 @@ export function getPointRecords(userId: number, params?: { page?: number; pageSi
     params,
   });
 }
+
+/**
+ * 充值积分
+ */
+export function rechargePoints(userId: number, points: number, bonus?: number) {
+  return request({
+    url: `/api/user/${userId}/recharge`,
+    method: 'POST',
+    data: { points, bonus },
+  });
+}
