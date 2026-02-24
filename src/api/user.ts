@@ -1,4 +1,5 @@
-import request from './request';
+import { request } from './request';
+import type { ApiResponse } from './request';
 
 /**
  * 创建用户
@@ -8,7 +9,7 @@ export function createUser(data: {
   password: string;
   email?: string;
   avatar?: string;
-}) {
+}): Promise<ApiResponse> {
   return request({
     url: '/api/user/create',
     method: 'POST',
@@ -19,7 +20,7 @@ export function createUser(data: {
 /**
  * 获取用户详情
  */
-export function getUserDetail(id: number) {
+export function getUserDetail(id: number): Promise<ApiResponse> {
   return request({
     url: `/api/user/${id}`,
     method: 'GET',
@@ -33,7 +34,7 @@ export function getUserList(params: {
   page?: number;
   pageSize?: number;
   keyword?: string;
-}) {
+}): Promise<ApiResponse> {
   return request({
     url: '/api/user/list',
     method: 'GET',
@@ -44,7 +45,7 @@ export function getUserList(params: {
 /**
  * 确保默认用户存在
  */
-export function ensureDefaultUser() {
+export function ensureDefaultUser(): Promise<ApiResponse> {
   return request({
     url: '/api/user/ensure-default',
     method: 'POST',
@@ -54,7 +55,7 @@ export function ensureDefaultUser() {
 /**
  * 获取用户积分余额
  */
-export function getUserPoints(userId: number) {
+export function getUserPoints(userId: number): Promise<ApiResponse> {
   return request({
     url: `/api/user/${userId}/points`,
     method: 'GET',
@@ -64,7 +65,7 @@ export function getUserPoints(userId: number) {
 /**
  * 获取用户积分流水
  */
-export function getPointRecords(userId: number, params?: { page?: number; pageSize?: number }) {
+export function getPointRecords(userId: number, params?: { page?: number; pageSize?: number }): Promise<ApiResponse> {
   return request({
     url: `/api/user/${userId}/point-records`,
     method: 'GET',
@@ -75,7 +76,7 @@ export function getPointRecords(userId: number, params?: { page?: number; pageSi
 /**
  * 充值积分
  */
-export function rechargePoints(userId: number, points: number, bonus?: number) {
+export function rechargePoints(userId: number, points: number, bonus?: number): Promise<ApiResponse> {
   return request({
     url: `/api/user/${userId}/recharge`,
     method: 'POST',

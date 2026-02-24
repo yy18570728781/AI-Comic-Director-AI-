@@ -32,10 +32,10 @@ export default function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const { success, data } = await getUserList({ page, pageSize, keyword });
-      if (success) {
-        setUsers(data.list || []);
-        setTotal(data.total || 0);
+      const response = await getUserList({ page, pageSize, keyword });
+      if (response.success) {
+        setUsers(response.data.list || []);
+        setTotal(response.data.total || 0);
       } else {
         message.error('获取用户列表失败');
       }
@@ -60,14 +60,14 @@ export default function UserManagement() {
     try {
       const values = await form.validateFields();
       setModalLoading(true);
-      const { success, message: msg } = await createUser(values);
-      if (success) {
+      const response = await createUser(values);
+      if (response.success) {
         message.success('创建成功');
         setModalVisible(false);
         form.resetFields();
         fetchUsers();
       } else {
-        message.error(msg || '创建失败');
+        message.error(response.message || '创建失败');
       }
     } catch (error: any) {
       console.error('创建用户失败:', error);
@@ -82,18 +82,18 @@ export default function UserManagement() {
     try {
       const values = await rechargeForm.validateFields();
       setRechargeLoading(true);
-      const { success, message: msg } = await rechargePoints(
+      const response = await rechargePoints(
         selectedUser!.id,
         values.points,
         values.bonus
       );
-      if (success) {
+      if (response.success) {
         message.success('充值成功');
         setRechargeModalVisible(false);
         rechargeForm.resetFields();
         fetchUsers();
       } else {
-        message.error(msg || '充值失败');
+        message.error(response.message || '充值失败');
       }
     } catch (error: any) {
       console.error('充值失败:', error);
