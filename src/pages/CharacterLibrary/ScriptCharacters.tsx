@@ -62,6 +62,7 @@ function ScriptCharacters() {
     try {
       const response = await getCharacterList({
         userId: currentUser.id,
+        scriptId: scriptId ? parseInt(scriptId) : undefined,
         page: 1,
         pageSize: 100,
       });
@@ -161,7 +162,11 @@ function ScriptCharacters() {
 
     setSaving(true);
     try {
-      const response = await batchSaveCharacters(charactersToSave, currentUser.id);
+      const response = await batchSaveCharacters(
+        charactersToSave,
+        currentUser.id,
+        scriptId ? parseInt(scriptId) : undefined
+      );
       if (response.success) {
         message.success(messages.saveSuccess(charactersToSave.length));
         fetchSavedCharacters();

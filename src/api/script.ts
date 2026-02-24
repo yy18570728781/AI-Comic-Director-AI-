@@ -126,11 +126,11 @@ export function extractCharacters(scriptId: number) {
 /**
  * 批量保存角色到角色库
  */
-export function batchSaveCharacters(characters: any[], userId: number) {
+export function batchSaveCharacters(characters: any[], userId: number, scriptId?: number) {
     return request({
         url: '/api/character-library/batch-save',
         method: 'post',
-        data: { characters, userId },
+        data: { characters, userId, scriptId },
     })
 }
 
@@ -139,6 +139,7 @@ export function batchSaveCharacters(characters: any[], userId: number) {
  */
 export function getCharacterList(params: {
     userId?: number;
+    scriptId?: number;
     page?: number;
     pageSize?: number;
     keyword?: string;
