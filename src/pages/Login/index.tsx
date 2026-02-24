@@ -4,7 +4,6 @@ import { LockOutlined, LoginOutlined, UserAddOutlined, SafetyOutlined, WechatOut
 import { useNavigate, useLocation } from 'react-router-dom';
 import { loginWithPassword, registerWithPassword, sendEmailCode, resetPassword } from '@/api/auth';
 import { useUserStore } from '@/stores/useUserStore';
-import EmailInput from '@/components/EmailInput';
 import WechatQrLogin from '@/components/WechatQrLogin';
 import './style.css';
 
@@ -49,11 +48,9 @@ function Login() {
         message.error('请先输入邮箱地址');
         return;
       }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        message.error('邮箱格式不正确');
-        return;
-      }
+      
+      await formInstance.validateFields(['email']);
+      
       setSendingCode(true);
       const response: any = await sendEmailCode(email);
       if (response.success) {
@@ -63,7 +60,11 @@ function Login() {
         message.error(response.message || '发送失败');
       }
     } catch (error: any) {
-      message.error('发送失败，请稍后重试');
+      if (error.errorFields) {
+        message.error('请输入正确的邮箱地址');
+      } else {
+        message.error('发送失败，请稍后重试');
+      }
     } finally {
       setSendingCode(false);
     }
@@ -149,10 +150,11 @@ function Login() {
         name="email"
         rules={[
           { required: true, message: '请输入邮箱地址' },
-          { type: 'email', message: '邮箱格式不正确' }
+          { type: 'email', message: '邮箱格式不正确' },
+          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' }
         ]}
       >
-        <EmailInput placeholder="请输入邮箱地址" />
+        <Input prefix={<MailOutlined />} placeholder="请输入邮箱地址" size="large" />
       </Form.Item>
       <Form.Item
         label="密码"
@@ -185,10 +187,11 @@ function Login() {
         name="email"
         rules={[
           { required: true, message: '请输入邮箱地址' },
-          { type: 'email', message: '邮箱格式不正确' }
+          { type: 'email', message: '邮箱格式不正确' },
+          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' }
         ]}
       >
-        <EmailInput placeholder="请输入邮箱地址" />
+        <Input prefix={<MailOutlined />} placeholder="请输入邮箱地址" size="large" />
       </Form.Item>
       <Form.Item
         label="邮箱验证码"
@@ -248,10 +251,11 @@ function Login() {
         name="email"
         rules={[
           { required: true, message: '请输入邮箱地址' },
-          { type: 'email', message: '邮箱格式不正确' }
+          { type: 'email', message: '邮箱格式不正确' },
+          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' }
         ]}
       >
-        <EmailInput placeholder="请输入注册时的邮箱地址" />
+        <Input prefix={<MailOutlined />} placeholder="请输入注册时的邮箱地址" size="large" />
       </Form.Item>
       <Form.Item
         label="邮箱验证码"
