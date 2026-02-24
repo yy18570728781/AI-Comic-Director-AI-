@@ -1,26 +1,27 @@
-import { Card, Button, Popconfirm } from 'antd';
+import { Card, Button, Popconfirm, Alert, Collapse } from 'antd';
 import { ThunderboltOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 
 interface ScriptTabProps {
   content: string;
   hasShots: boolean;
   generateLoading: boolean;
+  generatingRawText?: string;
   onRegenerateStoryboard: () => void;
 }
 
-/**
- * 剧本标签页
- */
 export default function ScriptTab({ 
   content, 
   hasShots, 
   generateLoading,
+  generatingRawText = '',
   onRegenerateStoryboard 
 }: ScriptTabProps) {
+  const showGeneratingUI = generateLoading && generatingRawText;
+  
   return (
     <Card
       extra={
-        hasShots && (
+        hasShots && !generateLoading && (
           <Popconfirm
             title="重新生成分镜脚本"
             description={
@@ -38,7 +39,6 @@ export default function ScriptTab({
               type="primary"
               danger
               icon={<ThunderboltOutlined />}
-              loading={generateLoading}
             >
               重新生成分镜脚本
             </Button>
@@ -46,6 +46,41 @@ export default function ScriptTab({
         )
       }
     >
+      {showGeneratingUI && (
+        <Alert
+          message={`正在生成分镜脚本... 已接收 ${generatingRawText.length} 字符`}
+          description={
+            <Collapse 
+              style={{ marginTop: 12 }}
+              defaultActiveKey={['raw']}
+              items={[
+                {
+                  key: 'raw',
+                  label: '查看流式生成的 JSON',
+                  children: (
+                    <div style={{ 
+                      maxHeight: 500, 
+                      overflow: 'auto', 
+                      whiteSpace: 'pre-wrap',
+                      fontSize: 12,
+                      fontFamily: 'monospace',
+                      background: '#f5f5f5',
+                      padding: 12,
+                      borderRadius: 4,
+                      lineHeight: 1.6
+                    }}>
+                      {generatingRawText}
+                    </div>
+                  )
+                }
+              ]}
+            />
+          }
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+        />
+      )}
       <div style={{ whiteSpace: 'pre-wrap', lineHeight: 1.8 }}>{content}</div>
     </Card>
   );

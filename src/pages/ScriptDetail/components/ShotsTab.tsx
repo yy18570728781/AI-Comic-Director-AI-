@@ -9,6 +9,8 @@ import {
   Image,
   Modal,
   message,
+  Alert,
+  Collapse,
 } from 'antd';
 import {
   ThunderboltOutlined,
@@ -51,6 +53,7 @@ interface ShotsTabProps {
   shots: Shot[];
   generateLoading: boolean;
   generatingImages: Set<number | string>;
+  generatingRawText?: string;
   onGenerateStoryboard: () => void;
   onEditShot: (shot: Shot) => void;
   onDeleteShot: (shotId: number) => void;
@@ -67,6 +70,7 @@ export default function ShotsTab({
   shots,
   generateLoading,
   generatingImages,
+  generatingRawText = '',
   onGenerateStoryboard,
   onEditShot,
   onDeleteShot,
@@ -77,6 +81,8 @@ export default function ShotsTab({
 }: ShotsTabProps) {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [currentShot, setCurrentShot] = useState<Shot | null>(null);
+
+  const showGeneratingUI = generateLoading && generatingRawText;
 
   // 打开图像生成弹窗
   const handleOpenImageModal = (shot: Shot) => {
@@ -99,6 +105,45 @@ export default function ShotsTab({
   };
 
   if (!shots || shots.length === 0) {
+    if (showGeneratingUI) {
+      return (
+        <Card>
+          <Alert
+            message={`正在生成分镜脚本... 已接收 ${generatingRawText.length} 字符`}
+            description={
+              <Collapse 
+                style={{ marginTop: 12 }}
+                defaultActiveKey={['raw']}
+                items={[
+                  {
+                    key: 'raw',
+                    label: '查看流式生成的 JSON',
+                    children: (
+                      <div style={{ 
+                        maxHeight: 500, 
+                        overflow: 'auto', 
+                        whiteSpace: 'pre-wrap',
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                        background: '#f5f5f5',
+                        padding: 12,
+                        borderRadius: 4,
+                        lineHeight: 1.6
+                      }}>
+                        {generatingRawText}
+                      </div>
+                    )
+                  }
+                ]}
+              />
+            }
+            type="info"
+            showIcon
+          />
+        </Card>
+      );
+    }
+
     return (
       <Card>
         <Empty

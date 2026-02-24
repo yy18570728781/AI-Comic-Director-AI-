@@ -23,7 +23,7 @@ import {
 import { setFirstFrame, setLastFrame, deleteImage } from '@/api/image-action';
 import {
   getScriptDetail,
-  generateStoryboard,
+  generateStoryboardStream,
   updateShot,
   deleteShot,
 } from '@/api/script';
@@ -45,6 +45,7 @@ function ScriptDetail() {
   const [script, setScript] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('script');
   const [generateLoading, setGenerateLoading] = useState(false);
+  const [generatingRawText, setGeneratingRawText] = useState('');
   const [editingShotId, setEditingShotId] = useState<number | null>(null);
   const [editForm] = Form.useForm();
   const [blendModalVisible, setBlendModalVisible] = useState(false);
@@ -110,22 +111,41 @@ function ScriptDetail() {
     loadScript();
   }, [id]);
 
-  // 生成分镜脚本
+  // 生成分镜脚本（流式）
   const handleGenerateStoryboard = async () => {
     setGenerateLoading(true);
+    setGeneratingRawText('');
+    
+    // 立即跳转到分镜脚本标签
+    setActiveTab('shots');
+    
+    // 清空当前的分镜数据，显示流式效果
+    setScript((prev: any) => prev ? { ...prev, shots: [] } : prev);
+    
     try {
-      const result = await generateStoryboard(parseInt(id!), {
-        shotCount: 30,
-      });
-      if (result.success) {
-        message.success('分镜脚本生成成功');
-        loadScript();
-        setActiveTab('shots');
-      }
+      await generateStoryboardStream(
+        parseInt(id!),
+        { shotCount: 30 },
+        (content, fullText) => {
+          setGeneratingRawText(fullText);
+          console.log('📝 收到流式数据，当前长度:', fullText.length);
+        },
+        (error) => {
+          message.error(error);
+          setGenerateLoading(false);
+          setGeneratingRawText('');
+        },
+        (result) => {
+          message.success('分镜脚本生成成功');
+          setGeneratingRawText('');
+          loadScript();
+          setGenerateLoading(false);
+        }
+      );
     } catch (error) {
       console.error(error);
-    } finally {
       setGenerateLoading(false);
+      setGeneratingRawText('');
     }
   };
 
@@ -428,6 +448,7 @@ function ScriptDetail() {
             content={script.content} 
             hasShots={script.shots?.length > 0}
             generateLoading={generateLoading}
+            generatingRawText={generatingRawText}
             onRegenerateStoryboard={handleGenerateStoryboard}
           />
         );
@@ -437,6 +458,7 @@ function ScriptDetail() {
             shots={script.shots || []}
             generateLoading={generateLoading}
             generatingImages={generatingImageIds}
+            generatingRawText={generatingRawText}
             onGenerateStoryboard={handleGenerateStoryboard}
             onEditShot={handleEditShot}
             onDeleteShot={handleDeleteShot}

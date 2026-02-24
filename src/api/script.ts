@@ -75,8 +75,89 @@ export function generateStoryboard(id: number, data: {
         url: `/api/script/${id}/storyboard`,
         method: 'post',
         data,
-        timeout: 300000, // 5 分钟超时，因为生成分镜需要较长时间
+        timeout: 300000,
     })
+}
+
+/**
+ * 流式生成分镜脚本
+ */
+export async function generateStoryboardStream(
+    id: number,
+    data: {
+        provider?: string
+        shotCount?: number
+    },
+    onChunk: (content: string, accumulated: string) => void,
+    onError?: (error: string) => void,
+    onDone?: (result: any) => void
+) {
+    const apiBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7001';
+    const token = localStorage.getItem('token');
+
+    try {
+        const response = await fetch(`${apiBaseURL}/api/script/${id}/storyboard-stream`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem('token');
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
+                throw new Error('登录已过期，请重新登录');
+            }
+            throw new Error(`请求失败: ${response.status}`);
+        }
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+
+        if (!reader) {
+            throw new Error('无法读取响应流');
+        }
+
+        while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            const lines = chunk.split('\n');
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.substring(6);
+
+                    if (data === '[DONE]') {
+                        break;
+                    }
+
+                    try {
+                        const json = JSON.parse(data);
+                        if (json.content) {
+                            onChunk(json.content, json.accumulated);
+                        } else if (json.done && json.data) {
+                            onDone?.(json.data);
+                        } else if (json.error) {
+                            onError?.(json.error);
+                        }
+                    } catch (e) {
+                        // 忽略解析错误
+                    }
+                }
+            }
+        }
+    } catch (error: any) {
+        onError?.(error.message || '生成失败');
+        throw error;
+    }
 }
 
 /**
