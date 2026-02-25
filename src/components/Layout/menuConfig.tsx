@@ -32,7 +32,7 @@ export const topMenuItems: MenuProps['items'] = [
   {
     key: 'resources',
     icon: <PictureOutlined />,
-    label: '模板中心',
+    label: '资源库',
     children: [
       { key: '/resource-library', icon: <PictureOutlined />, label: '资源库' },
       { key: '/character-library', icon: <UserOutlined />, label: '角色库' },
@@ -41,7 +41,7 @@ export const topMenuItems: MenuProps['items'] = [
   {
     key: 'compute',
     icon: <TeamOutlined />,
-    label: '算力中心',
+    label: '充值中心',
     children: [
       { key: '/recharge', icon: <WalletOutlined />, label: '积分充值' },
       { key: '/team-space', icon: <TeamOutlined />, label: '团队空间' },
