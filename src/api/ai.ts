@@ -254,11 +254,15 @@ export function optimizeImagePromptToEnglish(data: {
 /**
  * 优化视频提示词
  */
-export function optimizeVideoPrompt(prompt: string, duration?: number) {
+export function optimizeVideoPrompt(data: {
+    prompt: string
+    duration?: number
+    modelId?: string
+}) {
     return request({
         url: '/api/ai/prompt/optimize/video',
         method: 'post',
-        data: { prompt, duration },
+        data,
     })
 }
 

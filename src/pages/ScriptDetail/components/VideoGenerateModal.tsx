@@ -120,7 +120,13 @@ export default function VideoGenerateModal({
     setOptimizing(true);
     try {
       const { optimizeVideoPrompt } = await import('@/api/ai');
-      const res = await optimizeVideoPrompt(videoPrompt);
+      const duration = form.getFieldValue('duration') || 5;
+      
+      const res = await optimizeVideoPrompt({
+        prompt: videoPrompt,
+        duration,
+        modelId: videoModel,
+      });
 
       if (res.success && res.data.optimized) {
         form.setFieldsValue({
