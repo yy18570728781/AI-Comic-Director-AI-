@@ -68,6 +68,7 @@ function ImageToVideo() {
   const [batchCount, setBatchCount] = useState<number>(1);
   const [generatedVideos, setGeneratedVideos] = useState<GeneratedVideo[]>([]);
   const [saveToLibrary, setSaveToLibrary] = useState(false);
+  const [generateAudio, setGenerateAudio] = useState(false);
 
   // 使用统一的 AI 生成 hook
   const { generateVideo, tasks, generatingVideoIds } = useAIGeneration({
@@ -217,6 +218,7 @@ function ImageToVideo() {
         duration,
         resolution,
         ratio: aspectRatio,
+        generateAudio,
         ...(saveToLibrary ? {
           saveToLibrary: true,
           libraryName: `视频_${new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`,
@@ -495,6 +497,25 @@ function ImageToVideo() {
                   </div>
                   <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
                     💡 每次最多生成5个视频，消耗积分 = {creditsPerSecond}/秒 × {duration}秒 × 数量
+                  </div>
+                </div>
+
+                {/* 输出声音开关 */}
+                <div>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginBottom: 8,
+                  }}>
+                    <span style={{ fontWeight: 500 }}>输出声音</span>
+                    <Switch 
+                      checked={generateAudio} 
+                      onChange={setGenerateAudio}
+                    />
+                  </div>
+                  <div style={{ fontSize: 12, color: token.colorTextTertiary }}>
+                    开启后，生成的视频将包含音频
                   </div>
                 </div>
 
