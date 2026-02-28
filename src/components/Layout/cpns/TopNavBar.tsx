@@ -57,11 +57,11 @@ export default function TopNavBar({ showThemeToggle = false, showUserActions = t
           />
         </div>
         <Space className="topnav-right">
-          {showThemeToggle && (
+          {/* {showThemeToggle && (
             <Tooltip title="切换主题">
               <button className="topnav-theme-toggle" onClick={toggleTheme}><SwapOutlined /></button>
             </Tooltip>
-          )}
+          )} */}
           {showUserActions && currentUser ? (
             <>
               <Button className="topnav-recharge-btn" icon={<WalletOutlined />} onClick={() => navigate('/recharge')}>
