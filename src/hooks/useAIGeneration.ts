@@ -87,15 +87,20 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
   // 监听全局任务完成事件
   useEffect(() => {
     const unsubComplete = onTaskComplete((event) => {
+      console.log('🎉 [useAIGeneration] 任务完成:', event);
+      
       if (event.type === 'image') {
         const image: GeneratedImage = {
           id: event.result?.savedImage?.id,
           url: event.result?.savedImage?.url || event.result?.images?.[0]?.url,
           shotId: event.shotId,
         };
+        
         if (image.url && image.id) {
           onImageComplete?.(image, event.shotId);
           if (showMessage) message.success('图片生成完成！');
+        } else {
+          console.warn('⚠️ [useAIGeneration] 图片数据不完整:', { hasUrl: !!image.url, hasId: !!image.id });
         }
       } else if (event.type === 'video') {
         const video: GeneratedVideo = {
