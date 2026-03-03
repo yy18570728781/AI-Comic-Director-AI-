@@ -24,10 +24,9 @@ import { setFirstFrame, setLastFrame, deleteImage } from '@/api/image-action';
 import {
   getScriptDetail,
   generateStoryboardStream,
-  updateShot,
-  deleteShot,
 } from '@/api/script';
 import { useAIGeneration } from '@/hooks/useAIGeneration';
+import { useScriptData } from '@/hooks/useScriptData';
 
 // 导入标签页组件
 import ImageBlendModal from './components/ImageBlendModal';
@@ -50,33 +49,16 @@ function ScriptDetail() {
   const [editForm] = Form.useForm();
   const [blendModalVisible, setBlendModalVisible] = useState(false);
 
-  // 更新 script 中对应镜头的图片
-  const updateShotImage = useCallback((shotId: number, image: any) => {
-    setScript((prevScript: any) => {
-      if (!prevScript) return prevScript;
-      const updatedShots = prevScript.shots.map((shot: any) => {
-        if (shot.id === shotId) {
-          return { ...shot, images: shot.images ? [...shot.images, image] : [image] };
-        }
-        return shot;
-      });
-      return { ...prevScript, shots: updatedShots };
-    });
-  }, []);
-
-  // 更新 script 中对应镜头的视频
-  const updateShotVideo = useCallback((shotId: number, video: any) => {
-    setScript((prevScript: any) => {
-      if (!prevScript) return prevScript;
-      const updatedShots = prevScript.shots.map((shot: any) => {
-        if (shot.id === shotId) {
-          return { ...shot, videos: shot.videos ? [...shot.videos, video] : [video] };
-        }
-        return shot;
-      });
-      return { ...prevScript, shots: updatedShots };
-    });
-  }, []);
+  // 使用分镜数据管理 Hook
+  const {
+    updateShotData,
+    deleteShotData,
+    updateShotImage,
+    updateShotVideo,
+    updateVideoStatus,
+    removeShotImage,
+    updateImageFrameStatus,
+  } = useScriptData(script, setScript);
 
   // 使用统一的 AI 生成 hook
   const { 
@@ -91,8 +73,43 @@ function ScriptDetail() {
       }
     },
     onVideoComplete: (video, shotId) => {
+      console.log('🎬 [主页面] onVideoComplete 被调用:', { video, shotId });
       if (shotId && video?.id) {
+        console.log('✅ [主页面] 调用 updateShotVideo');
         updateShotVideo(shotId, video);
+      } else {
+        console.warn('⚠️ [主页面] 视频回调数据不完整:', { shotId, hasVideoId: !!video?.id });
+      }
+    },
+    onError: async (error, type, shotId) => {
+      // 处理失败情况，局部刷新对应分镜的数据
+      if (type === 'video' && shotId) {
+        try {
+          // 延迟一下确保后端已更新状态
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // 重新获取该分镜的数据
+          const { getScriptDetail } = await import('@/api/script');
+          const res = await getScriptDetail(parseInt(id!));
+          
+          if (res.success && res.data) {
+            const updatedShot = res.data.shots?.find((s: any) => s.id === shotId);
+            if (updatedShot) {
+              // 局部更新该分镜的数据
+              setScript((prevScript: any) => {
+                if (!prevScript) return prevScript;
+                
+                const updatedShots = prevScript.shots.map((shot: any) => 
+                  shot.id === shotId ? updatedShot : shot
+                );
+                
+                return { ...prevScript, shots: updatedShots };
+              });
+            }
+          }
+        } catch (err) {
+          console.error('更新失败状态时出错:', err);
+        }
       }
     },
   });
@@ -168,7 +185,7 @@ function ScriptDetail() {
       dialogue: shot.dialogue,
       visualDescription: shot.visualDescription,
       imagePrompt: shot.imagePrompt,
-      videoPrompt: shot.videoPrompt,
+      videoPrompt: shot.videoPrompt || '', // 统一使用 videoPrompt 字段
       shotType: shot.shotType,
       duration: shot.duration,
     });
@@ -177,30 +194,27 @@ function ScriptDetail() {
   // 保存分镜编辑
   const handleSaveShot = async (values: any) => {
     try {
-      await updateShot(editingShotId!, {
+      await updateShotData(editingShotId!, {
         ...values,
         characters: values.characters
           ?.split(',')
           .map((s: string) => s.trim())
           .filter(Boolean),
       });
-      message.success('保存成功');
+      
       setEditingShotId(null);
       editForm.resetFields();
-      loadScript();
     } catch (error) {
-      console.error(error);
+      // 错误已在 Hook 中处理
     }
   };
 
   // 删除分镜
   const handleDeleteShot = async (shotId: number) => {
     try {
-      await deleteShot(shotId);
-      message.success('删除成功');
-      loadScript();
+      await deleteShotData(shotId);
     } catch (error) {
-      console.error(error);
+      // 错误已在 Hook 中处理
     }
   };
 
@@ -209,24 +223,7 @@ function ScriptDetail() {
     try {
       await setFirstFrame(imageId);
       message.success('已设置为首帧');
-
-      // 局部更新：只清除首帧标记，保留尾帧
-      setScript((prevScript: any) => {
-        if (!prevScript) return prevScript;
-
-        const updatedShots = prevScript.shots.map((shot: any) => {
-          if (shot.id === shotId) {
-            const updatedImages = (shot.images || []).map((img: any) => ({
-              ...img,
-              isFirstFrame: img.id === imageId,
-            }));
-            return { ...shot, images: updatedImages };
-          }
-          return shot;
-        });
-
-        return { ...prevScript, shots: updatedShots };
-      });
+      updateImageFrameStatus(shotId, imageId, 'first');
     } catch (error: any) {
       message.error(error.message || '设置失败');
     }
@@ -237,24 +234,7 @@ function ScriptDetail() {
     try {
       await setLastFrame(imageId);
       message.success('已设置为尾帧');
-
-      // 局部更新：只清除尾帧标记，保留首帧
-      setScript((prevScript: any) => {
-        if (!prevScript) return prevScript;
-
-        const updatedShots = prevScript.shots.map((shot: any) => {
-          if (shot.id === shotId) {
-            const updatedImages = (shot.images || []).map((img: any) => ({
-              ...img,
-              isLastFrame: img.id === imageId,
-            }));
-            return { ...shot, images: updatedImages };
-          }
-          return shot;
-        });
-
-        return { ...prevScript, shots: updatedShots };
-      });
+      updateImageFrameStatus(shotId, imageId, 'last');
     } catch (error: any) {
       message.error(error.message || '设置失败');
     }
@@ -265,26 +245,7 @@ function ScriptDetail() {
     try {
       await deleteImage(imageId);
       message.success('图片删除成功');
-
-      // 局部更新：从对应镜头的 images 中移除
-      setScript((prevScript: any) => {
-        if (!prevScript) return prevScript;
-
-        const updatedShots = prevScript.shots.map((shot: any) => {
-          const hasDeletedImage = shot.images?.some(
-            (img: any) => img.id === imageId,
-          );
-          if (hasDeletedImage) {
-            return {
-              ...shot,
-              images: shot.images.filter((img: any) => img.id !== imageId),
-            };
-          }
-          return shot;
-        });
-
-        return { ...prevScript, shots: updatedShots };
-      });
+      removeShotImage(imageId);
     } catch (error: any) {
       message.error(error.message || '删除失败');
     }
@@ -370,7 +331,7 @@ function ScriptDetail() {
 
     // 使用 hook 生成视频
     await generateVideo({
-      prompt: config.videoPrompt || shot.videoPrompt || shot.visualDescription || '',
+      prompt: config.videoPrompt || shot.videoPrompt || '', // 统一使用 videoPrompt 字段
       model: config.model || 'doubao-seedance-1-0-lite-i2v-250428',
       mode,
       duration: config.duration || 5,
@@ -476,6 +437,9 @@ function ScriptDetail() {
             onSetFirstFrame={handleSetFirstFrame}
             onSetLastFrame={handleSetLastFrame}
             onDeleteImage={handleDeleteImage}
+            onShotUpdate={async (shotId, data) => {
+              await updateShotData(shotId, data, { showMessage: false });
+            }}
           />
         );
       case 'images':
@@ -488,6 +452,9 @@ function ScriptDetail() {
             onGenerateVideo={handleGenerateVideo}
             onEditShot={handleEditShot}
             onDeleteShot={handleDeleteShot}
+            onShotUpdate={async (shotId, data) => {
+              await updateShotData(shotId, data, { showMessage: false });
+            }}
           />
         );
       case 'videos':

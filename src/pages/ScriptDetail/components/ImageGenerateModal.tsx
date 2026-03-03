@@ -8,6 +8,7 @@ interface ShotImageGenerateModalProps {
   loading: boolean;
   onCancel: () => void;
   onSubmit: (values: any) => void;
+  onShotUpdate?: (shotId: number, data: any) => Promise<void>; // 新增：用于更新分镜数据
 }
 
 /**
@@ -20,25 +21,44 @@ export default function ShotImageGenerateModal({
   loading,
   onCancel,
   onSubmit,
+  onShotUpdate,
 }: ShotImageGenerateModalProps) {
   // 保存分镜配置到数据库
   const handleSave = async (values: ImageGenerateFormValues) => {
-    await updateShot(shot.id, {
-      imagePrompt: values.imagePrompt,
-      shotType: values.shotType,
-      scene: values.scene,
-    });
+    if (onShotUpdate) {
+      await onShotUpdate(shot.id, {
+        imagePrompt: values.imagePrompt,
+        shotType: values.shotType,
+        scene: values.scene,
+      });
+    } else {
+      // 兼容旧版本，直接调用 API
+      await updateShot(shot.id, {
+        imagePrompt: values.imagePrompt,
+        shotType: values.shotType,
+        scene: values.scene,
+      });
+    }
   };
 
   // 生成图像前先保存，再回调父组件
   const handleSubmit = async (values: ImageGenerateSubmitValues) => {
     // 先保存到数据库
     try {
-      await updateShot(shot.id, {
-        imagePrompt: values.imagePrompt,
-        shotType: values.shotType,
-        scene: values.scene,
-      });
+      if (onShotUpdate) {
+        await onShotUpdate(shot.id, {
+          imagePrompt: values.imagePrompt,
+          shotType: values.shotType,
+          scene: values.scene,
+        });
+      } else {
+        // 兼容旧版本，直接调用 API
+        await updateShot(shot.id, {
+          imagePrompt: values.imagePrompt,
+          shotType: values.shotType,
+          scene: values.scene,
+        });
+      }
     } catch (error) {
       console.error('保存表单失败:', error);
       // 不阻塞生成流程

@@ -24,6 +24,7 @@ interface VideoGenerateModalProps {
   loading?: boolean;
   onCancel: () => void;
   onSubmit: (config: any) => void;
+  onShotUpdate?: (shotId: number, data: any) => Promise<void>; // 新增：用于更新分镜数据
 }
 
 interface ModelConfig {
@@ -51,6 +52,7 @@ export default function VideoGenerateModal({
   loading = false,
   onCancel,
   onSubmit,
+  onShotUpdate,
 }: VideoGenerateModalProps) {
   const [form] = Form.useForm();
   const [optimizing, setOptimizing] = useState(false);
@@ -107,13 +109,32 @@ export default function VideoGenerateModal({
   // 当弹窗打开时，初始化表单
   useEffect(() => {
     if (visible && shot) {
+      // 统一使用 videoPrompt 字段
+      const initialVideoPrompt = shot.videoPrompt || '';
+      
       form.setFieldsValue({
-        videoPrompt: shot.videoPrompt || shot.visualDescription || '',
+        videoPrompt: initialVideoPrompt,
         duration: shot.duration || 5,
-        generateAudio: false,  // 默认不生成音频
+        generateAudio: false,
       });
     }
   }, [visible, shot, form]);
+
+  // 监听 shot 对象变化，实时更新表单（解决编辑后数据不同步问题）
+  useEffect(() => {
+    if (visible && shot) {
+      const currentVideoPrompt = form.getFieldValue('videoPrompt');
+      const newVideoPrompt = shot.videoPrompt || '';
+      
+      // 只有当数据真的发生变化时才更新，避免用户正在编辑时被覆盖
+      if (currentVideoPrompt !== newVideoPrompt && newVideoPrompt) {
+        form.setFieldsValue({
+          videoPrompt: newVideoPrompt,
+          duration: shot.duration || 5,
+        });
+      }
+    }
+  }, [shot?.videoPrompt, shot?.duration, visible, form]);
 
   // AI 优化视频提示词
   const handleOptimizePrompt = async () => {
@@ -157,16 +178,22 @@ export default function VideoGenerateModal({
 
       setSaving(true);
       try {
-        const { updateShot } = await import('@/api/script');
-        const res = await updateShot(shot.id, {
-          videoPrompt: values.videoPrompt,
-          duration: values.duration,
-        });
+        if (onShotUpdate) {
+          await onShotUpdate(shot.id, {
+            videoPrompt: values.videoPrompt,
+            duration: values.duration,
+          });
+        } else {
+          // 兼容旧版本，直接调用 API
+          const { updateShot } = await import('@/api/script');
+          const res = await updateShot(shot.id, {
+            videoPrompt: values.videoPrompt,
+            duration: values.duration,
+          });
 
-        // 全局拦截器已经处理了 success: false 的情况
-        // 这里只需要处理成功的情况
-        if (res.success) {
-          message.success('保存成功');
+          if (res.success) {
+            message.success('保存成功');
+          }
         }
       } catch (error: any) {
         console.error('保存失败:', error);
@@ -187,11 +214,19 @@ export default function VideoGenerateModal({
       // 生成视频前先保存表单
       console.log('💾 生成视频前保存表单到数据库');
       try {
-        const { updateShot } = await import('@/api/script');
-        await updateShot(shot.id, {
-          videoPrompt: values.videoPrompt,
-          duration: values.duration,
-        });
+        if (onShotUpdate) {
+          await onShotUpdate(shot.id, {
+            videoPrompt: values.videoPrompt,
+            duration: values.duration,
+          });
+        } else {
+          // 兼容旧版本，直接调用 API
+          const { updateShot } = await import('@/api/script');
+          await updateShot(shot.id, {
+            videoPrompt: values.videoPrompt,
+            duration: values.duration,
+          });
+        }
       } catch (error) {
         console.error('保存表单失败:', error);
         // 不阻塞生成流程

@@ -63,6 +63,7 @@ interface ShotsTabProps {
   onDeleteImage: (imageId: number) => void;
   onSetFirstFrame: (shotId: number, imageId: number) => void;
   onSetLastFrame: (shotId: number, imageId: number) => void;
+  onShotUpdate?: (shotId: number, data: any) => Promise<void>; // 新增：用于更新分镜数据
 }
 
 /**
@@ -80,6 +81,7 @@ export default function ShotsTab({
   onDeleteImage,
   onSetFirstFrame,
   onSetLastFrame,
+  onShotUpdate,
 }: ShotsTabProps) {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [currentShot, setCurrentShot] = useState<Shot | null>(null);
@@ -420,6 +422,7 @@ export default function ShotsTab({
         loading={currentShot ? generatingImages.has(currentShot.id) : false}
         onCancel={handleCloseImageModal}
         onSubmit={handleSubmitImageGenerate}
+        onShotUpdate={onShotUpdate}
       />
     </>
   );
