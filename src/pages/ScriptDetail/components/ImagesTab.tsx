@@ -18,6 +18,8 @@ interface ShotImage {
 interface ShotVideo {
   id: number;
   url: string;
+  status?: string;
+  errorMessage?: string;
 }
 
 interface Shot {
@@ -41,6 +43,7 @@ interface ImagesTabProps {
   onGenerateVideo: (shot: Shot, config: any) => void;
   onEditShot: (shot: Shot) => void;
   onDeleteShot: (shotId: number) => void;
+  onShotUpdate?: (shotId: number, data: any) => Promise<void>; // 新增：用于更新分镜数据
 }
 
 /**
@@ -54,6 +57,7 @@ export default function ImagesTab({
   onGenerateVideo,
   onEditShot,
   onDeleteShot,
+  onShotUpdate,
 }: ImagesTabProps) {
   const [videoModalVisible, setVideoModalVisible] = useState(false);
   const [currentShot, setCurrentShot] = useState<Shot | null>(null);
@@ -307,17 +311,65 @@ export default function ImagesTab({
             </div>
           )}
 
-          {shot.videos && shot.videos.length > 0 && (
-            <div
-              style={{
-                padding: '0 16px 8px',
-                fontSize: 12,
-                color: '#52c41a',
-              }}
-            >
-              已生成视频任务
-            </div>
-          )}
+          {(shot.videos?.length ?? 0) > 0 && (() => {
+            const hasSuccessVideo = shot.videos?.some((video: any) => video.status === 'completed' && video.url);
+            const hasFailedVideo = shot.videos?.some((video: any) => video.status === 'failed');
+            const hasPendingVideo = shot.videos?.some((video: any) => video.status === 'pending' || video.status === 'processing');
+
+            if (hasSuccessVideo) {
+              return (
+                <div
+                  style={{
+                    padding: '0 16px 8px',
+                    fontSize: 12,
+                    color: '#52c41a',
+                  }}
+                >
+                  ✅ 视频生成成功
+                </div>
+              );
+            } else if (hasFailedVideo) {
+              const failedVideo = shot.videos?.find((video: any) => video.status === 'failed');
+              const errorMsg = failedVideo?.errorMessage;
+              let displayMsg = '❌ 视频生成失败';
+              
+              if (errorMsg) {
+                try {
+                  const error = JSON.parse(errorMsg);
+                  if (error.code === 'OutputVideoSensitiveContentDetected') {
+                    displayMsg = '❌ 内容审核未通过，请优化提示词';
+                  }
+                } catch (e) {
+                  // 解析失败，使用默认消息
+                }
+              }
+              
+              return (
+                <div
+                  style={{
+                    padding: '0 16px 8px',
+                    fontSize: 12,
+                    color: '#ff4d4f',
+                  }}
+                >
+                  {displayMsg}
+                </div>
+              );
+            } else if (hasPendingVideo) {
+              return (
+                <div
+                  style={{
+                    padding: '0 16px 8px',
+                    fontSize: 12,
+                    color: '#1890ff',
+                  }}
+                >
+                  🔄 视频处理中
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           {/* 操作按钮区域 */}
           <div
@@ -392,6 +444,7 @@ export default function ImagesTab({
         loading={currentShot ? generatingVideos.has(currentShot.id) : false}
         onCancel={handleCloseVideoModal}
         onSubmit={handleSubmitVideoGenerate}
+        onShotUpdate={onShotUpdate}
       />
     </>
   );
