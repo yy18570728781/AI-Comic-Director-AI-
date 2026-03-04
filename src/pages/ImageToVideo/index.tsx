@@ -310,7 +310,7 @@ function ImageToVideo() {
                             }}
                           >
                             {selectedImages.map((img, idx) => (
-                              <div key={idx} style={{ textAlign: 'center' }}>
+                              <div key={idx} style={{ position: 'relative', textAlign: 'center' }}>
                                 <Image
                                   src={img}
                                   alt={`reference-${idx}`}
@@ -321,6 +321,25 @@ function ImageToVideo() {
                                     borderRadius: 4,
                                   }}
                                 />
+                                <Button
+                                  type="text"
+                                  danger
+                                  size="small"
+                                  style={{
+                                    position: 'absolute',
+                                    top: 4,
+                                    right: 4,
+                                    background: 'rgba(0,0,0,0.5)',
+                                    color: '#fff',
+                                    border: 'none',
+                                  }}
+                                  onClick={() => {
+                                    const newImages = selectedImages.filter((_, i) => i !== idx);
+                                    setSelectedImages(newImages);
+                                  }}
+                                >
+                                  删除
+                                </Button>
                                 <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
                                   第{idx + 1}张
                                 </div>

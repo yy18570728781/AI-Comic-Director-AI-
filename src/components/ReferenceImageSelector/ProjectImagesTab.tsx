@@ -23,6 +23,11 @@ export default function ProjectImagesTab({
   const [loading, setLoading] = useState(false);
   const [selectedImages, setSelectedImages] = useState<string[]>(value);
 
+  // 当外部 value 变化时，同步内部状态
+  useEffect(() => {
+    setSelectedImages(value);
+  }, [value]);
+
   // TODO: 从后端获取项目图像
   useEffect(() => {
     // 暂时显示空状态

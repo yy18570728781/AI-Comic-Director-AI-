@@ -1,6 +1,6 @@
 import { Upload, message, Modal } from 'antd';
 import { PlusOutlined, LoadingOutlined } from '@ant-design/icons';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 import { uploadFile } from '@/api/oss';
 import { compressImage, shouldCompress } from '@/utils/imageCompress';
@@ -30,6 +30,18 @@ export default function CustomUploadTab({
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
+
+  // 当外部 value 变化时，同步内部状态
+  useEffect(() => {
+    setFileList(
+      value.map((url, index) => ({
+        uid: `${index}-${url}`,
+        name: `image-${index}`,
+        status: 'done',
+        url,
+      })),
+    );
+  }, [value]);
 
   // 预览图片
   const handlePreview = async (file: UploadFile) => {

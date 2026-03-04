@@ -46,6 +46,11 @@ export default function ResourceLibraryTab({
     total: 0,
   });
 
+  // 当外部 value 变化时，同步内部状态
+  useEffect(() => {
+    setSelectedImages(value);
+  }, [value]);
+
   // 获取资源列表
   const fetchResources = async (page = 1) => {
     setLoading(true);
