@@ -15,7 +15,6 @@ import ImageToImage from '@/pages/ImageToImage';
 import Recharge from '@/pages/Recharge';
 import Pay from '@/pages/Pay';
 import UserManagement from '@/pages/Admin/UserManagement';
-// import AdminScriptManagement from '@/pages/Admin/ScriptManagement';
 
 export default function AppRouter() {
   return (
