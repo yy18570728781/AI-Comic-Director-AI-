@@ -12,7 +12,6 @@ import {
 
 import ModelSettingsModal from '@/components/ModelSettingsModal';
 import UserProfileModal from '@/components/UserProfileModal';
-import ContactModal from '@/components/ContactModal';
 import { useUserStore } from '@/stores/useUserStore';
 import { topMenuItems, } from '../menuConfig';
 
@@ -24,7 +23,6 @@ export default function MobileNavBar() {
   const { currentUser }: any = useUserStore();
   const [modelModalVisible, setModelModalVisible] = useState(false);
   const [userModalVisible, setUserModalVisible] = useState(false);
-  const [contactModalVisible, setContactModalVisible] = useState(false);
   const [drawerVisible, setDrawerVisible] = useState(false);
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
@@ -96,17 +94,6 @@ export default function MobileNavBar() {
           <div style={{ padding: '16px 0', borderTop: '1px solid #f0f0f0', marginTop: 16 }}>
             <Button 
               block 
-              icon={<TeamOutlined />} 
-              onClick={() => {
-                setContactModalVisible(true);
-                setDrawerVisible(false);
-              }}
-              style={{ marginBottom: 8 }}
-            >
-              代理合作
-            </Button>
-            <Button 
-              block 
               icon={<WalletOutlined />} 
               onClick={() => {
                 navigate('/recharge');
@@ -136,7 +123,6 @@ export default function MobileNavBar() {
 
       <ModelSettingsModal open={modelModalVisible} onClose={() => setModelModalVisible(false)} />
       <UserProfileModal open={userModalVisible} onClose={() => setUserModalVisible(false)} />
-      <ContactModal open={contactModalVisible} onClose={() => setContactModalVisible(false)} />
     </>
   );
 }
