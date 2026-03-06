@@ -28,6 +28,7 @@ function ScriptGeneration() {
     cameraStyle: '漫画感',
     shotCount: '适中（25-30镜）',
   });
+  const [novelContent, setNovelContent] = useState('');
 
   useEffect(() => {
     loadTagConfig();
@@ -107,13 +108,20 @@ function ScriptGeneration() {
         <Card>
           <Form form={form} layout="vertical" onFinish={handleGenerate}>
             <Form.Item
-              label="小说内容"
+              label={
+                <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+                  <span>小说内容</span>
+                  <span style={{ fontSize: 12, color: '#999', fontWeight: 'normal' }}>已输入 {novelContent.length} 字</span>
+                </div>
+              }
               name="novel"
               rules={[{ required: true, message: '请输入小说内容' }]}
             >
               <TextArea
                 rows={8}
                 placeholder="粘贴生成好的小说内容"
+                value={novelContent}
+                onChange={(e) => setNovelContent(e.target.value)}
               />
             </Form.Item>
 

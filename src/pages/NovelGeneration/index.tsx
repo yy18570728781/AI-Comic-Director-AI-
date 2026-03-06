@@ -147,7 +147,10 @@ function NovelGeneration() {
           <Divider />
           {/* 大纲输入 */}
           <div style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 8, fontWeight: 500 }}>小说大纲（可选）：</div>
+            <div style={{ marginBottom: 8, fontWeight: 500, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>小说大纲（可选）：</span>
+              <span style={{ fontSize: 12, color: '#999' }}>已输入 {outlineInput.length} 字</span>
+            </div>
             <TextArea
               rows={4}
               placeholder="输入小说大纲，如：主角身份、主要情节、结局走向等"
