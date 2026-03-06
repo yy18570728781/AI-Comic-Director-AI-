@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 interface TagSelection {
-  [categoryKey: string]: string; // 改为单选，存储单个值
+  [categoryKey: string]: string | string[];
 }
 
 interface NovelStoreState {
@@ -11,7 +11,7 @@ interface NovelStoreState {
   generatedContent: string;
   isGenerating: boolean;
 
-  selectTag: (categoryKey: string, tag: string) => void;
+  selectTag: (categoryKey: string, tag: string, multiSelect?: boolean) => void;
   clearCategory: (categoryKey: string) => void;
   clearAll: () => void;
   setOutlineInput: (outline: string) => void;
@@ -23,20 +23,40 @@ interface NovelStoreState {
 
 export const useNovelStore = create<NovelStoreState>((set) => ({
   tagSelection: {
-    channel: '男频', // 默认选中男频
+    channel: '男频',
+    language: '中文',
+    hasCheatCode: '是',
   },
   outlineInput: '',
   wordCount: 2000,
   generatedContent: '',
   isGenerating: false,
 
-  selectTag: (categoryKey, tag) =>
-    set((state) => ({
-      tagSelection: {
-        ...state.tagSelection,
-        [categoryKey]: state.tagSelection[categoryKey] === tag ? '' : tag, // 点击已选中的标签则取消选择
-      },
-    })),
+  selectTag: (categoryKey, tag, multiSelect = false) =>
+    set((state) => {
+      const current = state.tagSelection[categoryKey];
+      
+      if (multiSelect) {
+        const currentArray = Array.isArray(current) ? current : current ? [current] : [];
+        const newArray = currentArray.includes(tag)
+          ? currentArray.filter(t => t !== tag)
+          : [...currentArray, tag];
+        
+        return {
+          tagSelection: {
+            ...state.tagSelection,
+            [categoryKey]: newArray.length > 0 ? newArray : '',
+          },
+        };
+      }
+      
+      return {
+        tagSelection: {
+          ...state.tagSelection,
+          [categoryKey]: current === tag ? '' : tag,
+        },
+      };
+    }),
 
   clearCategory: (categoryKey) =>
     set((state) => ({
@@ -59,7 +79,9 @@ export const useNovelStore = create<NovelStoreState>((set) => ({
   reset: () =>
     set({
       tagSelection: {
-        channel: '男频', // 重置时也默认选中男频
+        channel: '男频',
+        language: '中文',
+        hasCheatCode: '是',
       },
       outlineInput: '',
       wordCount: 2000,

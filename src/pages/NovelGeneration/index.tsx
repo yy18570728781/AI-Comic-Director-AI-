@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card, Input, Button, Space, Tag, Divider, message, Spin, Radio } from 'antd';
-import { ThunderboltOutlined, ReloadOutlined, CopyOutlined } from '@ant-design/icons';
+import { ThunderboltOutlined, ReloadOutlined, CopyOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
 import { useNovelStore } from '@/stores/useNovelStore';
 import { generateNovelStream } from '@/api/ai';
 import { getNovelTags } from '@/api/novel';
@@ -21,6 +21,7 @@ interface TagCategory {
 function NovelGeneration() {
   const [tagConfig, setTagConfig] = useState<TagCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   const {
     tagSelection,
@@ -55,12 +56,9 @@ function NovelGeneration() {
     const lines: string[] = [];
     
     tagConfig.forEach((category) => {
-      const selected = tagSelection[category.key] || '';
-      if (selected) {
-        lines.push(`${category.name}：${selected}；`);
-      } else {
-        lines.push(`${category.name}：；`);
-      }
+      const selected = tagSelection[category.key];
+      const value = Array.isArray(selected) ? selected.join('、') : selected || '';
+      lines.push(value ? `${category.name}：${value}；` : `${category.name}：；`);
     });
 
     return lines.join('\n');
@@ -147,21 +145,56 @@ function NovelGeneration() {
           </div>
 
           <Divider />
-
+          {/* 大纲输入 */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ marginBottom: 8, fontWeight: 500 }}>小说大纲（可选）：</div>
+            <TextArea
+              rows={4}
+              placeholder="输入小说大纲，如：主角身份、主要情节、结局走向等"
+              value={outlineInput}
+              onChange={(e) => setOutlineInput(e.target.value)}
+            />
+          </div>
           {/* 标签选择区 */}
           <div style={{ marginBottom: 24 }}>
             {tagConfig.map((category) => {
-              const selected = tagSelection[category.key] || '';
+              const selected = tagSelection[category.key];
+              const selectedArray = Array.isArray(selected) ? selected : selected ? [selected] : [];
+              const needsCollapse = ['tone', 'maleRole', 'cheatCodeType', 'femaleRole', 'villainRole'].includes(category.key);
+              const isExpanded = expandedCategories[category.key] ?? false;
+              const isMultiSelect = category.multiSelect ?? false;
+              
               return (
                 <div key={category.key} style={{ marginBottom: 16 }}>
-                  <div style={{ marginBottom: 8, fontWeight: 500 }}>{category.name}：</div>
-                  <Space wrap>
+                  <div style={{ marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {category.name}：
+                    {isMultiSelect && <span style={{ fontSize: 12, color: '#999' }}>（可多选）</span>}
+                    {needsCollapse && (
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={isExpanded ? <UpOutlined /> : <DownOutlined />}
+                        onClick={() => setExpandedCategories(prev => ({ ...prev, [category.key]: !isExpanded }))}
+                        style={{ padding: 0, height: 'auto' }}
+                      >
+                        {isExpanded ? '收起' : '展开'}
+                      </Button>
+                    )}
+                  </div>
+                  <Space 
+                    wrap 
+                    style={{ 
+                      maxHeight: needsCollapse && !isExpanded ? '30px' : 'none',
+                      overflow: 'hidden',
+                      display: 'flex',
+                    }}
+                  >
                     {category.options.map((option) => (
                       <Tag
                         key={option.value}
-                        color={selected === option.label ? 'blue' : 'default'}
+                        color={selectedArray.includes(option.label) ? 'blue' : 'default'}
                         style={{ cursor: 'pointer', fontSize: 14, padding: '4px 12px' }}
-                        onClick={() => selectTag(category.key, option.label)}
+                        onClick={() => selectTag(category.key, option.label, isMultiSelect)}
                       >
                         {option.label}
                       </Tag>
@@ -191,16 +224,7 @@ function NovelGeneration() {
 
           <Divider />
 
-          {/* 大纲输入 */}
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 8, fontWeight: 500 }}>小说大纲（可选）：</div>
-            <TextArea
-              rows={4}
-              placeholder="输入小说大纲，如：主角身份、主要情节、结局走向等"
-              value={outlineInput}
-              onChange={(e) => setOutlineInput(e.target.value)}
-            />
-          </div>
+          
 
           {/* 生成结果 */}
           {generatedContent && (
