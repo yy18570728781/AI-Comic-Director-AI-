@@ -53,6 +53,7 @@ function ImageToImage() {
   );
   const [batchCount, setBatchCount] = useState<number>(1);
   const [saveToLibrary, setSaveToLibrary] = useState(false);
+  const [loadingPlaceholders, setLoadingPlaceholders] = useState<number>(0);
 
   // 持久化生成的图片到 localStorage（使用 debounce 优化性能）
   const saveToStorage = useCallback(
@@ -70,6 +71,7 @@ function ImageToImage() {
   const { generateImage, tasks, generatingImageIds } = useAIGeneration({
     onImageComplete: (image) => {
       setGeneratedImages(prev => [...prev, image]);
+      setLoadingPlaceholders(prev => Math.max(0, prev - 1));
       refreshPoints();
     },
     showMessage: true,
@@ -155,6 +157,9 @@ function ImageToImage() {
       message.warning('请输入提示词');
       return;
     }
+
+    // 立即添加占位图
+    setLoadingPlaceholders(prev => prev + batchCount);
 
     // 批量提交任务
     for (let i = 0; i < batchCount; i++) {
@@ -420,9 +425,8 @@ function ImageToImage() {
                   type="primary"
                   size="large"
                   block
-                  loading={generating}
                   onClick={handleGenerate}
-                  disabled={!selectedImages.length || !prompt.trim() || !hasEnoughPoints}
+                  disabled={!selectedImages.length || !prompt.trim() || !hasEnoughPoints || generating}
                 >
                   {selectedImages.length > 1 &&
                   modelConfig?.supportMultiImageFusion
@@ -505,6 +509,7 @@ function ImageToImage() {
                     danger
                     onClick={() => {
                       setGeneratedImages([]);
+                      setLoadingPlaceholders(0);
                       message.success('已清空生成结果');
                     }}
                   >
@@ -520,7 +525,7 @@ function ImageToImage() {
               minHeight: 500,
             }}
           >
-            {generatedImages.length === 0 ? (
+            {generatedImages.length === 0 && loadingPlaceholders === 0 ? (
               <div style={{ 
                 textAlign: 'center', 
                 padding: '100px 20px',
@@ -541,6 +546,46 @@ function ImageToImage() {
                 }}
               >
                 <Image.PreviewGroup>
+                  {/* 加载中的占位图 */}
+                  {Array.from({ length: loadingPlaceholders }).map((_, idx) => (
+                    <div
+                      key={`loading-${idx}`}
+                      style={{
+                        borderRadius: token.borderRadiusLG,
+                        overflow: 'hidden',
+                        border: `1px solid ${token.colorBorder}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: '100%',
+                          height: 250,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          backgroundColor: token.colorBgElevated,
+                        }}
+                      >
+                        <Spin size="large" tip="生成中..." />
+                      </div>
+                      <div
+                        style={{
+                          padding: 12,
+                          borderTop: `1px solid ${token.colorBorder}`,
+                          backgroundColor: token.colorBgElevated,
+                          textAlign: 'center',
+                          fontSize: 12,
+                          color: token.colorTextSecondary,
+                        }}
+                      >
+                        正在生成第 {idx + 1} 张...
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* 已生成的图片 */}
                   {generatedImages.map((img, idx) => (
                     <div
                       key={img.id || idx}
