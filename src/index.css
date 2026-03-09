@@ -16,21 +16,24 @@ body,
     'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/* 滚动条样式 */
+/* 滚动条样式 - 渐变色 */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: linear-gradient(180deg, #f0f2f5 0%, #e8eaed 100%);
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+  background: linear-gradient(180deg, #667eea 0%, #a24b81 100%);
+  border-radius: 10px;
+  transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: linear-gradient(180deg, #5568d3 0%, #8f3f82 100%);
+  box-shadow: 0 0 6px rgba(102, 126, 234, 0.5);
 }
