@@ -210,7 +210,7 @@ export function extractCharacters(scriptId: number) {
         url: '/api/character-library/extract',
         method: 'post',
         data: { scriptId },
-        timeout: 60000, // 1分钟超时，AI分析需要时间
+        timeout: 240000, // 4分钟超时，AI分析复杂剧本需要较长时间
     })
 }
 
