@@ -16,7 +16,7 @@ export interface ApiResponse<T = any> {
 
 const service = axios.create({
     baseURL,
-    timeout: 240000, // 3分钟超时（角色提取等AI任务可能需要较长时间）
+    timeout: 240000, // 4分钟超时（角色提取等AI任务可能需要较长时间）
     headers: {
         'Content-Type': 'application/json',
     },
