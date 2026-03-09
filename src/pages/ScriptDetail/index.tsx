@@ -357,6 +357,14 @@ function ScriptDetail() {
       label: '剧本',
     },
     {
+      key: 'characters',
+      label: (
+        <span>
+          角色库
+        </span>
+      ),
+    },
+    {
       key: 'shots',
       label: (
         <span>
@@ -422,6 +430,16 @@ function ScriptDetail() {
             generatingRawText={generatingRawText}
             onRegenerateStoryboard={handleGenerateStoryboard}
           />
+        </div>
+        <div style={{ display: activeTab === 'characters' ? 'block' : 'none' }}>
+          <div style={{ padding: '16px 0' }}>
+            <Button
+              type="primary"
+              onClick={() => navigate(`/character-library/script/${script.id}`, { state: { script } })}
+            >
+              进入角色管理
+            </Button>
+          </div>
         </div>
         <div style={{ display: activeTab === 'shots' ? 'block' : 'none' }}>
           <ShotsTab
