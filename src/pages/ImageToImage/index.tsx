@@ -54,6 +54,7 @@ function ImageToImage() {
   const [batchCount, setBatchCount] = useState<number>(1);
   const [saveToLibrary, setSaveToLibrary] = useState(false);
   const [loadingPlaceholders, setLoadingPlaceholders] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 持久化生成的图片到 localStorage（使用 debounce 优化性能）
   const saveToStorage = useCallback(
@@ -147,7 +148,7 @@ function ImageToImage() {
     }
   };
 
-  // 处理生成图像
+  // 处理生成图像（带防抖）
   const handleGenerate = async () => {
     if (!selectedImages.length) {
       message.warning('请先选择参考图');
@@ -157,24 +158,37 @@ function ImageToImage() {
       message.warning('请输入提示词');
       return;
     }
+    if (isSubmitting) {
+      message.warning('请稍等，正在提交任务...');
+      return;
+    }
 
-    // 立即添加占位图
-    setLoadingPlaceholders(prev => prev + batchCount);
+    setIsSubmitting(true);
 
-    // 批量提交任务
-    for (let i = 0; i < batchCount; i++) {
-      await generateImage({
-        prompt: prompt.trim(),
-        model: imageModel,
-        quality,
-        aspectRatio,
-        referenceImages: selectedImages,
-        ...(saveToLibrary ? {
-          saveToLibrary: true,
-          libraryName: `融图_${new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`,
-          libraryTags: ['融图', 'AI生成'],
-        } : {}),
-      });
+    try {
+      // 立即添加占位图
+      setLoadingPlaceholders(prev => prev + batchCount);
+
+      // 批量提交任务
+      for (let i = 0; i < batchCount; i++) {
+        await generateImage({
+          prompt: prompt.trim(),
+          model: imageModel,
+          quality,
+          aspectRatio,
+          referenceImages: selectedImages,
+          ...(saveToLibrary ? {
+            saveToLibrary: true,
+            libraryName: `融图_${new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`,
+            libraryTags: ['融图', 'AI生成'],
+          } : {}),
+        });
+      }
+    } finally {
+      // 500ms 后解除防抖锁定
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 500);
     }
   };
 
@@ -426,7 +440,8 @@ function ImageToImage() {
                   size="large"
                   block
                   onClick={handleGenerate}
-                  disabled={!selectedImages.length || !prompt.trim() || !hasEnoughPoints || generating}
+                  loading={isSubmitting}
+                  disabled={!selectedImages.length || !prompt.trim() || !hasEnoughPoints}
                 >
                   {selectedImages.length > 1 &&
                   modelConfig?.supportMultiImageFusion
