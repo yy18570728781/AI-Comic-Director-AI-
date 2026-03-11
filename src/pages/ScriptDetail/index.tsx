@@ -34,6 +34,7 @@ import ImagesTab from './components/ImagesTab';
 import ScriptTab from './components/ScriptTab';
 import ShotsTab from './components/ShotsTab';
 import VideosTab from './components/VideosTab';
+import ResourcesTab from './components/ResourcesTab';
 
 const { TextArea } = Input;
 
@@ -357,12 +358,8 @@ function ScriptDetail() {
       label: '剧本',
     },
     {
-      key: 'characters',
-      label: (
-        <span>
-          角色库
-        </span>
-      ),
+      key: 'resources',
+      label: '资源库',
     },
     {
       key: 'shots',
@@ -431,15 +428,8 @@ function ScriptDetail() {
             onRegenerateStoryboard={handleGenerateStoryboard}
           />
         </div>
-        <div style={{ display: activeTab === 'characters' ? 'block' : 'none' }}>
-          <div style={{ padding: '16px 0' }}>
-            <Button
-              type="primary"
-              onClick={() => navigate(`/character-library/script/${script.id}`, { state: { script } })}
-            >
-              进入角色管理
-            </Button>
-          </div>
+        <div style={{ display: activeTab === 'resources' ? 'block' : 'none' }}>
+          <ResourcesTab scriptId={script.id} />
         </div>
         <div style={{ display: activeTab === 'shots' ? 'block' : 'none' }}>
           <ShotsTab
@@ -481,84 +471,79 @@ function ScriptDetail() {
   };
 
   return (
-    <div>
-      {/* 固定的头部区域 - 使用 sticky */}
+    <div style={{ 
+      minHeight: '100vh',
+
+    }}>
+      {/* 固定的头部和标签页导航 - 合并为一个整体 */}
       <div
         style={{
           position: 'sticky',
           top: -24, // 抵消父容器的 padding
           zIndex: 10,
-          padding: '16px 24px',
           margin: '-24px -24px 0 -24px', // 抵消父容器的 padding
-          borderBottom: '1px solid #f0f0f0',
           backgroundColor: '#fff',
+          borderBottom: '1px solid #f0f0f0',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Space>
-            <Button
-              icon={<ArrowLeftOutlined />}
-              onClick={() => navigate('/script-management')}
-            >
-              返回
-            </Button>
-            <h2 style={{ margin: 0 }}>{script.title}</h2>
-            {script.style && <Tag color="blue">{script.style}</Tag>}
-          </Space>
-          {activeTab === 'script' && script.shots?.length === 0 && (
+        {/* 头部区域 */}
+        <div style={{ padding: '16px 24px', borderBottom: '1px solid #f0f0f0' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <Space>
+              <Button
+                icon={<ArrowLeftOutlined />}
+                onClick={() => navigate('/script-management')}
+              >
+                返回
+              </Button>
+              <h2 style={{ margin: 0 }}>{script.title}</h2>
+              {script.style && <Tag color="blue">{script.style}</Tag>}
+            </Space>
+            {activeTab === 'script' && script.shots?.length === 0 && (
+              <Button
+                type="primary"
+                icon={<ThunderboltOutlined />}
+                onClick={handleGenerateStoryboard}
+                loading={generateLoading}
+              >
+                生成分镜脚本
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* 标签页导航区域 */}
+        <div style={{ padding: '0 24px' }}>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div>
+              <Tabs
+                activeKey={activeTab}
+                onChange={setActiveTab}
+                items={tabItems}
+                style={{ marginBottom: 0, flex: 1 }}
+              />
+            </div>
             <Button
               type="primary"
-              icon={<ThunderboltOutlined />}
-              onClick={handleGenerateStoryboard}
-              loading={generateLoading}
+              icon={<MergeCellsOutlined />}
+              onClick={() => setBlendModalVisible(true)}
+              style={{ marginLeft: 16 }}
             >
-              生成分镜脚本
+              多参考图融图
             </Button>
-          )}
-        </div>
-      </div>
-
-      {/* 固定的标签页导航 - 使用 sticky */}
-      <div
-        style={{
-          position: 'sticky',
-          top: 56, // 头部高度
-          zIndex: 9,
-          padding: '0 24px',
-          margin: '0 -24px', // 抵消父容器的 padding
-          backgroundColor: '#fff',
-          borderBottom: '1px solid #f0f0f0',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <div>
-            <Tabs
-              activeKey={activeTab}
-              onChange={setActiveTab}
-              items={tabItems}
-              style={{ marginBottom: 0, flex: 1 }}
-            />
           </div>
-          <Button
-            type="primary"
-            icon={<MergeCellsOutlined />}
-            onClick={() => setBlendModalVisible(true)}
-            style={{ marginLeft: 16 }}
-          >
-            多参考图融图
-          </Button>
         </div>
       </div>
 
