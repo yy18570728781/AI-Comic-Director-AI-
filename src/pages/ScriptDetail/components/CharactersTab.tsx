@@ -615,6 +615,8 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
         onSubmit={handleImageSubmit}
         onSave={handleSavePrompt}
       />
+        </>
+      )}
     </div>
   );
 }
