@@ -267,12 +267,20 @@ function ScriptDetail() {
       return;
     }
 
+    // 注意：角色参考图已经在弹窗中自动添加了，这里直接使用用户最终选择的参考图
+    const referenceImages = config?.referenceImages || [];
+
+    console.log(`🎭 [图像生成] 分镜${shotId}使用${referenceImages.length}个参考图`);
+    if (referenceImages.length > 0) {
+      console.log('📸 参考图列表:', referenceImages);
+    }
+
     await generateImage({
       prompt: config?.imagePrompt || shot.imagePrompt,
       model: config?.model || 'seedream',
       aspectRatio: config?.aspectRatio || '16:9',
       quality: config?.quality || 'standard',
-      referenceImages: config?.referenceImages || [],
+      referenceImages,
       shotId,
       scriptId: script?.id,
     });

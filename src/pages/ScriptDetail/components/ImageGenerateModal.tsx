@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import ImageGenerateModal from '@/components/ImageGenerateModal';
 import type { ImageGenerateSubmitValues, ImageGenerateFormValues } from '@/components/ImageGenerateModal';
 import { updateShot } from '@/api/script';
@@ -13,7 +14,7 @@ interface ShotImageGenerateModalProps {
 
 /**
  * 分镜专用的图像生成弹窗
- * 在通用 ImageGenerateModal 基础上增加了 shot 保存逻辑
+ * 在通用 ImageGenerateModal 基础上增加了 shot 保存逻辑和自动角色参考图
  */
 export default function ShotImageGenerateModal({
   visible,
@@ -23,6 +24,19 @@ export default function ShotImageGenerateModal({
   onSubmit,
   onShotUpdate,
 }: ShotImageGenerateModalProps) {
+  const [initialReferenceImages, setInitialReferenceImages] = useState<string[]>([]);
+
+  // 当弹窗打开时，自动添加角色参考图
+  useEffect(() => {
+    if (visible && shot?.characterImageMappings?.length) {
+      const characterImages = shot.characterImageMappings.map((mapping: any) => mapping.imageUrl);
+      setInitialReferenceImages(characterImages);
+      console.log(`🎭 [图像弹窗] 自动添加${characterImages.length}个角色参考图:`, characterImages);
+    } else {
+      setInitialReferenceImages([]);
+    }
+  }, [visible, shot?.characterImageMappings]);
+
   // 保存分镜配置到数据库
   const handleSave = async (values: ImageGenerateFormValues) => {
     if (onShotUpdate) {
@@ -76,6 +90,7 @@ export default function ShotImageGenerateModal({
         scene: shot?.scene || '',
         imagePrompt: shot?.imagePrompt || '',
       }}
+      initialReferenceImages={initialReferenceImages}
       scriptId={shot?.scriptId}
       loading={loading}
       onCancel={onCancel}

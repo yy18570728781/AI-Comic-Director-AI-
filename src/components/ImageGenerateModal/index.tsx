@@ -27,6 +27,7 @@ interface ImageGenerateModalProps {
   visible: boolean;
   title?: string;
   initialValues?: Partial<ImageGenerateFormValues>;
+  initialReferenceImages?: string[]; // 新增：初始参考图
   scriptId?: number;
   loading?: boolean;
   onCancel: () => void;
@@ -43,6 +44,7 @@ export default function ImageGenerateModal({
   visible,
   title = '生成图像',
   initialValues,
+  initialReferenceImages = [],
   scriptId,
   loading = false,
   onCancel,
@@ -97,7 +99,7 @@ export default function ImageGenerateModal({
       imagePrompt: '',
       ...initialValues,
     });
-    setReferenceImages([]);
+    setReferenceImages(initialReferenceImages);
     setSelectedCharacterIds([]);
   };
 
