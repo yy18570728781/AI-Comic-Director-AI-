@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Button, message, Modal, Progress, Typography } from 'antd'
-import { LinkOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
-import { bindCharactersForScript } from '@/api/script'
+import { Button, message, Modal, Progress, Typography, Alert } from 'antd'
+import { LinkOutlined, CheckCircleOutlined, ExclamationCircleOutlined, WarningOutlined } from '@ant-design/icons'
+import { bindCharactersForScript, getCharacterList } from '@/api/script'
 
 const { Text, Title } = Typography
 
@@ -34,9 +34,103 @@ function AutoBindingButton({ scriptId, onBindingComplete, onBindingError }: Auto
   const [resultModalVisible, setResultModalVisible] = useState(false)
   const [bindingResult, setBindingResult] = useState<BindingResult | null>(null)
 
+  // 检查角色库状态
+  const checkCharacterLibrary = async () => {
+    try {
+      const { success, data } = await getCharacterList({
+        scriptId,
+        page: 1,
+        pageSize: 100,
+      })
+      
+      if (!success || !data.list?.length) {
+        return { hasCharacters: false, hasImages: false, totalCharacters: 0, charactersWithImages: 0 }
+      }
+
+      const totalCharacters = data.list.length
+      const charactersWithImages = data.list.filter((char: any) => char.imageUrl).length
+      
+      return {
+        hasCharacters: totalCharacters > 0,
+        hasImages: charactersWithImages > 0,
+        totalCharacters,
+        charactersWithImages,
+      }
+    } catch (error) {
+      console.error('检查角色库失败:', error)
+      return { hasCharacters: false, hasImages: false, totalCharacters: 0, charactersWithImages: 0 }
+    }
+  }
+
   const handleBindCharacters = async () => {
     setLoading(true)
+    
     try {
+      // 先检查角色库状态
+      const libraryStatus = await checkCharacterLibrary()
+      
+      if (!libraryStatus.hasCharacters) {
+        Modal.warning({
+          title: '角色库为空',
+          content: '当前剧本还没有角色库，请先去角色库页面提取角色。',
+          okText: '知道了',
+        })
+        setLoading(false)
+        return
+      }
+      
+      if (!libraryStatus.hasImages) {
+        const confirmed = await new Promise<boolean>((resolve) => {
+          Modal.confirm({
+            title: '角色库无图片',
+            icon: <WarningOutlined style={{ color: '#faad14' }} />,
+            content: (
+              <div>
+                <p>检测到角色库中的 {libraryStatus.totalCharacters} 个角色都没有生成图片。</p>
+                <p>没有图片的角色无法进行绑定，是否继续？</p>
+              </div>
+            ),
+            okText: '继续绑定',
+            cancelText: '取消',
+            onOk: () => resolve(true),
+            onCancel: () => resolve(false),
+          })
+        })
+        
+        if (!confirmed) {
+          setLoading(false)
+          return
+        }
+      } else if (libraryStatus.charactersWithImages < libraryStatus.totalCharacters) {
+        const confirmed = await new Promise<boolean>((resolve) => {
+          Modal.confirm({
+            title: '部分角色无图片',
+            icon: <WarningOutlined style={{ color: '#faad14' }} />,
+            content: (
+              <div>
+                <p>角色库状态：</p>
+                <p>• 总角色数：{libraryStatus.totalCharacters}</p>
+                <p>• 有图片的角色：{libraryStatus.charactersWithImages}</p>
+                <p>• 无图片的角色：{libraryStatus.totalCharacters - libraryStatus.charactersWithImages}</p>
+                <p style={{ marginTop: 12, color: '#666' }}>
+                  只有带图片的角色才能成功绑定，是否继续？
+                </p>
+              </div>
+            ),
+            okText: '继续绑定',
+            cancelText: '取消',
+            onOk: () => resolve(true),
+            onCancel: () => resolve(false),
+          })
+        })
+        
+        if (!confirmed) {
+          setLoading(false)
+          return
+        }
+      }
+
+      // 执行绑定
       const response = await bindCharactersForScript(scriptId)
       
       if (response.success) {
