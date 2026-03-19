@@ -116,7 +116,12 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
 
     const unsubFailed = onTaskFailed((event) => {
       onError?.(event.error, event.type, event.shotId);
-      if (showMessage) message.error(`生成失败: ${event.error}`);
+      if (showMessage) {
+        message.error({
+          content: `生成失败: ${event.error}`,
+          duration: 5,
+        });
+      }
     });
 
     return () => {
@@ -148,7 +153,12 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
       }
       throw new Error(res.message || '提交失败');
     } catch (error: any) {
-      if (showMessage) message.error(error.message || '图片生成失败');
+      if (showMessage) {
+        message.error({
+          content: error.message || '图片生成失败',
+          duration: 8,
+        });
+      }
       onError?.(error.message, 'image', shotId);
       return null;
     }
@@ -199,7 +209,12 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
       }
       throw new Error(res.message || '提交失败');
     } catch (error: any) {
-      if (showMessage) message.error(error.message || '视频生成失败');
+      if (showMessage) {
+        message.error({
+          content: error.message || '视频生成失败',
+          duration: 8,
+        });
+      }
       onError?.(error.message, 'video', shotId);
       return null;
     }
