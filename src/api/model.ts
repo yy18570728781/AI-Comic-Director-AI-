@@ -7,6 +7,7 @@ export interface Platform {
 }
 
 export interface ModelConfig {
+  // 图像模型配置
   sizes?: string[];
   qualities?: string[];
   styles?: string[];
@@ -15,9 +16,9 @@ export interface ModelConfig {
   supportMultiImageFusion?: boolean;
   supportSeed?: boolean;
   supportNegativePrompt?: boolean;
+
+  // 视频模型配置
   supportedModes?: string[];
-  billingMode?: 'per_second' | 'per_video';
-  fixedDuration?: number;
   maxDuration?: number;
   minDuration?: number;
   maxImages?: number;
@@ -25,6 +26,9 @@ export interface ModelConfig {
   supportCameraMovement?: boolean;
   supportWatermark?: boolean;
   supportGenerateAudio?: boolean;
+
+  // 通用扩展配置
+  ext?: Record<string, any>;
 }
 
 export interface PricingTier {
@@ -35,6 +39,27 @@ export interface PricingTier {
   creditsPerSecond: number;
 }
 
+export interface AiModelPricing {
+  modelType: 'image' | 'video' | 'text';
+  billingMode?: 'per_second' | 'per_video';
+  perVideo?: {
+    costPerVideo?: number;
+    creditsPerVideo?: number;
+    fixedDuration?: number;
+    ext?: Record<string, any>;
+  };
+  perSecond?: {
+    pricingTiers?: PricingTier[];
+    ext?: Record<string, any>;
+  };
+  image?: {
+    costPerImage?: number;
+    creditsPerImage?: number;
+    ext?: Record<string, any>;
+  };
+  ext?: Record<string, any>;
+}
+
 export interface AiModel {
   id: string;
   name: string;
@@ -43,6 +68,8 @@ export interface AiModel {
   platform: 'tongyi' | 'volcengine' | 'toapis' | 'openai' | 'millionengine';
   enabled: boolean;
   priority: number;
+  pricing?: AiModelPricing;
+  // legacy fields (kept for compatibility with older server responses)
   costPerImage?: number;
   creditsPerImage?: number;
   costPerVideo?: number;
@@ -77,6 +104,8 @@ export interface CreateModelRequest {
   platform: 'tongyi' | 'volcengine' | 'toapis' | 'openai' | 'millionengine';
   enabled?: boolean;
   priority?: number;
+  pricing?: AiModelPricing;
+  // legacy fields (kept for compatibility)
   costPerImage?: number;
   creditsPerImage?: number;
   costPerVideo?: number;
@@ -90,6 +119,8 @@ export interface UpdateModelRequest {
   description?: string;
   enabled?: boolean;
   priority?: number;
+  pricing?: AiModelPricing;
+  // legacy fields (kept for compatibility)
   costPerImage?: number;
   creditsPerImage?: number;
   costPerVideo?: number;
