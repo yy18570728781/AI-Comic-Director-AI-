@@ -43,6 +43,20 @@ import type {
 const { TextArea } = Input;
 const { TabPane } = Tabs;
 
+// Admin 接口里的价格字段有时会以字符串形式返回，展示前统一转成 number。
+function toSafeNumber(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
 export default function ModelManagement() {
   const [models, setModels] = useState<AiModel[]>([]);
   const [platforms, setPlatforms] = useState<Platform[]>([]);
@@ -329,13 +343,14 @@ export default function ModelManagement() {
       render: (_, record) => {
         if (record.type === 'image') {
           const pricing = (record as any).pricing || undefined;
-          const costPerImage =
-            pricing?.image?.costPerImage || record.costPerImage;
+          const costPerImage = toSafeNumber(
+            pricing?.image?.costPerImage ?? record.costPerImage,
+          );
           const creditsPerImage =
-            pricing?.image?.creditsPerImage || record.creditsPerImage;
+            pricing?.image?.creditsPerImage ?? record.creditsPerImage;
           return (
             <div>
-              <div>成本: ¥{costPerImage?.toFixed(4) ?? 0}</div>
+              <div>成本: ¥{costPerImage?.toFixed(4) ?? '0.0000'}</div>
               <div>积分: {creditsPerImage ?? 0}</div>
             </div>
           );
@@ -345,13 +360,14 @@ export default function ModelManagement() {
             pricing?.billingMode || (record as any).config?.billingMode;
           if (billingMode === 'per_video') {
             // 按次计费
-            const costPerVideo =
-              pricing?.perVideo?.costPerVideo || record.costPerVideo;
+            const costPerVideo = toSafeNumber(
+              pricing?.perVideo?.costPerVideo ?? record.costPerVideo,
+            );
             const creditsPerVideo =
-              pricing?.perVideo?.creditsPerVideo || record.creditsPerVideo;
+              pricing?.perVideo?.creditsPerVideo ?? record.creditsPerVideo;
             return (
               <div>
-                <div>按次: ¥{costPerVideo?.toFixed(2) ?? 0}</div>
+                <div>按次: ¥{costPerVideo?.toFixed(2) ?? '0.00'}</div>
                 <div>积分: {creditsPerVideo ?? 0}</div>
               </div>
             );
