@@ -24,9 +24,6 @@ export interface ModelOption {
     name: string;
     description: string;
     platform: string;
-    cost?: number;
-    creditsPerImage?: number;
-    creditsPerSecond?: number;
     enabled?: boolean;
     tags?: string[];
     pricing?: {
