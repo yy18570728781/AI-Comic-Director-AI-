@@ -173,7 +173,7 @@ function ImageToVideo() {
 
   const pricing = currentModel?.pricing;
   const billingMode = pricing?.billingMode ?? 'per_second';
-  const pricingTiers = pricing?.pricingTiers ?? [];
+  const pricingTiers = Array.isArray(pricing?.pricingTiers) ? pricing.pricingTiers : [];
   const matchedTier = pricingTiers.find((p) => p.resolution === resolution) ?? pricingTiers[0];
   const creditsPerSecond = matchedTier?.creditsPerSecond ?? 2;
   const creditsPerVideo = pricing?.perVideo?.creditsPerVideo ?? creditsPerSecond;

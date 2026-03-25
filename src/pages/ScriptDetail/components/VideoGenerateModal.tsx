@@ -87,7 +87,8 @@ export default function VideoGenerateModal({
   const selectedModel = videoModels.find(m => m.id === videoModel);
   const pricing = selectedModel?.pricing;
   const billingMode = pricing?.billingMode ?? 'per_second';
-  const pricingTier = pricing?.pricingTiers?.find((p) => p.resolution === resolution) ?? pricing?.pricingTiers?.[0];
+  const pricingTiers = Array.isArray(pricing?.pricingTiers) ? pricing.pricingTiers : [];
+  const pricingTier = pricingTiers.find((p) => p.resolution === resolution) ?? pricingTiers[0];
   const creditsPerSecond = pricingTier?.creditsPerSecond || 2;
   const creditsPerVideo = pricing?.perVideo?.creditsPerVideo ?? creditsPerSecond;
   const requiredCredits = billingMode === 'per_video' ? creditsPerVideo : creditsPerSecond * duration;
