@@ -29,11 +29,18 @@ export interface ModelOption {
     creditsPerSecond?: number;
     enabled?: boolean;
     tags?: string[];
-    pricing?: Array<{
-        resolution: string;
-        cost5s?: number;
-        creditsPerSecond: number;
-    }>;
+    pricing?: {
+        billingMode?: 'per_second' | 'per_video';
+        pricingTiers?: Array<{
+            resolution: string;
+            cost5s?: number;
+            creditsPerSecond: number;
+        }>;
+        perVideo?: {
+            creditsPerVideo?: number;
+            fixedDuration?: number;
+        };
+    };
     config?: {
         sizes?: string[];
         qualities?: string[];
