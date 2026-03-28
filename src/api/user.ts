@@ -9,6 +9,7 @@ export function createUser(data: {
   password: string;
   email?: string;
   avatar?: string;
+  role?: 'user' | 'admin';
 }): Promise<ApiResponse> {
   return request({
     url: '/api/user/create',

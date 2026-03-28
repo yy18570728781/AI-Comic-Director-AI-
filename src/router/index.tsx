@@ -14,8 +14,7 @@ import ImageToVideo from '@/pages/ImageToVideo';
 import ImageToImage from '@/pages/ImageToImage';
 import Recharge from '@/pages/Recharge';
 import Pay from '@/pages/Pay';
-import UserManagement from '@/pages/Admin/UserManagement';
-import ModelManagement from '@/pages/Admin/ModelManagement';
+import { getAdminRoutes } from './adminRoutes';
 
 export default function AppRouter() {
   return (
@@ -39,8 +38,7 @@ export default function AppRouter() {
         <Route path="character-library/script/:scriptId" element={<ScriptCharacters />} />
         <Route path="team-space" element={<TeamSpace />} />
         <Route path="recharge" element={<Recharge />} />
-        <Route path="admin/users" element={<UserManagement />} />
-        <Route path="admin/models" element={<ModelManagement />} />
+        {getAdminRoutes()}
       </Route>
     </Routes>
   );

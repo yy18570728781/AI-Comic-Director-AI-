@@ -13,6 +13,7 @@ import {
   CameraOutlined,
   WalletOutlined,
   HomeOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons';
 
 import ModelSettingsModal from '@/components/ModelSettingsModal';
@@ -54,6 +55,20 @@ export default function SiderLayout() {
   const selectedKey = location.pathname.startsWith('/script-management/')
     ? '/script-management'
     : location.pathname;
+  const allMenuItems: MenuProps['items'] = currentUser?.role === 'admin'
+    ? [
+        ...(menuItems ?? []),
+        {
+          key: 'admin',
+          icon: <SettingOutlined />,
+          label: '系统管理',
+          children: [
+            { key: '/admin/users', icon: <UserOutlined />, label: '用户管理' },
+            { key: '/admin/models', icon: <DatabaseOutlined />, label: '模型管理' },
+          ],
+        },
+      ]
+    : menuItems;
 
   return (
     <AuthGuard>
@@ -63,7 +78,7 @@ export default function SiderLayout() {
             <h2>{collapsed ? 'AI' : 'AI漫剧工作台'}</h2>
             <img style={{ width: 40 }} src="/image/logo2.png" alt="" />
           </div>
-          <Menu theme="dark" mode="inline" selectedKeys={[selectedKey]} items={menuItems} onClick={handleMenuClick} />
+          <Menu theme="dark" mode="inline" selectedKeys={[selectedKey]} items={allMenuItems} onClick={handleMenuClick} />
         </Sider>
         <AntdLayout style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
           <Header style={{ padding: 0, background: colorBgContainer, flexShrink: 0 }}>

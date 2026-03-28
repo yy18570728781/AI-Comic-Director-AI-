@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table, Button, Input, Space, Tag, message, Modal, Form, InputNumber } from 'antd';
+import { Table, Button, Input, Space, Tag, message, Modal, Form, InputNumber, Select } from 'antd';
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, WalletOutlined } from '@ant-design/icons';
 import { getUserList, createUser, rechargePoints } from '@/api/user';
 import type { ColumnsType } from 'antd/es/table';
@@ -9,6 +9,7 @@ interface User {
   username: string;
   email?: string;
   avatar?: string;
+  role?: 'user' | 'admin';
   points: number;
   createdAt: string;
   updatedAt: string;
@@ -120,6 +121,16 @@ export default function UserManagement() {
       dataIndex: 'email',
       width: 200,
       render: (email) => email || '-',
+    },
+    {
+      title: '角色',
+      dataIndex: 'role',
+      width: 100,
+      render: (role?: 'user' | 'admin') => (
+        <Tag color={role === 'admin' ? 'red' : 'blue'}>
+          {role === 'admin' ? '管理员' : '普通用户'}
+        </Tag>
+      ),
     },
     {
       title: '积分',
@@ -247,6 +258,14 @@ export default function UserManagement() {
           </Form.Item>
           <Form.Item label="邮箱" name="email">
             <Input placeholder="请输入邮箱（可选）" />
+          </Form.Item>
+          <Form.Item label="角色" name="role" initialValue="user">
+            <Select
+              options={[
+                { label: '普通用户', value: 'user' },
+                { label: '管理员', value: 'admin' },
+              ]}
+            />
           </Form.Item>
         </Form>
       </Modal>
