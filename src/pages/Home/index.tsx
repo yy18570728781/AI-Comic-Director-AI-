@@ -58,12 +58,16 @@ export default function Home() {
       {theme === 'theme1' && (
         <div className="home-stars">
           {Array.from({ length: 80 }, (_, i) => (
-            <span key={i} className="star" style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDuration: `${2 + Math.random() * 3}s`,
-              animationDelay: `${Math.random() * 3}s`,
-            }} />
+            <span
+              key={i}
+              className="star"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDuration: `${2 + Math.random() * 3}s`,
+                animationDelay: `${Math.random() * 3}s`,
+              }}
+            />
           ))}
         </div>
       )}
@@ -71,11 +75,15 @@ export default function Home() {
       {/* 粒子 */}
       <div className="home-particles">
         {Array.from({ length: 25 }, (_, i) => (
-          <span key={i} className="particle" style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 8}s`,
-            animationDuration: `${6 + Math.random() * 8}s`,
-          }} />
+          <span
+            key={i}
+            className="particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 8}s`,
+              animationDuration: `${6 + Math.random() * 8}s`,
+            }}
+          />
         ))}
       </div>
 
@@ -85,7 +93,7 @@ export default function Home() {
       <section className="home-hero">
         {theme === 'theme1' && (
           <video className="home-hero-video" autoPlay loop muted playsInline>
-            <source src="/video/地球.mp4" type="video/mp4" />
+            <source src="/video/home.mp4" type="video/mp4" />
           </video>
         )}
         <div className="home-hero-overlay" />
@@ -93,16 +101,26 @@ export default function Home() {
         <h1 className="home-hero-title">
           <span className="home-gradient-text">一站式AI短剧制作中心</span>
         </h1>
-        <p className="home-hero-subtitle">
-          智能平台高效创作 | 小投入产出大流量
-        </p>
+        <p className="home-hero-subtitle">智能平台高效创作 | 小投入产出大流量</p>
         <Space size="large" style={{ marginTop: 40 }}>
-          <Button type="primary" size="large" icon={<ThunderboltOutlined />} className="home-cta-btn" onClick={handleCTA}>
+          <Button
+            type="primary"
+            size="large"
+            icon={<ThunderboltOutlined />}
+            className="home-cta-btn"
+            onClick={handleCTA}
+          >
             开始创作
           </Button>
           {theme === 'theme2' && (
-            <Button size="large" ghost className="home-ghost-btn"
-              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button
+              size="large"
+              ghost
+              className="home-ghost-btn"
+              onClick={() =>
+                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
+              }
+            >
               了解更多
             </Button>
           )}
@@ -152,7 +170,13 @@ export default function Home() {
       {/* 底部 CTA */}
       <section className="home-bottom-cta">
         <h2>准备好开始创作了吗？</h2>
-        <Button type="primary" size="large" icon={<ThunderboltOutlined />} className="home-cta-btn" onClick={handleCTA}>
+        <Button
+          type="primary"
+          size="large"
+          icon={<ThunderboltOutlined />}
+          className="home-cta-btn"
+          onClick={handleCTA}
+        >
           免费开始
         </Button>
       </section>
