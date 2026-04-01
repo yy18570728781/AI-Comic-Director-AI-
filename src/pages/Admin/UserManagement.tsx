@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Table, Button, Input, Space, Tag, message, Modal, Form, InputNumber, Select } from 'antd';
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, WalletOutlined } from '@ant-design/icons';
 import { getUserList, createUser, rechargePoints } from '@/api/user';
+import { useAsyncAction } from '@/hooks/useAsyncAction';
 import type { ColumnsType } from 'antd/es/table';
 
 interface User {
@@ -23,9 +24,7 @@ export default function UserManagement() {
   const [pageSize, setPageSize] = useState(20);
   const [keyword, setKeyword] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalLoading, setModalLoading] = useState(false);
   const [rechargeModalVisible, setRechargeModalVisible] = useState(false);
-  const [rechargeLoading, setRechargeLoading] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
   const [rechargeForm] = Form.useForm();
@@ -57,10 +56,9 @@ export default function UserManagement() {
     fetchUsers();
   };
 
-  const handleCreate = async () => {
+  const { loading: modalLoading, execute: executeCreateUser } = useAsyncAction(async () => {
     try {
       const values = await form.validateFields();
-      setModalLoading(true);
       const response = await createUser(values);
       if (response.success) {
         message.success('创建成功');
@@ -74,15 +72,12 @@ export default function UserManagement() {
       console.error('创建用户失败:', error);
       if (error.errorFields) return;
       message.error('创建失败');
-    } finally {
-      setModalLoading(false);
     }
-  };
+  });
 
-  const handleRecharge = async () => {
+  const { loading: rechargeLoading, execute: executeRecharge } = useAsyncAction(async () => {
     try {
       const values = await rechargeForm.validateFields();
-      setRechargeLoading(true);
       const response = await rechargePoints(
         selectedUser!.id,
         values.points,
@@ -100,10 +95,8 @@ export default function UserManagement() {
       console.error('充值失败:', error);
       if (error.errorFields) return;
       message.error('充值失败');
-    } finally {
-      setRechargeLoading(false);
     }
-  };
+  });
 
   const columns: ColumnsType<User> = [
     {
@@ -234,7 +227,7 @@ export default function UserManagement() {
       <Modal
         title="新建用户"
         open={modalVisible}
-        onOk={handleCreate}
+        onOk={() => void executeCreateUser()}
         onCancel={() => {
           setModalVisible(false);
           form.resetFields();
@@ -273,7 +266,7 @@ export default function UserManagement() {
       <Modal
         title={`充值积分 - ${selectedUser?.username}`}
         open={rechargeModalVisible}
-        onOk={handleRecharge}
+        onOk={() => void executeRecharge()}
         onCancel={() => {
           setRechargeModalVisible(false);
           rechargeForm.resetFields();

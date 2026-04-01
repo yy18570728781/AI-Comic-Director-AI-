@@ -98,23 +98,9 @@ export default function PointRecordManagement() {
   const [sourceFilter, setSourceFilter] = useState<string>();
   const [keyword, setKeyword] = useState('');
   const [keywordInput, setKeywordInput] = useState('');
+  const [queryVersion, setQueryVersion] = useState(0);
   const [snapshotModalOpen, setSnapshotModalOpen] = useState(false);
   const [currentSnapshotRecord, setCurrentSnapshotRecord] = useState<AdminPointRecord | null>(null);
-
-  const fetchUserOptions = async () => {
-    try {
-      const response = await getUserList({ page: 1, pageSize: 200 });
-      if (response.success) {
-        const options = (response.data.list || []).map((user: any) => ({
-          value: user.id,
-          label: `${user.username || '未命名用户'} (#${user.id})`,
-        }));
-        setUserOptions(options);
-      }
-    } catch (error) {
-      console.error('获取用户选项失败:', error);
-    }
-  };
 
   const fetchPointRecords = async () => {
     setLoading(true);
@@ -144,17 +130,33 @@ export default function PointRecordManagement() {
     }
   };
 
+  const fetchUserOptions = async () => {
+    try {
+      const response = await getUserList({ page: 1, pageSize: 200 });
+      if (response.success) {
+        const options = (response.data.list || []).map((user: any) => ({
+          value: user.id,
+          label: `${user.username || '未命名用户'} (#${user.id})`,
+        }));
+        setUserOptions(options);
+      }
+    } catch (error) {
+      console.error('获取用户选项失败:', error);
+    }
+  };
+
   useEffect(() => {
     fetchUserOptions();
   }, []);
 
   useEffect(() => {
     fetchPointRecords();
-  }, [page, pageSize, userIdFilter, typeFilter, taskTypeFilter, businessTypeFilter, sourceFilter, keyword]);
+  }, [page, pageSize, userIdFilter, typeFilter, taskTypeFilter, businessTypeFilter, sourceFilter, keyword, queryVersion]);
 
   const handleSearch = () => {
     setPage(1);
     setKeyword(keywordInput.trim());
+    setQueryVersion((value) => value + 1);
   };
 
   const handleReset = () => {
@@ -167,6 +169,7 @@ export default function PointRecordManagement() {
     setSourceFilter(undefined);
     setKeyword('');
     setKeywordInput('');
+    setQueryVersion((value) => value + 1);
   };
 
   const openSnapshotModal = (record: AdminPointRecord) => {
@@ -197,9 +200,7 @@ export default function PointRecordManagement() {
       dataIndex: 'type',
       width: 110,
       render: (type: string) => (
-        <Tag color={pointTypeColorMap[type] || 'default'}>
-          {pointTypeTextMap[type] || type}
-        </Tag>
+        <Tag color={pointTypeColorMap[type] || 'default'}>{pointTypeTextMap[type] || type}</Tag>
       ),
     },
     {
@@ -222,7 +223,8 @@ export default function PointRecordManagement() {
       title: '任务类型',
       dataIndex: 'taskType',
       width: 100,
-      render: (taskType?: string) => taskType ? <Tag>{taskTypeTextMap[taskType] || taskType}</Tag> : '-',
+      render: (taskType?: string) =>
+        taskType ? <Tag>{taskTypeTextMap[taskType] || taskType}</Tag> : '-',
     },
     {
       title: '业务类型',
@@ -231,14 +233,15 @@ export default function PointRecordManagement() {
       render: (businessType?: string) =>
         businessType ? (
           <Tag color="purple">{businessTypeTextMap[businessType] || businessType}</Tag>
-        ) : '-',
+        ) : (
+          '-'
+        ),
     },
     {
       title: '来源',
       dataIndex: 'source',
       width: 160,
-      render: (source?: string) =>
-        source ? <Tag>{sourceTextMap[source] || source}</Tag> : '-',
+      render: (source?: string) => (source ? <Tag>{sourceTextMap[source] || source}</Tag> : '-'),
     },
     {
       title: '请求快照',
@@ -254,7 +257,9 @@ export default function PointRecordManagement() {
           >
             查看详情
           </Button>
-        ) : '-',
+        ) : (
+          '-'
+        ),
     },
     {
       title: '任务ID',
