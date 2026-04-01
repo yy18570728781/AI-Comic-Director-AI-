@@ -132,7 +132,9 @@ export default function EcommerceZone() {
         ratio: aspectRatio,
       };
 
-      setGeneratedVideos(prev => [nextRecord, ...prev]);
+      // 结果流按“时间从上到下”展示：
+      // 旧结果在上，最新结果追加到下面，和当前页面的视觉阅读顺序保持一致。
+      setGeneratedVideos(prev => [...prev, nextRecord]);
       setLoadingPlaceholders(prev => Math.max(0, prev - 1));
       refreshPoints();
     },
@@ -376,7 +378,9 @@ export default function EcommerceZone() {
             style={{
               maxWidth: 920,
               margin: '0 auto',
-              paddingBottom: CONTENT_SAFE_GAP,
+              // 这里要用完整的底部安全距离，而不只是一个小间隙，
+              // 否则当内容刚好贴近底部时，会被固定输入区“吃掉”视觉空间。
+              paddingBottom: CONTENT_BOTTOM_SAFE_SPACE,
             }}
           >
             {generatedVideos.length === 0 && loadingPlaceholders === 0 ? (
@@ -397,42 +401,6 @@ export default function EcommerceZone() {
                 <div style={{ paddingTop: 8 }}>
                   <Text style={{ fontSize: 28, fontWeight: 600, color: '#111827' }}>今天</Text>
                 </div>
-
-                {Array.from({ length: loadingPlaceholders }).map((_, index) => (
-                  <div key={`loading-${index}`} style={{ padding: '16px 0 12px' }}>
-                    <Card
-                      bordered={false}
-                      style={{
-                        width: '100%',
-                        borderRadius: 18,
-                        background: '#ffffff',
-                        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
-                      }}
-                      styles={{ body: { padding: 16 } }}
-                    >
-                      <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                        <Tag
-                          color="processing"
-                          style={{ width: 'fit-content', margin: 0, borderRadius: 999 }}
-                        >
-                          生成中
-                        </Tag>
-                        <div
-                          style={{
-                            height: 220,
-                            display: 'grid',
-                            placeItems: 'center',
-                            borderRadius: 14,
-                            background: '#f3f6f9',
-                          }}
-                        >
-                          <Spin />
-                        </div>
-                        <Text style={{ color: '#6b7280' }}>任务已提交，正在生成视频内容...</Text>
-                      </Space>
-                    </Card>
-                  </div>
-                ))}
 
                 {generatedVideos.map(video => (
                   <div key={`${video.id}-${video.createdAt}`} style={{ padding: '6px 0 12px' }}>
@@ -502,6 +470,42 @@ export default function EcommerceZone() {
                           <Tag>{video.resolution}</Tag>
                           <Tag>{video.ratio}</Tag>
                         </Space>
+                      </Space>
+                    </Card>
+                  </div>
+                ))}
+
+                {Array.from({ length: loadingPlaceholders }).map((_, index) => (
+                  <div key={`loading-${index}`} style={{ padding: '16px 0 12px' }}>
+                    <Card
+                      bordered={false}
+                      style={{
+                        width: '100%',
+                        borderRadius: 18,
+                        background: '#ffffff',
+                        boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+                      }}
+                      styles={{ body: { padding: 16 } }}
+                    >
+                      <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                        <Tag
+                          color="processing"
+                          style={{ width: 'fit-content', margin: 0, borderRadius: 999 }}
+                        >
+                          生成中
+                        </Tag>
+                        <div
+                          style={{
+                            height: 220,
+                            display: 'grid',
+                            placeItems: 'center',
+                            borderRadius: 14,
+                            background: '#f3f6f9',
+                          }}
+                        >
+                          <Spin />
+                        </div>
+                        <Text style={{ color: '#6b7280' }}>任务已提交，正在生成视频内容...</Text>
                       </Space>
                     </Card>
                   </div>
