@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Table, Button, Input, Space, Tag, message, Modal, Form, InputNumber, Select } from 'antd';
-import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined, WalletOutlined } from '@ant-design/icons';
-import { getUserList, createUser, rechargePoints } from '@/api/user';
+import {
+  SearchOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  WalletOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons';
+import { getUserList, createUser, rechargePoints, updateUserRole, UserRoleEnum } from '@/api/user';
+import type { UserRole } from '@/api/user';
+import { useUserStore } from '@/stores/useUserStore';
 import { useAsyncAction } from '@/hooks/useAsyncAction';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -10,13 +19,14 @@ interface User {
   username: string;
   email?: string;
   avatar?: string;
-  role?: 'user' | 'admin';
+  role?: UserRole;
   points: number;
   createdAt: string;
   updatedAt: string;
 }
 
 export default function UserManagement() {
+  const { currentUser } = useUserStore();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -28,6 +38,9 @@ export default function UserManagement() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [form] = Form.useForm();
   const [rechargeForm] = Form.useForm();
+
+  // 只有超级管理员才允许调整别人的管理员身份。
+  const isSuperAdmin = currentUser?.role === UserRoleEnum.SUPER_ADMIN;
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -78,11 +91,7 @@ export default function UserManagement() {
   const { loading: rechargeLoading, execute: executeRecharge } = useAsyncAction(async () => {
     try {
       const values = await rechargeForm.validateFields();
-      const response = await rechargePoints(
-        selectedUser!.id,
-        values.points,
-        values.bonus
-      );
+      const response = await rechargePoints(selectedUser!.id, values.points, values.bonus);
       if (response.success) {
         message.success('充值成功');
         setRechargeModalVisible(false);
@@ -98,55 +107,71 @@ export default function UserManagement() {
     }
   });
 
+  const { loading: roleLoading, execute: executeUpdateRole } = useAsyncAction(
+    async (user: User, role: Exclude<UserRole, UserRoleEnum.SUPER_ADMIN>) => {
+      const response = await updateUserRole(user.id, role);
+      if (response.success) {
+        message.success(role === UserRoleEnum.ADMIN ? '已设为管理员' : '已取消管理员');
+        fetchUsers();
+      } else {
+        message.error(response.message || '角色更新失败');
+      }
+    }
+  );
+
+  /**
+   * 角色展示统一收口到这里，避免每个单元格里都重复写判断。
+   * 配合枚举后，悬停即可看到每个角色的语义注释。
+   */
+  const renderRoleTag = (role?: UserRole) => {
+    if (role === UserRoleEnum.SUPER_ADMIN) {
+      return <Tag color="gold">超级管理员</Tag>;
+    }
+
+    if (role === UserRoleEnum.ADMIN) {
+      return <Tag color="red">管理员</Tag>;
+    }
+
+    return <Tag color="blue">普通用户</Tag>;
+  };
+
   const columns: ColumnsType<User> = [
-    {
-      title: 'ID',
-      dataIndex: 'id',
-      width: 80,
-    },
-    {
-      title: '用户名',
-      dataIndex: 'username',
-      width: 150,
-    },
+    { title: 'ID', dataIndex: 'id', width: 80 },
+    { title: '用户名', dataIndex: 'username', width: 150 },
     {
       title: '邮箱',
       dataIndex: 'email',
       width: 200,
-      render: (email) => email || '-',
+      render: email => email || '-',
     },
     {
       title: '角色',
       dataIndex: 'role',
-      width: 100,
-      render: (role?: 'user' | 'admin') => (
-        <Tag color={role === 'admin' ? 'red' : 'blue'}>
-          {role === 'admin' ? '管理员' : '普通用户'}
-        </Tag>
-      ),
+      width: 120,
+      render: (role?: UserRole) => renderRoleTag(role),
     },
     {
       title: '积分',
       dataIndex: 'points',
       width: 100,
-      render: (points) => <Tag color="green">{points ?? 0}</Tag>,
+      render: points => <Tag color="green">{points ?? 0}</Tag>,
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
       width: 180,
-      render: (date) => new Date(date).toLocaleString(),
+      render: date => new Date(date).toLocaleString(),
     },
     {
       title: '更新时间',
       dataIndex: 'updatedAt',
       width: 180,
-      render: (date) => new Date(date).toLocaleString(),
+      render: date => new Date(date).toLocaleString(),
     },
     {
       title: '操作',
       key: 'action',
-      width: 200,
+      width: 320,
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
@@ -161,6 +186,30 @@ export default function UserManagement() {
           >
             充值
           </Button>
+
+          {isSuperAdmin && record.role === UserRoleEnum.USER && (
+            <Button
+              type="link"
+              size="small"
+              icon={<SafetyCertificateOutlined />}
+              loading={roleLoading}
+              onClick={() => void executeUpdateRole(record, UserRoleEnum.ADMIN)}
+            >
+              设为管理员
+            </Button>
+          )}
+
+          {isSuperAdmin && record.role === UserRoleEnum.ADMIN && (
+            <Button
+              type="link"
+              size="small"
+              loading={roleLoading}
+              onClick={() => void executeUpdateRole(record, UserRoleEnum.USER)}
+            >
+              取消管理员
+            </Button>
+          )}
+
           <Button
             type="link"
             size="small"
@@ -190,7 +239,7 @@ export default function UserManagement() {
           <Input
             placeholder="搜索用户名或邮箱"
             value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
+            onChange={e => setKeyword(e.target.value)}
             onPressEnter={handleSearch}
             style={{ width: 250 }}
             allowClear
@@ -215,13 +264,13 @@ export default function UserManagement() {
           total,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条`,
+          showTotal: total => `共 ${total} 条`,
           onChange: (page, pageSize) => {
             setPage(page);
             setPageSize(pageSize);
           },
         }}
-        scroll={{ x: 1200 }}
+        scroll={{ x: 1400 }}
       />
 
       <Modal
@@ -252,12 +301,21 @@ export default function UserManagement() {
           <Form.Item label="邮箱" name="email">
             <Input placeholder="请输入邮箱（可选）" />
           </Form.Item>
-          <Form.Item label="角色" name="role" initialValue="user">
+          <Form.Item
+            label="角色"
+            name="role"
+            initialValue={UserRoleEnum.USER}
+            extra={isSuperAdmin ? '超级管理员可以直接创建管理员账号' : '普通管理员只能创建普通用户'}
+          >
             <Select
-              options={[
-                { label: '普通用户', value: 'user' },
-                { label: '管理员', value: 'admin' },
-              ]}
+              options={
+                isSuperAdmin
+                  ? [
+                      { label: '普通用户', value: UserRoleEnum.USER },
+                      { label: '管理员', value: UserRoleEnum.ADMIN },
+                    ]
+                  : [{ label: '普通用户', value: UserRoleEnum.USER }]
+              }
             />
           </Form.Item>
         </Form>
@@ -288,17 +346,9 @@ export default function UserManagement() {
               { type: 'number', min: 1, message: '积分必须大于0' },
             ]}
           >
-            <InputNumber
-              placeholder="请输入充值积分"
-              style={{ width: '100%' }}
-              min={1}
-            />
+            <InputNumber placeholder="请输入充值积分" style={{ width: '100%' }} min={1} />
           </Form.Item>
-          <Form.Item
-            label="赠送积分"
-            name="bonus"
-            extra="可选，额外赠送的积分"
-          >
+          <Form.Item label="赠送积分" name="bonus" extra="可选，额外赠送的积分">
             <InputNumber
               placeholder="请输入赠送积分（可选）"
               style={{ width: '100%' }}

@@ -13,6 +13,7 @@ import {
 import ModelSettingsModal from '@/components/ModelSettingsModal';
 import UserProfileModal from '@/components/UserProfileModal';
 import { useUserStore } from '@/stores/useUserStore';
+import { UserRoleEnum } from '@/api/user';
 import { topMenuItems, adminMenuItems } from '../menuConfig';
 
 import './mobilenav.css';
@@ -36,7 +37,7 @@ export default function MobileNavBar() {
     ? '/script-management'
     : location.pathname;
 
-  const menuItems = currentUser?.role === 'admin' 
+  const menuItems = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes((currentUser?.role as UserRoleEnum) || UserRoleEnum.USER) 
     ? [...(topMenuItems ?? []), ...(adminMenuItems ?? [])]
     : topMenuItems;
 

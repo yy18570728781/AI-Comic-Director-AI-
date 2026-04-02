@@ -21,6 +21,7 @@ import ModelSettingsModal from '@/components/ModelSettingsModal';
 import UserProfileModal from '@/components/UserProfileModal';
 import AuthGuard from '@/components/AuthGuard';
 import { useUserStore } from '@/stores/useUserStore';
+import { UserRoleEnum } from '@/api/user';
 
 import './sider.css';
 
@@ -57,7 +58,7 @@ export default function SiderLayout() {
   const selectedKey = location.pathname.startsWith('/script-management/')
     ? '/script-management'
     : location.pathname;
-  const allMenuItems: MenuProps['items'] = currentUser?.role === 'admin'
+  const allMenuItems: MenuProps['items'] = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes((currentUser?.role as UserRoleEnum) || UserRoleEnum.USER)
     ? [
         ...(menuItems ?? []),
         {

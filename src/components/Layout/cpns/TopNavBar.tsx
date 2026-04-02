@@ -13,6 +13,7 @@ import ModelSettingsModal from '@/components/ModelSettingsModal';
 import UserProfileModal from '@/components/UserProfileModal';
 import { useUserStore } from '@/stores/useUserStore';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { UserRoleEnum } from '@/api/user';
 import { topMenuItems, adminMenuItems } from '../menuConfig';
 
 import './topnav.css';
@@ -40,7 +41,7 @@ export default function TopNavBar({ showThemeToggle = false, showUserActions = t
     ? '/script-management'
     : location.pathname;
 
-  const menuItems = currentUser?.role === 'admin' 
+  const menuItems = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes((currentUser?.role as UserRoleEnum) || UserRoleEnum.USER) 
     ? [...(topMenuItems ?? []), ...(adminMenuItems ?? [])]
     : topMenuItems;
 

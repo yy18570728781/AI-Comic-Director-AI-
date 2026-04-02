@@ -2,14 +2,26 @@ import { request } from './request';
 import type { ApiResponse } from './request';
 
 /**
- * 创建用户
+ * 前端用户角色枚举
+ * 这里单独导出枚举，方便页面、store、权限组件统一引用。
  */
+export enum UserRoleEnum {
+  /** 普通用户，只能访问前台功能 */
+  USER = 'user',
+  /** 管理员，可以进入后台 */
+  ADMIN = 'admin',
+  /** 超级管理员，可以设置管理员 */
+  SUPER_ADMIN = 'super_admin',
+}
+
+export type UserRole = `${UserRoleEnum}`;
+
 export function createUser(data: {
   username: string;
   password: string;
   email?: string;
   avatar?: string;
-  role?: 'user' | 'admin';
+  role?: UserRole;
 }): Promise<ApiResponse> {
   return request({
     url: '/api/user/create',
@@ -18,9 +30,6 @@ export function createUser(data: {
   });
 }
 
-/**
- * 获取用户详情
- */
 export function getUserDetail(id: number): Promise<ApiResponse> {
   return request({
     url: `/api/user/${id}`,
@@ -28,9 +37,6 @@ export function getUserDetail(id: number): Promise<ApiResponse> {
   });
 }
 
-/**
- * 获取用户列表
- */
 export function getUserList(params: {
   page?: number;
   pageSize?: number;
@@ -43,9 +49,6 @@ export function getUserList(params: {
   });
 }
 
-/**
- * 确保默认用户存在
- */
 export function ensureDefaultUser(): Promise<ApiResponse> {
   return request({
     url: '/api/user/ensure-default',
@@ -53,9 +56,6 @@ export function ensureDefaultUser(): Promise<ApiResponse> {
   });
 }
 
-/**
- * 获取用户积分余额
- */
 export function getUserPoints(userId: number): Promise<ApiResponse> {
   return request({
     url: `/api/user/${userId}/points`,
@@ -63,10 +63,10 @@ export function getUserPoints(userId: number): Promise<ApiResponse> {
   });
 }
 
-/**
- * 获取用户积分流水
- */
-export function getPointRecords(userId: number, params?: { page?: number; pageSize?: number }): Promise<ApiResponse> {
+export function getPointRecords(
+  userId: number,
+  params?: { page?: number; pageSize?: number }
+): Promise<ApiResponse> {
   return request({
     url: `/api/user/${userId}/point-records`,
     method: 'GET',
@@ -74,13 +74,21 @@ export function getPointRecords(userId: number, params?: { page?: number; pageSi
   });
 }
 
-/**
- * 充值积分
- */
 export function rechargePoints(userId: number, points: number, bonus?: number): Promise<ApiResponse> {
   return request({
     url: `/api/user/${userId}/recharge`,
     method: 'POST',
     data: { points, bonus },
+  });
+}
+
+export function updateUserRole(
+  userId: number,
+  role: Exclude<UserRole, UserRoleEnum.SUPER_ADMIN>
+): Promise<ApiResponse> {
+  return request({
+    url: `/api/user/${userId}/role`,
+    method: 'POST',
+    data: { role },
   });
 }
