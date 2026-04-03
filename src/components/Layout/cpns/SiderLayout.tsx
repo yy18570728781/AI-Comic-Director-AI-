@@ -33,7 +33,7 @@ const menuItems: MenuProps['items'] = [
   { key: '/script-management', icon: <FileTextOutlined />, label: '剧本管理' },
   { key: '/image-to-video', icon: <VideoCameraOutlined />, label: '图生视频' },
   { key: '/image-to-image', icon: <CameraOutlined />, label: '图生图' },
-  { key: '/ecommerce-zone', icon: <ShopOutlined />, label: '电商专区' },
+  { key: '/creation-studio', icon: <ShopOutlined />, label: '创作工作台' },
   { key: '/resource-library', icon: <PictureOutlined />, label: '资源库' },
   { key: '/character-library', icon: <UserOutlined />, label: '角色库' },
   { key: '/team-space', icon: <TeamOutlined />, label: '团队空间' },

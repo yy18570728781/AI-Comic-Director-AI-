@@ -33,9 +33,9 @@ export const topMenuItems: MenuProps['items'] = [
     ],
   },
   {
-    key: '/ecommerce-zone',
+    key: '/creation-studio',
     icon: <ShopOutlined />,
-    label: '电商专区',
+    label: '创作工作台',
   },
   {
     key: 'resources',

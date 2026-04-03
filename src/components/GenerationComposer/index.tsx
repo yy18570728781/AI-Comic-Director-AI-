@@ -45,7 +45,7 @@ export interface ComposerToggleConfig {
 /**
  * 控制各个配置区块是否显示。
  * 这里不是把配置逻辑写死，而是把“显示权”交给页面层，
- * 这样公共组件既能服务通用场景，也能适配像电商专区这种裁剪版场景。
+ * 这样公共组件既能服务通用场景，也能适配不同业务页的裁剪版场景。
  */
 export interface ComposerVisibilityConfig {
   model?: boolean;
@@ -67,7 +67,7 @@ export interface ComposerVisibilityConfig {
  * 为什么这里 props 会比较多：
  * 1. 这个组件明确定位为“展示组件 + 受控组件”，不在内部保存业务状态。
  * 2. 业务状态全部由页面或 hook 管，组件只负责把当前值渲染出来，并把交互回调抛出去。
- * 3. 这样虽然参数多一点，但业务边界清晰，不容易把电商专区、图生视频等规则揉进同一个组件内部。
+ * 3. 这样虽然参数多一点，但业务边界清晰，不容易把不同页面的规则揉进同一个组件内部。
  */
 export interface GenerationComposerProps {
   /**
@@ -214,7 +214,7 @@ export interface GenerationComposerProps {
   /**
    * extraConfigContent:
    * 业务专属配置插槽。
-   * 比如电商专区的“男生/女生”，后面别的页面也可以插自己的配置，而不需要继续改公共组件接口。
+   * 比如“目标人群”“镜头风格”这类页面专属字段，都可以插在这里，而不需要继续改公共组件接口。
    */
   extraConfigContent?: ReactNode;
 
