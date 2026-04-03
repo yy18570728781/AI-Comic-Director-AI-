@@ -1,9 +1,10 @@
 .ecommerce-zone {
   height: calc(100vh - 56px);
-  padding: 8px 0 18px;
+  padding: 8px 0;
   overflow: hidden;
   color: #f6efff;
   background: #1a1520;
+  box-sizing: border-box;
 }
 
 .ecommerce-zone__frame {
@@ -11,6 +12,7 @@
   grid-template-columns: 346px minmax(0, 1fr);
   gap: 6px;
   height: 100%;
+  min-height: 0;
 }
 
 .ecommerce-zone__sidebar,
@@ -22,8 +24,9 @@
 
 .ecommerce-zone__sidebar {
   height: 100%;
-  padding: 16px 14px 18px;
+  padding: 16px 14px 0;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .ecommerce-zone__sidebar-top,
@@ -318,8 +321,9 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 12px 16px 18px;
+  padding: 12px 16px 0;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .ecommerce-zone__toolbar {
