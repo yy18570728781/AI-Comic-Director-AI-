@@ -47,7 +47,9 @@ export default function SiderLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [modelModalVisible, setModelModalVisible] = useState(false);
   const [userModalVisible, setUserModalVisible] = useState(false);
-  const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
   useEffect(() => {
     if (currentUser?.id) refreshPoints();
@@ -58,7 +60,9 @@ export default function SiderLayout() {
   const selectedKey = location.pathname.startsWith('/script-management/')
     ? '/script-management'
     : location.pathname;
-  const allMenuItems: MenuProps['items'] = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes((currentUser?.role as UserRoleEnum) || UserRoleEnum.USER)
+  const allMenuItems: MenuProps['items'] = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes(
+    (currentUser?.role as UserRoleEnum) || UserRoleEnum.USER
+  )
     ? [
         ...(menuItems ?? []),
         {
@@ -82,30 +86,65 @@ export default function SiderLayout() {
             <h2>{collapsed ? 'AI' : 'AI漫剧工作台'}</h2>
             <img style={{ width: 40 }} src="/image/logo2.png" alt="" />
           </div>
-          <Menu theme="dark" mode="inline" selectedKeys={[selectedKey]} items={allMenuItems} onClick={handleMenuClick} />
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            items={allMenuItems}
+            onClick={handleMenuClick}
+          />
         </Sider>
         <AntdLayout style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
           <Header style={{ padding: 0, background: colorBgContainer, flexShrink: 0 }}>
             <div className="sider-header-content">
               <h3>AI漫剧一站式服务工作台</h3>
               <Space>
-                <Button icon={<SettingOutlined />} onClick={() => setModelModalVisible(true)}>模型设置</Button>
-                <div onClick={() => setUserModalVisible(true)} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12, padding: '4px 12px', borderRadius: 8 }}>
-                  <Avatar size={32} icon={<UserOutlined />} src={currentUser?.avatar} style={{ backgroundColor: '#7265e6' }} />
+                <Button icon={<SettingOutlined />} onClick={() => setModelModalVisible(true)}>
+                  模型设置
+                </Button>
+                <div
+                  onClick={() => setUserModalVisible(true)}
+                  style={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '4px 12px',
+                    borderRadius: 8,
+                  }}
+                >
+                  <Avatar
+                    size={32}
+                    icon={<UserOutlined />}
+                    src={currentUser?.avatar}
+                    style={{ backgroundColor: '#7265e6' }}
+                  />
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ color: '#666', fontSize: 13 }}>可用积分</span>
-                    <span style={{ color: '#52c41a', fontSize: 16, fontWeight: 600 }}>{currentUser?.points ?? 0}</span>
+                    <span style={{ color: '#52c41a', fontSize: 16, fontWeight: 600 }}>
+                      {currentUser?.points ?? 0}
+                    </span>
                   </div>
                 </div>
               </Space>
             </div>
           </Header>
           <Content style={{ flex: 1, overflow: 'auto', margin: '16px' }}>
-            <div style={{ padding: 24, minHeight: '100%', background: colorBgContainer, borderRadius: borderRadiusLG }}>
+            <div
+              style={{
+                padding: 24,
+                minHeight: '100%',
+                background: colorBgContainer,
+                borderRadius: borderRadiusLG,
+              }}
+            >
               <Outlet />
             </div>
           </Content>
-          <ModelSettingsModal open={modelModalVisible} onClose={() => setModelModalVisible(false)} />
+          <ModelSettingsModal
+            open={modelModalVisible}
+            onClose={() => setModelModalVisible(false)}
+          />
           <UserProfileModal open={userModalVisible} onClose={() => setUserModalVisible(false)} />
         </AntdLayout>
       </AntdLayout>

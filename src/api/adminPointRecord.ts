@@ -46,7 +46,7 @@ export interface AdminPointRecordListResponse {
  * 管理后台获取积分流水列表
  */
 export function getAdminPointRecords(
-  params: AdminPointRecordQuery,
+  params: AdminPointRecordQuery
 ): Promise<ApiResponse<AdminPointRecordListResponse>> {
   return request({
     url: '/api/admin/point-records',

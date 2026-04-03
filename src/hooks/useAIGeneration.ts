@@ -1,11 +1,11 @@
 /**
  * AI 生成统一 Hook
- * 
+ *
  * 整合图片和视频生成：
  * - 提交任务到队列
  * - 监听全局轮询事件
  * - 任务完成时触发回调
- * 
+ *
  * 使用方式：
  * const { generateImage, generateVideo, generatingImageIds } = useAIGeneration({
  *   onImageComplete: (image, shotId) => updateUI(image),
@@ -55,7 +55,7 @@ export interface VideoParams {
   resolution?: string;
   ratio?: string;
   aspectRatio?: string;
-  generateAudio?: boolean;  // 是否输出声音
+  generateAudio?: boolean; // 是否输出声音
   referenceImages?: string[];
   shotId?: number;
   scriptId?: number;
@@ -74,12 +74,7 @@ export interface UseAIGenerationOptions {
 // ==================== Hook ====================
 
 export function useAIGeneration(options: UseAIGenerationOptions = {}) {
-  const {
-    onImageComplete,
-    onVideoComplete,
-    onError,
-    showMessage = true
-  } = options;
+  const { onImageComplete, onVideoComplete, onError, showMessage = true } = options;
 
   const { tasks, addTask } = useTaskStore();
 
@@ -87,19 +82,22 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
   useEffect(() => {
     const unsubComplete = onTaskComplete((event) => {
       console.log('🎉 [useAIGeneration] 任务完成:', event);
-      
+
       if (event.type === 'image') {
         const image: GeneratedImage = {
           id: event.result?.savedImage?.id,
           url: event.result?.savedImage?.url || event.result?.images?.[0]?.url,
           shotId: event.shotId,
         };
-        
+
         if (image.url && image.id) {
           onImageComplete?.(image, event.shotId);
           if (showMessage) message.success('图片生成完成！');
         } else {
-          console.warn('⚠️ [useAIGeneration] 图片数据不完整:', { hasUrl: !!image.url, hasId: !!image.id });
+          console.warn('⚠️ [useAIGeneration] 图片数据不完整:', {
+            hasUrl: !!image.url,
+            hasId: !!image.id,
+          });
         }
       } else if (event.type === 'video') {
         const video: GeneratedVideo = {
@@ -131,108 +129,122 @@ export function useAIGeneration(options: UseAIGenerationOptions = {}) {
   }, [onImageComplete, onVideoComplete, onError, showMessage]);
 
   // 生成图片
-  const generateImage = useCallback(async (params: ImageParams): Promise<string | null> => {
-    const { shotId, scriptId, saveToLibrary, libraryName, libraryTags, ...rest } = params;
+  const generateImage = useCallback(
+    async (params: ImageParams): Promise<string | null> => {
+      const { shotId, scriptId, saveToLibrary, libraryName, libraryTags, ...rest } = params;
 
-    try {
-      const res = await generateImageAsync({
-        prompt: rest.prompt,
-        model: rest.model || 'seedream',
-        quality: rest.quality || 'hd',
-        aspectRatio: rest.aspectRatio || '16:9',
-        referenceImages: rest.referenceImages,
-        shotId,
-        scriptId,
-        ...(saveToLibrary ? { saveToLibrary, libraryName, libraryTags } : {}),
-      });
-
-      if (res.success && res.data?.jobId) {
-        addTask({ jobId: res.data.jobId, type: 'image', shotId });
-        if (showMessage) message.info('图片任务已提交');
-        return res.data.jobId;
-      }
-      throw new Error(res.message || '提交失败');
-    } catch (error: any) {
-      if (showMessage) {
-        message.error({
-          content: error.message || '图片生成失败',
-          duration: 8,
+      try {
+        const res = await generateImageAsync({
+          prompt: rest.prompt,
+          model: rest.model || 'seedream',
+          quality: rest.quality || 'hd',
+          aspectRatio: rest.aspectRatio || '16:9',
+          referenceImages: rest.referenceImages,
+          shotId,
+          scriptId,
+          ...(saveToLibrary ? { saveToLibrary, libraryName, libraryTags } : {}),
         });
+
+        if (res.success && res.data?.jobId) {
+          addTask({ jobId: res.data.jobId, type: 'image', shotId });
+          if (showMessage) message.info('图片任务已提交');
+          return res.data.jobId;
+        }
+        throw new Error(res.message || '提交失败');
+      } catch (error: any) {
+        if (showMessage) {
+          message.error({
+            content: error.message || '图片生成失败',
+            duration: 8,
+          });
+        }
+        onError?.(error.message, 'image', shotId);
+        return null;
       }
-      onError?.(error.message, 'image', shotId);
-      return null;
-    }
-  }, [addTask, showMessage, onError]);
+    },
+    [addTask, showMessage, onError]
+  );
 
   // 生成视频
-  const generateVideo = useCallback(async (params: VideoParams): Promise<string | null> => {
-    const { shotId, scriptId, referenceImages, aspectRatio, ...rest } = params;
+  const generateVideo = useCallback(
+    async (params: VideoParams): Promise<string | null> => {
+      const { shotId, scriptId, referenceImages, aspectRatio, ...rest } = params;
 
-    // 根据图片数量自动推断 mode
-    const imageCount = referenceImages?.length || 0;
-    let mode = rest.mode;
-    if (!mode) {
-      if (imageCount === 0) mode = 't2v';
-      else if (imageCount === 1) mode = 'i2v';
-      else if (imageCount === 2) mode = 'flf2v';
-      else mode = 'ref2v';
-    }
-
-    const requestData: any = {
-      prompt: rest.prompt || '',
-      model: rest.model || 'doubao-seedance-1-0-lite-i2v-250428',
-      mode,
-      duration: rest.duration || 5,
-      resolution: rest.resolution || '720p',
-      ratio: rest.ratio || aspectRatio,
-      generateAudio: rest.generateAudio ?? false,
-      shotId,
-      scriptId,
-      ...(rest.saveToLibrary ? {
-        saveToLibrary: true,
-        libraryName: rest.libraryName,
-        libraryTags: rest.libraryTags,
-      } : {}),
-    };
-
-    if (referenceImages?.length) {
-      requestData.referenceImages = referenceImages;
-    }
-
-    try {
-      const res = await generateVideoAsync(requestData);
-
-      if (res.success && res.data?.jobId) {
-        addTask({ jobId: res.data.jobId, type: 'video', shotId, model: requestData.model });
-        if (showMessage) message.info('视频任务已提交');
-        return res.data.jobId;
+      // 根据图片数量自动推断 mode
+      const imageCount = referenceImages?.length || 0;
+      let mode = rest.mode;
+      if (!mode) {
+        if (imageCount === 0) mode = 't2v';
+        else if (imageCount === 1) mode = 'i2v';
+        else if (imageCount === 2) mode = 'flf2v';
+        else mode = 'ref2v';
       }
-      throw new Error(res.message || '提交失败');
-    } catch (error: any) {
-      if (showMessage) {
-        message.error({
-          content: error.message || '视频生成失败',
-          duration: 8,
-        });
+
+      const requestData: any = {
+        prompt: rest.prompt || '',
+        model: rest.model || 'doubao-seedance-1-0-lite-i2v-250428',
+        mode,
+        duration: rest.duration || 5,
+        resolution: rest.resolution || '720p',
+        ratio: rest.ratio || aspectRatio,
+        generateAudio: rest.generateAudio ?? false,
+        shotId,
+        scriptId,
+        ...(rest.saveToLibrary
+          ? {
+              saveToLibrary: true,
+              libraryName: rest.libraryName,
+              libraryTags: rest.libraryTags,
+            }
+          : {}),
+      };
+
+      if (referenceImages?.length) {
+        requestData.referenceImages = referenceImages;
       }
-      onError?.(error.message, 'video', shotId);
-      return null;
-    }
-  }, [addTask, showMessage, onError]);
+
+      try {
+        const res = await generateVideoAsync(requestData);
+
+        if (res.success && res.data?.jobId) {
+          addTask({ jobId: res.data.jobId, type: 'video', shotId, model: requestData.model });
+          if (showMessage) message.info('视频任务已提交');
+          return res.data.jobId;
+        }
+        throw new Error(res.message || '提交失败');
+      } catch (error: any) {
+        if (showMessage) {
+          message.error({
+            content: error.message || '视频生成失败',
+            duration: 8,
+          });
+        }
+        onError?.(error.message, 'video', shotId);
+        return null;
+      }
+    },
+    [addTask, showMessage, onError]
+  );
 
   // 检查是否正在生成
-  const isGenerating = useCallback((shotId: number, type?: 'image' | 'video') => {
-    return tasks.some(t => t.shotId === shotId && (!type || t.type === type));
-  }, [tasks]);
+  const isGenerating = useCallback(
+    (shotId: number, type?: 'image' | 'video') => {
+      return tasks.some((t) => t.shotId === shotId && (!type || t.type === type));
+    },
+    [tasks]
+  );
 
   // 获取正在生成的 ID 集合
-  const getGeneratingIds = useCallback((type: 'image' | 'video') => {
-    const ids = new Set<number | string>();
-    tasks.forEach(t => {
-      if (t.type === type && t.shotId) ids.add(t.shotId);
-    });
-    return ids;
-  }, [tasks]);
+  const getGeneratingIds = useCallback(
+    (type: 'image' | 'video') => {
+      const ids = new Set<number | string>();
+      tasks.forEach((t) => {
+        if (t.type === type && t.shotId) ids.add(t.shotId);
+      });
+      return ids;
+    },
+    [tasks]
+  );
 
   return {
     generateImage,

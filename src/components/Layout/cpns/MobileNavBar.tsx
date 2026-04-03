@@ -37,7 +37,9 @@ export default function MobileNavBar() {
     ? '/script-management'
     : location.pathname;
 
-  const menuItems = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes((currentUser?.role as UserRoleEnum) || UserRoleEnum.USER) 
+  const menuItems = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes(
+    (currentUser?.role as UserRoleEnum) || UserRoleEnum.USER
+  )
     ? [...(topMenuItems ?? []), ...(adminMenuItems ?? [])]
     : topMenuItems;
 
@@ -50,10 +52,10 @@ export default function MobileNavBar() {
         </div>
         <div className="mobilenav-actions">
           {currentUser ? (
-            <Avatar 
-              size={32} 
-              icon={<UserOutlined />} 
-              src={currentUser.avatar} 
+            <Avatar
+              size={32}
+              icon={<UserOutlined />}
+              src={currentUser.avatar}
               onClick={() => setUserModalVisible(true)}
               style={{ backgroundColor: '#7265e6', cursor: 'pointer' }}
             />
@@ -90,12 +92,12 @@ export default function MobileNavBar() {
           onClick={handleMenuClick}
           style={{ border: 'none' }}
         />
-        
+
         {currentUser && (
           <div style={{ padding: '16px 0', borderTop: '1px solid #f0f0f0', marginTop: 16 }}>
-            <Button 
-              block 
-              icon={<WalletOutlined />} 
+            <Button
+              block
+              icon={<WalletOutlined />}
               onClick={() => {
                 navigate('/recharge');
                 setDrawerVisible(false);
@@ -104,9 +106,9 @@ export default function MobileNavBar() {
             >
               积分充值
             </Button>
-            <Button 
-              block 
-              icon={<SettingOutlined />} 
+            <Button
+              block
+              icon={<SettingOutlined />}
               onClick={() => {
                 setModelModalVisible(true);
                 setDrawerVisible(false);
@@ -114,9 +116,19 @@ export default function MobileNavBar() {
             >
               模型设置
             </Button>
-            <div style={{ marginTop: 16, padding: 12, background: '#f5f5f5', borderRadius: 8, textAlign: 'center' }}>
+            <div
+              style={{
+                marginTop: 16,
+                padding: 12,
+                background: '#f5f5f5',
+                borderRadius: 8,
+                textAlign: 'center',
+              }}
+            >
               <div style={{ fontSize: 12, color: '#666', marginBottom: 4 }}>可用积分</div>
-              <div style={{ fontSize: 20, fontWeight: 'bold', color: '#52c41a' }}>{currentUser.points ?? 0}</div>
+              <div style={{ fontSize: 20, fontWeight: 'bold', color: '#52c41a' }}>
+                {currentUser.points ?? 0}
+              </div>
             </div>
           </div>
         )}

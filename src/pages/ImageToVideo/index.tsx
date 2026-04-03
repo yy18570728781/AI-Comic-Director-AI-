@@ -52,12 +52,12 @@ interface ModelConfig {
     };
   };
   config?: {
-    supportedModes?: string[];  // 支持的生成模式
+    supportedModes?: string[]; // 支持的生成模式
     resolutions?: string[];
     aspectRatios?: string[];
     maxDuration?: number;
-    maxImages?: number;  // 最大参考图数量
-    supportFirstLastFrame?: boolean;  // 兼容旧字段
+    maxImages?: number; // 最大参考图数量
+    supportFirstLastFrame?: boolean; // 兼容旧字段
     supportCameraMovement?: boolean;
     supportWatermark?: boolean;
   };
@@ -78,8 +78,8 @@ function ImageToVideo() {
   const [watermark, setWatermark] = useState<boolean>(true);
   const [selectorVisible, setSelectorVisible] = useState(false);
   const [batchCount, setBatchCount] = useState<number>(1);
-  const [generatedVideos, setGeneratedVideos] = useState<GeneratedVideo[]>(() => 
-    storage.get<GeneratedVideo[]>('imageToVideo_generatedVideos', []) ?? []
+  const [generatedVideos, setGeneratedVideos] = useState<GeneratedVideo[]>(
+    () => storage.get<GeneratedVideo[]>('imageToVideo_generatedVideos', []) ?? []
   );
   const [saveToLibrary, setSaveToLibrary] = useState(false);
   const [generateAudio, setGenerateAudio] = useState(false);
@@ -101,18 +101,18 @@ function ImageToVideo() {
   // 使用统一的 AI 生成 hook
   const { generateVideo, tasks, generatingVideoIds } = useAIGeneration({
     onVideoComplete: (video) => {
-      setGeneratedVideos(prev => [video, ...prev]); // 最新的排在前面
-      setLoadingPlaceholders(prev => Math.max(0, prev - 1));
+      setGeneratedVideos((prev) => [video, ...prev]); // 最新的排在前面
+      setLoadingPlaceholders((prev) => Math.max(0, prev - 1));
       refreshPoints();
     },
     onError: () => {
-      setLoadingPlaceholders(prev => Math.max(0, prev - 1));
+      setLoadingPlaceholders((prev) => Math.max(0, prev - 1));
     },
     showMessage: true,
   });
 
   // 计算状态
-  const pendingTasks = tasks.filter(t => t.type === 'video');
+  const pendingTasks = tasks.filter((t) => t.type === 'video');
   const generating = generatingVideoIds.size > 0 || pendingTasks.length > 0;
   const { videoModels, loadModels } = useModelStore();
 
@@ -125,14 +125,14 @@ function ImageToVideo() {
         setModels(videoModels);
 
         // 检查当前选择的视频模型是否存在
-        const currentModel = videoModels.find(m => m.id === videoModel);
-        
+        const currentModel = videoModels.find((m) => m.id === videoModel);
+
         if (!currentModel && videoModels.length > 0) {
           // 如果当前模型不存在，重置为默认视频模型
           console.warn(`当前选择的模型 "${videoModel}" 不是视频模型，重置为默认模型`);
           const defaultVideoModel = videoModels[0].id;
           setVideoModel(defaultVideoModel);
-          
+
           // 使用默认模型的配置初始化
           const defaultConfig = videoModels[0]?.config;
           if (defaultConfig?.resolutions?.[0]) {
@@ -143,18 +143,18 @@ function ImageToVideo() {
           }
           return;
         }
-        
+
         // 使用当前模型的配置
         const currentConfig = currentModel?.config;
-        
+
         if (currentConfig?.resolutions?.[0]) {
           setResolution(currentConfig.resolutions[0]);
         }
-        
+
         if (currentConfig?.aspectRatios?.[0]) {
           setAspectRatio(currentConfig.aspectRatios[0]);
         }
-        
+
         console.log('当前模型配置:', currentConfig);
       } catch (error) {
         console.error('获取模型列表失败:', error);
@@ -177,16 +177,14 @@ function ImageToVideo() {
   const matchedTier = pricingTiers.find((p) => p.resolution === resolution) ?? pricingTiers[0];
   const creditsPerSecond = matchedTier?.creditsPerSecond ?? 2;
   const creditsPerVideo = pricing?.perVideo?.creditsPerVideo ?? creditsPerSecond;
-  const totalCredits = billingMode === 'per_video'
-    ? creditsPerVideo * batchCount
-    : creditsPerSecond * duration * batchCount;
+  const totalCredits =
+    billingMode === 'per_video'
+      ? creditsPerVideo * batchCount
+      : creditsPerSecond * duration * batchCount;
   const hasEnoughPoints = (currentUser?.points ?? 0) >= totalCredits;
 
   // 根据模型支持的 mode 计算最大图片数量
-  const maxImageCount = getMaxImageCount(
-    modelConfig?.supportedModes || [],
-    modelConfig?.maxImages
-  );
+  const maxImageCount = getMaxImageCount(modelConfig?.supportedModes || [], modelConfig?.maxImages);
 
   // 当前选中的模式
   const [selectedMode, setSelectedMode] = useState<string>('ref2v');
@@ -194,11 +192,7 @@ function ImageToVideo() {
   // 图片数量或模型变化时，自动切换到合适的模式
   useEffect(() => {
     const supported = modelConfig?.supportedModes || [];
-    const recommended = getRecommendedMode(
-      selectedImages.length,
-      supported,
-      selectedMode
-    );
+    const recommended = getRecommendedMode(selectedImages.length, supported, selectedMode);
     if (recommended !== selectedMode) {
       setSelectedMode(recommended);
     }
@@ -207,7 +201,7 @@ function ImageToVideo() {
   // 当模型改变时，重置配置
   const handleModelChange = (value: string) => {
     setVideoModel(value);
-    
+
     const newModel = models.find((m) => m.id === value) as ModelConfig | undefined;
     const newConfig = newModel?.config;
 
@@ -246,7 +240,7 @@ function ImageToVideo() {
 
     try {
       // 立即添加占位图
-      setLoadingPlaceholders(prev => prev + batchCount);
+      setLoadingPlaceholders((prev) => prev + batchCount);
 
       // 批量提交任务
       for (let i = 0; i < batchCount; i++) {
@@ -259,11 +253,18 @@ function ImageToVideo() {
           resolution,
           ratio: aspectRatio,
           generateAudio,
-          ...(saveToLibrary ? {
-            saveToLibrary: true,
-            libraryName: `视频_${new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`,
-            libraryTags: ['视频', 'AI生成'],
-          } : {}),
+          ...(saveToLibrary
+            ? {
+                saveToLibrary: true,
+                libraryName: `视频_${new Date().toLocaleString('zh-CN', {
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}`,
+                libraryTags: ['视频', 'AI生成'],
+              }
+            : {}),
         });
       }
     } finally {
@@ -371,7 +372,13 @@ function ImageToVideo() {
                                 >
                                   删除
                                 </Button>
-                                <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 4 }}>
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    color: token.colorTextTertiary,
+                                    marginTop: 4,
+                                  }}
+                                >
                                   第{idx + 1}张
                                 </div>
                               </div>
@@ -380,9 +387,7 @@ function ImageToVideo() {
                         </Image.PreviewGroup>
                       </div>
                     ) : (
-                      <div style={{ color: token.colorTextTertiary }}>
-                        暂未选择参考图
-                      </div>
+                      <div style={{ color: token.colorTextTertiary }}>暂未选择参考图</div>
                     )}
                     <Button
                       type="primary"
@@ -409,7 +414,10 @@ function ImageToVideo() {
                   />
                   {/* 支持模式提示 */}
                   <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 8 }}>
-                    📋 支持模式：{(modelConfig?.supportedModes || []).map(m => modeLabels[m] || m).join('、') || '未知'}
+                    📋 支持模式：
+                    {(modelConfig?.supportedModes || [])
+                      .map((m) => modeLabels[m] || m)
+                      .join('、') || '未知'}
                   </div>
                 </div>
 
@@ -419,9 +427,13 @@ function ImageToVideo() {
                     <div style={{ marginBottom: 12, fontWeight: 500 }}>生成模式</div>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       {modelConfig.supportedModes
-                        .filter(m => m !== 't2v') // 图生视频页面不显示文生视频
+                        .filter((m) => m !== 't2v') // 图生视频页面不显示文生视频
                         .map((m) => {
-                          const available = isModeAvailable(m, selectedImages.length, modelConfig.supportedModes || []);
+                          const available = isModeAvailable(
+                            m,
+                            selectedImages.length,
+                            modelConfig.supportedModes || []
+                          );
                           return (
                             <Tag
                               key={m}
@@ -492,7 +504,11 @@ function ImageToVideo() {
                           onClick={() => setAspectRatio(ratio)}
                           style={{ cursor: 'pointer', padding: '4px 12px' }}
                         >
-                          {ratio === '16:9' ? '16:9 (电脑)' : ratio === '9:16' ? '9:16 (手机)' : ratio}
+                          {ratio === '16:9'
+                            ? '16:9 (电脑)'
+                            : ratio === '9:16'
+                            ? '9:16 (手机)'
+                            : ratio}
                         </Tag>
                       ))}
                     </div>
@@ -569,17 +585,16 @@ function ImageToVideo() {
 
                 {/* 输出声音开关 */}
                 <div>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: 8,
-                  }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 8,
+                    }}
+                  >
                     <span style={{ fontWeight: 500 }}>输出声音</span>
-                    <Switch 
-                      checked={generateAudio} 
-                      onChange={setGenerateAudio}
-                    />
+                    <Switch checked={generateAudio} onChange={setGenerateAudio} />
                   </div>
                   <div style={{ fontSize: 12, color: token.colorTextTertiary }}>
                     开启后，生成的视频将包含音频
@@ -588,17 +603,16 @@ function ImageToVideo() {
 
                 {/* 保存到资源库开关 */}
                 <div>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: 8,
-                  }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 8,
+                    }}
+                  >
                     <span style={{ fontWeight: 500 }}>保存到资源库</span>
-                    <Switch 
-                      checked={saveToLibrary} 
-                      onChange={setSaveToLibrary}
-                    />
+                    <Switch checked={saveToLibrary} onChange={setSaveToLibrary} />
                   </div>
                   <div style={{ fontSize: 12, color: token.colorTextTertiary }}>
                     开启后，生成的视频将自动保存到资源库
@@ -617,15 +631,17 @@ function ImageToVideo() {
                 >
                   生成视频 ({batchCount}个) - 消耗 {totalCredits} 积分
                 </Button>
-                
+
                 {/* 积分不足提示 */}
                 {!hasEnoughPoints && (
-                  <div style={{ 
-                    color: '#ff4d4f', 
-                    fontSize: 12, 
-                    marginTop: 8,
-                    textAlign: 'center',
-                  }}>
+                  <div
+                    style={{
+                      color: '#ff4d4f',
+                      fontSize: 12,
+                      marginTop: 8,
+                      textAlign: 'center',
+                    }}
+                  >
                     ⚠️ 积分不足，当前余额 {currentUser?.points ?? 0} 积分
                   </div>
                 )}
@@ -633,7 +649,9 @@ function ImageToVideo() {
                 {/* 任务状态显示 */}
                 {pendingTasks.length > 0 && (
                   <div>
-                    <div style={{ marginBottom: 8, fontWeight: 500 }}>处理中的任务 ({pendingTasks.length})</div>
+                    <div style={{ marginBottom: 8, fontWeight: 500 }}>
+                      处理中的任务 ({pendingTasks.length})
+                    </div>
                     {pendingTasks.slice(0, 5).map((task: any) => (
                       <div
                         key={task.taskId}
@@ -669,11 +687,13 @@ function ImageToVideo() {
         <Col xs={24} lg={14}>
           <Card
             title={
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <span>生成结果 {generatedVideos.length > 0 && `(${generatedVideos.length})`}</span>
                 {generatedVideos.length > 0 && (
-                  <Button 
-                    size="small" 
+                  <Button
+                    size="small"
                     danger
                     onClick={() => {
                       setGeneratedVideos([]);
@@ -699,11 +719,13 @@ function ImageToVideo() {
               padding: 0,
             }}
           >
-            <div style={{
-              height: '100%',
-              overflowY: 'auto',
-              padding: 24,
-            }}>
+            <div
+              style={{
+                height: '100%',
+                overflowY: 'auto',
+                padding: 24,
+              }}
+            >
               {generatedVideos.length === 0 && loadingPlaceholders === 0 ? (
                 <div
                   style={{

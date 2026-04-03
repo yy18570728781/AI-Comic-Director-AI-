@@ -14,43 +14,64 @@ export const getScriptTableColumns = (
     title: '剧本标题',
     dataIndex: 'title',
     key: 'title',
-    render: (title: string, record: Script) => React.createElement(
-      'div',
-      null,
-      React.createElement('div', { 
-        style: { fontWeight: 500, marginBottom: 4 } 
-      }, title),
-      record.description && React.createElement('div', {
-        style: { fontSize: 12, color: '#666', lineHeight: 1.4 }
-      }, record.description)
-    ),
+    render: (title: string, record: Script) =>
+      React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'div',
+          {
+            style: { fontWeight: 500, marginBottom: 4 },
+          },
+          title
+        ),
+        record.description &&
+          React.createElement(
+            'div',
+            {
+              style: { fontSize: 12, color: '#666', lineHeight: 1.4 },
+            },
+            record.description
+          )
+      ),
   },
   {
     title: '风格',
     dataIndex: 'style',
     key: 'style',
     width: 100,
-    render: (style: string) => style ? 
-      React.createElement(Tag, { color: 'blue' }, style) : 
-      React.createElement('span', { style: { color: '#ccc' } }, '未设置'),
+    render: (style: string) =>
+      style
+        ? React.createElement(Tag, { color: 'blue' }, style)
+        : React.createElement('span', { style: { color: '#ccc' } }, '未设置'),
   },
   {
     title: '分镜数量',
     dataIndex: 'shotCount',
     key: 'shotCount',
     width: 100,
-    render: (count: number) => React.createElement(Tag, {
-      color: count > 0 ? 'green' : 'default'
-    }, `${count} 个分镜`),
+    render: (count: number) =>
+      React.createElement(
+        Tag,
+        {
+          color: count > 0 ? 'green' : 'default',
+        },
+        `${count} 个分镜`
+      ),
   },
   {
     title: '状态',
     dataIndex: 'status',
     key: 'status',
     width: 100,
-    render: (status: string) => React.createElement(Tag, {
-      color: getStatusColor(status)
-    }, getStatusText(status)),
+    render: (status: string) =>
+      React.createElement(
+        Tag,
+        {
+          color: getStatusColor(status),
+        },
+        getStatusText(status)
+      ),
   },
   {
     title: '创建时间',
@@ -63,16 +84,21 @@ export const getScriptTableColumns = (
     title: '操作',
     key: 'actions',
     width: 120,
-    render: (_: any, record: Script) => React.createElement(
-      Space,
-      null,
-      React.createElement(Button, {
-        type: 'primary',
-        size: 'small',
-        icon: React.createElement(UserOutlined),
-        onClick: () => onViewCharacters(record)
-      }, '查看角色')
-    ),
+    render: (_: any, record: Script) =>
+      React.createElement(
+        Space,
+        null,
+        React.createElement(
+          Button,
+          {
+            type: 'primary',
+            size: 'small',
+            icon: React.createElement(UserOutlined),
+            onClick: () => onViewCharacters(record),
+          },
+          '查看角色'
+        )
+      ),
   },
 ];
 

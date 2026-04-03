@@ -151,7 +151,17 @@ export default function PointRecordManagement() {
 
   useEffect(() => {
     fetchPointRecords();
-  }, [page, pageSize, userIdFilter, typeFilter, taskTypeFilter, businessTypeFilter, sourceFilter, keyword, queryVersion]);
+  }, [
+    page,
+    pageSize,
+    userIdFilter,
+    typeFilter,
+    taskTypeFilter,
+    businessTypeFilter,
+    sourceFilter,
+    keyword,
+    queryVersion,
+  ]);
 
   const handleSearch = () => {
     setPage(1);

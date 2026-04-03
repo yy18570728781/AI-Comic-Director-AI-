@@ -3,17 +3,17 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 /**
  * 统一任务类型
- * 
+ *
  * 所有任务都走队列，使用 jobId 标识
  * type 区分队列类型：image（图片生成，包含融图）、video（视频生成）
  */
 export interface Task {
-  jobId: string | number;        // Bull 队列 job ID（统一标识）
+  jobId: string | number; // Bull 队列 job ID（统一标识）
   type: 'image' | 'video';
   shotId?: number; // 关联的分镜ID（可选）
   characterId?: number; // 关联的角色ID（可选）
   model?: string; // 使用的模型
-  videoId?: number;              // 视频任务数据库 ID（从 Bull result 获取）
+  videoId?: number; // 视频任务数据库 ID（从 Bull result 获取）
   createdAt: number;
 }
 
@@ -53,18 +53,12 @@ export const useTaskStore = create<TaskState>()(
 
       addTask: (task) =>
         set((state) => ({
-          tasks: [
-            ...state.tasks,
-            { ...task, createdAt: Date.now() },
-          ],
+          tasks: [...state.tasks, { ...task, createdAt: Date.now() }],
         })),
 
       addTasks: (tasks) =>
         set((state) => ({
-          tasks: [
-            ...state.tasks,
-            ...tasks.map(task => ({ ...task, createdAt: Date.now() })),
-          ],
+          tasks: [...state.tasks, ...tasks.map((task) => ({ ...task, createdAt: Date.now() }))],
         })),
 
       removeTask: (jobId) =>

@@ -142,7 +142,7 @@ export default function UserManagement() {
       title: '邮箱',
       dataIndex: 'email',
       width: 200,
-      render: email => email || '-',
+      render: (email) => email || '-',
     },
     {
       title: '角色',
@@ -154,19 +154,19 @@ export default function UserManagement() {
       title: '积分',
       dataIndex: 'points',
       width: 100,
-      render: points => <Tag color="green">{points ?? 0}</Tag>,
+      render: (points) => <Tag color="green">{points ?? 0}</Tag>,
     },
     {
       title: '创建时间',
       dataIndex: 'createdAt',
       width: 180,
-      render: date => new Date(date).toLocaleString(),
+      render: (date) => new Date(date).toLocaleString(),
     },
     {
       title: '更新时间',
       dataIndex: 'updatedAt',
       width: 180,
-      render: date => new Date(date).toLocaleString(),
+      render: (date) => new Date(date).toLocaleString(),
     },
     {
       title: '操作',
@@ -239,7 +239,7 @@ export default function UserManagement() {
           <Input
             placeholder="搜索用户名或邮箱"
             value={keyword}
-            onChange={e => setKeyword(e.target.value)}
+            onChange={(e) => setKeyword(e.target.value)}
             onPressEnter={handleSearch}
             style={{ width: 250 }}
             allowClear
@@ -264,7 +264,7 @@ export default function UserManagement() {
           total,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: total => `共 ${total} 条`,
+          showTotal: (total) => `共 ${total} 条`,
           onChange: (page, pageSize) => {
             setPage(page);
             setPageSize(pageSize);
@@ -349,11 +349,7 @@ export default function UserManagement() {
             <InputNumber placeholder="请输入充值积分" style={{ width: '100%' }} min={1} />
           </Form.Item>
           <Form.Item label="赠送积分" name="bonus" extra="可选，额外赠送的积分">
-            <InputNumber
-              placeholder="请输入赠送积分（可选）"
-              style={{ width: '100%' }}
-              min={0}
-            />
+            <InputNumber placeholder="请输入赠送积分（可选）" style={{ width: '100%' }} min={0} />
           </Form.Item>
         </Form>
       </Modal>

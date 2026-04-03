@@ -23,9 +23,7 @@ export default function BatchImageGenerateExample({
 }: BatchImageGenerateExampleProps) {
   const [generating, setGenerating] = useState(false);
   const [jobIds, setJobIds] = useState<Array<string | number>>([]);
-  const [completedJobs, setCompletedJobs] = useState<Map<string | number, any>>(
-    new Map(),
-  );
+  const [completedJobs, setCompletedJobs] = useState<Map<string | number, any>>(new Map());
   const [failedJobs, setFailedJobs] = useState<Set<string | number>>(new Set());
 
   // 使用全局任务 store
@@ -35,8 +33,7 @@ export default function BatchImageGenerateExample({
   const totalCount = jobIds.length;
   const completedCount = completedJobs.size;
   const failedCount = failedJobs.size;
-  const allCompleted =
-    totalCount > 0 && completedCount + failedCount >= totalCount;
+  const allCompleted = totalCount > 0 && completedCount + failedCount >= totalCount;
 
   // 监听任务完成事件
   useEffect(() => {
@@ -108,7 +105,7 @@ export default function BatchImageGenerateExample({
             jobId,
             type: 'image' as const,
             shotId: shots[index]?.id,
-          })),
+          }))
         );
         message.info(`已提交 ${res.data.count} 个任务到队列`);
       } else {
@@ -123,9 +120,7 @@ export default function BatchImageGenerateExample({
 
   // 计算进度百分比
   const progress =
-    totalCount > 0
-      ? Math.round(((completedCount + failedCount) / totalCount) * 100)
-      : 0;
+    totalCount > 0 ? Math.round(((completedCount + failedCount) / totalCount) * 100) : 0;
 
   return (
     <div>
@@ -149,13 +144,7 @@ export default function BatchImageGenerateExample({
 
           <Progress
             percent={progress}
-            status={
-              failedCount > 0
-                ? 'exception'
-                : allCompleted
-                  ? 'success'
-                  : 'active'
-            }
+            status={failedCount > 0 ? 'exception' : allCompleted ? 'success' : 'active'}
           />
 
           <div style={{ marginTop: 12, fontSize: 14, color: '#666' }}>
@@ -170,11 +159,7 @@ export default function BatchImageGenerateExample({
             {jobIds.map((jobId) => {
               const isCompleted = completedJobs.has(jobId);
               const isFailed = failedJobs.has(jobId);
-              const state = isCompleted
-                ? 'completed'
-                : isFailed
-                  ? 'failed'
-                  : 'active';
+              const state = isCompleted ? 'completed' : isFailed ? 'failed' : 'active';
 
               return (
                 <div
@@ -196,8 +181,8 @@ export default function BatchImageGenerateExample({
                         state === 'completed'
                           ? '#52c41a'
                           : state === 'failed'
-                            ? '#ff4d4f'
-                            : '#1890ff',
+                          ? '#ff4d4f'
+                          : '#1890ff',
                     }}
                   >
                     {state === 'active' && '生成中'}

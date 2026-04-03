@@ -32,13 +32,7 @@ import {
   toggleModels,
 } from '@/api/model';
 import type { ColumnsType } from 'antd/es/table';
-import type {
-  AiModel,
-  Platform,
-  CreateModelRequest,
-  ModelConfig,
-  PricingTier,
-} from '@/api/model';
+import type { AiModel, Platform, CreateModelRequest, ModelConfig, PricingTier } from '@/api/model';
 
 const { TextArea } = Input;
 const { TabPane } = Tabs;
@@ -90,12 +84,7 @@ export default function ModelManagement() {
       const response = await getModels({
         type: typeFilter as any,
         platform: platformFilter,
-        enabled:
-          enabledFilter === 'true'
-            ? true
-            : enabledFilter === 'false'
-              ? false
-              : undefined,
+        enabled: enabledFilter === 'true' ? true : enabledFilter === 'false' ? false : undefined,
         page,
         pageSize,
       });
@@ -131,9 +120,7 @@ export default function ModelManagement() {
     setEditingModel(record);
     const pricing = (record as any).pricing || undefined;
     const billingMode = pricing?.billingMode || 'per_second';
-    const perSecondTiers = Array.isArray(pricing?.pricingTiers)
-      ? pricing.pricingTiers
-      : [];
+    const perSecondTiers = Array.isArray(pricing?.pricingTiers) ? pricing.pricingTiers : [];
     const perVideo = pricing?.perVideo;
     form.setFieldsValue({
       ...record,
@@ -210,9 +197,7 @@ export default function ModelManagement() {
         form.resetFields();
         fetchModels();
       } else {
-        message.error(
-          response.message || (editingModel ? '更新失败' : '创建失败'),
-        );
+        message.error(response.message || (editingModel ? '更新失败' : '创建失败'));
       }
     } catch (error: any) {
       console.error('提交失败:', error);
@@ -302,7 +287,7 @@ export default function ModelManagement() {
       render: (platform: string) => {
         const platformMap: Record<string, string> = platforms.reduce(
           (acc, p) => ({ ...acc, [p.id]: p.name }),
-          {},
+          {}
         );
         return platformMap[platform] || platform;
       },
@@ -335,11 +320,8 @@ export default function ModelManagement() {
       render: (_, record) => {
         if (record.type === 'image') {
           const pricing = (record as any).pricing || undefined;
-          const costPerImage = toSafeNumber(
-            pricing?.image?.costPerImage,
-          );
-          const creditsPerImage =
-            pricing?.image?.creditsPerImage;
+          const costPerImage = toSafeNumber(pricing?.image?.costPerImage);
+          const creditsPerImage = pricing?.image?.creditsPerImage;
           return (
             <div>
               <div>成本: ¥{costPerImage?.toFixed(4) ?? '0.0000'}</div>
@@ -351,21 +333,15 @@ export default function ModelManagement() {
           const billingMode = pricing?.billingMode || 'per_second';
           if (billingMode === 'per_video') {
             // 按次计费
-            const costPerVideo = toSafeNumber(
-              pricing?.perVideo?.costPerVideo,
-            );
-            const creditsPerVideo =
-              pricing?.perVideo?.creditsPerVideo;
+            const costPerVideo = toSafeNumber(pricing?.perVideo?.costPerVideo);
+            const creditsPerVideo = pricing?.perVideo?.creditsPerVideo;
             return (
               <div>
                 <div>按次: ¥{costPerVideo?.toFixed(2) ?? '0.00'}</div>
                 <div>积分: {creditsPerVideo ?? 0}</div>
               </div>
             );
-          } else if (
-            Array.isArray(pricing?.pricingTiers) &&
-            pricing.pricingTiers.length
-          ) {
+          } else if (Array.isArray(pricing?.pricingTiers) && pricing.pricingTiers.length) {
             // 按秒计费
             const tiers = pricing.pricingTiers;
             return (
@@ -473,19 +449,11 @@ export default function ModelManagement() {
             <Space>
               {selectedRowKeys.length > 0 && (
                 <>
-                  <Button onClick={() => handleBatchToggle(true)}>
-                    批量启用
-                  </Button>
-                  <Button onClick={() => handleBatchToggle(false)}>
-                    批量禁用
-                  </Button>
+                  <Button onClick={() => handleBatchToggle(true)}>批量启用</Button>
+                  <Button onClick={() => handleBatchToggle(false)}>批量禁用</Button>
                 </>
               )}
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleCreate}
-              >
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
                 新建模型
               </Button>
             </Space>
@@ -578,20 +546,12 @@ export default function ModelManagement() {
                 </Select>
               </Form.Item>
 
-              <Form.Item
-                label="启用"
-                name="enabled"
-                valuePropName="checked"
-                initialValue={true}
-              >
+              <Form.Item label="启用" name="enabled" valuePropName="checked" initialValue={true}>
                 <Switch />
               </Form.Item>
 
               <Form.Item label="优先级" name="priority" initialValue={0}>
-                <InputNumber
-                  placeholder="数值越大优先级越高"
-                  style={{ width: '100%' }}
-                />
+                <InputNumber placeholder="数值越大优先级越高" style={{ width: '100%' }} />
               </Form.Item>
             </TabPane>
 
@@ -635,9 +595,7 @@ export default function ModelManagement() {
                   >
                     <Select>
                       <Select.Option value="per_second">按秒计费</Select.Option>
-                      <Select.Option value="per_video">
-                        按次计费（固定时长）
-                      </Select.Option>
+                      <Select.Option value="per_video">按次计费（固定时长）</Select.Option>
                     </Select>
                   </Form.Item>
 
@@ -693,11 +651,7 @@ function ImageConfigForm() {
         <Switch />
       </Form.Item>
 
-      <Form.Item
-        label="支持随机种子"
-        name={['config', 'supportSeed']}
-        valuePropName="checked"
-      >
+      <Form.Item label="支持随机种子" name={['config', 'supportSeed']} valuePropName="checked">
         <Switch />
       </Form.Item>
 
@@ -729,11 +683,7 @@ function VideoConfigForm() {
       </Form.Item>
 
       <Form.Item label="最大参考图数量" name={['config', 'maxImages']}>
-        <InputNumber
-          placeholder="ref2v 模式用"
-          style={{ width: '100%' }}
-          min={1}
-        />
+        <InputNumber placeholder="ref2v 模式用" style={{ width: '100%' }} min={1} />
       </Form.Item>
 
       <Form.Item label="分辨率选项" name={['config', 'resolutions']}>
@@ -748,11 +698,7 @@ function VideoConfigForm() {
         <Switch />
       </Form.Item>
 
-      <Form.Item
-        label="支持水印控制"
-        name={['config', 'supportWatermark']}
-        valuePropName="checked"
-      >
+      <Form.Item label="支持水印控制" name={['config', 'supportWatermark']} valuePropName="checked">
         <Switch />
       </Form.Item>
 
@@ -798,8 +744,7 @@ function VideoPricingForm() {
   // 处理1秒成本变化，自动计算5秒成本和积分
   const handleCost1sChange = (value: number | null, name: number) => {
     if (value === null) return;
-    const tiers =
-      form.getFieldValue(['pricing', 'pricingTiers']) || [];
+    const tiers = form.getFieldValue(['pricing', 'pricingTiers']) || [];
     const multiplier = tiers[name]?.multiplier;
     tiers[name] = {
       ...tiers[name],
@@ -813,8 +758,7 @@ function VideoPricingForm() {
   // 处理5秒成本变化，自动计算1秒成本和积分
   const handleCost5sChange = (value: number | null, name: number) => {
     if (value === null) return;
-    const tiers =
-      form.getFieldValue(['pricing', 'pricingTiers']) || [];
+    const tiers = form.getFieldValue(['pricing', 'pricingTiers']) || [];
     const multiplier = tiers[name]?.multiplier;
     const cost1s = Math.ceil((value / 5) * 100) / 100; // 向上取整到分
     tiers[name] = {
@@ -829,8 +773,7 @@ function VideoPricingForm() {
   // 应用计算结果到表单
   const applyCalcResult = (name: number) => {
     if (!calcResult) return;
-    const tiers =
-      form.getFieldValue(['pricing', 'pricingTiers']) || [];
+    const tiers = form.getFieldValue(['pricing', 'pricingTiers']) || [];
     const multiplier = tiers[name]?.multiplier || 2;
     const cost1s = calcResult.cost5s / 5;
     tiers[name] = {
@@ -846,8 +789,7 @@ function VideoPricingForm() {
   // 处理倍率变化，自动重新计算积分（按秒计费）
   const handleMultiplierChange = (value: number | null, name: number) => {
     if (value === null) return;
-    const tiers =
-      form.getFieldValue(['pricing', 'pricingTiers']) || [];
+    const tiers = form.getFieldValue(['pricing', 'pricingTiers']) || [];
     const cost1s = tiers[name]?.cost1s || 0;
     tiers[name] = {
       ...tiers[name],
@@ -860,26 +802,18 @@ function VideoPricingForm() {
   // 处理每次成本变化，自动计算积分
   const handleCostPerVideoChange = (value: number | null) => {
     if (value === null) return;
-    const multiplier =
-      form.getFieldValue(['pricing', 'perVideo', 'multiplier']) || 2;
+    const multiplier = form.getFieldValue(['pricing', 'perVideo', 'multiplier']) || 2;
     const creditsPerVideo = Math.round(value * 10 * multiplier);
-    form.setFieldValue(
-      ['pricing', 'perVideo', 'creditsPerVideo'],
-      creditsPerVideo,
-    );
+    form.setFieldValue(['pricing', 'perVideo', 'creditsPerVideo'], creditsPerVideo);
   };
 
   // 处理倍率变化，自动重新计算积分（按次计费）
   const handleVideoMultiplierChange = (value: number | null) => {
     if (value === null) return;
-    const costPerVideo =
-      form.getFieldValue(['pricing', 'perVideo', 'costPerVideo']) || 0;
+    const costPerVideo = form.getFieldValue(['pricing', 'perVideo', 'costPerVideo']) || 0;
     const creditsPerVideo = Math.round(costPerVideo * 10 * value);
     form.setFieldValue(['pricing', 'perVideo', 'multiplier'], value);
-    form.setFieldValue(
-      ['pricing', 'perVideo', 'creditsPerVideo'],
-      creditsPerVideo,
-    );
+    form.setFieldValue(['pricing', 'perVideo', 'creditsPerVideo'], creditsPerVideo);
   };
 
   return (
@@ -917,9 +851,7 @@ function VideoPricingForm() {
                             min={0}
                             step={0.01}
                             precision={2}
-                            onChange={(value) =>
-                              handleCost1sChange(value, name)
-                            }
+                            onChange={(value) => handleCost1sChange(value, name)}
                           />
                         </Form.Item>
 
@@ -946,9 +878,7 @@ function VideoPricingForm() {
                             min={0}
                             step={0.01}
                             precision={2}
-                            onChange={(value) =>
-                              handleCost5sChange(value, name)
-                            }
+                            onChange={(value) => handleCost5sChange(value, name)}
                           />
                         </Form.Item>
 
@@ -965,9 +895,7 @@ function VideoPricingForm() {
                             min={0.1}
                             step={0.1}
                             precision={1}
-                            onChange={(value) =>
-                              handleMultiplierChange(value, name)
-                            }
+                            onChange={(value) => handleMultiplierChange(value, name)}
                           />
                         </Form.Item>
 
@@ -997,11 +925,7 @@ function VideoPricingForm() {
                       {calcVisible && (
                         <Card size="small" style={{ background: '#f5f5f5' }}>
                           <Space direction="vertical" style={{ width: '100%' }}>
-                            <div
-                              style={{ fontWeight: 'bold', marginBottom: 8 }}
-                            >
-                              价格计算器
-                            </div>
+                            <div style={{ fontWeight: 'bold', marginBottom: 8 }}>价格计算器</div>
                             <Space>
                               <InputNumber
                                 placeholder="Tokens 消耗"
@@ -1013,9 +937,7 @@ function VideoPricingForm() {
                               <InputNumber
                                 placeholder="Token 单价"
                                 value={calcTokenPrice}
-                                onChange={(v) =>
-                                  setCalcTokenPrice(v ?? undefined)
-                                }
+                                onChange={(v) => setCalcTokenPrice(v ?? undefined)}
                                 style={{ width: 150 }}
                                 addonAfter="元/千tokens"
                                 step={0.001}
@@ -1034,12 +956,8 @@ function VideoPricingForm() {
                                   borderRadius: 4,
                                 }}
                               >
-                                <div>
-                                  5秒成本: ¥{calcResult.cost5s.toFixed(2)}
-                                </div>
-                                <div>
-                                  每秒积分: {calcResult.creditsPerSecond}
-                                </div>
+                                <div>5秒成本: ¥{calcResult.cost5s.toFixed(2)}</div>
+                                <div>每秒积分: {calcResult.creditsPerSecond}</div>
                                 <Button
                                   size="small"
                                   type="link"
@@ -1055,11 +973,7 @@ function VideoPricingForm() {
                     </Space>
                   </Card>
                 ))}
-                <Button
-                  type="dashed"
-                  onClick={() => add({ multiplier: 2 })}
-                  block
-                >
+                <Button type="dashed" onClick={() => add({ multiplier: 2 })} block>
                   添加定价层级
                 </Button>
               </>
@@ -1077,11 +991,7 @@ function VideoPricingForm() {
             rules={[{ required: true, message: '请输入固定时长' }]}
             extra="如 Grok Video 3 固定 5 秒"
           >
-            <InputNumber
-              placeholder="固定时长"
-              style={{ width: '100%' }}
-              min={4}
-            />
+            <InputNumber placeholder="固定时长" style={{ width: '100%' }} min={4} />
           </Form.Item>
 
           <Form.Item

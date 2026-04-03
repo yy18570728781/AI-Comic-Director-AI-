@@ -21,7 +21,6 @@ export function getWechatLoginStatus(sceneId: string) {
   });
 }
 
-
 /**
  * 获取当前用户的微信 openid（需要在微信浏览器内）
  */

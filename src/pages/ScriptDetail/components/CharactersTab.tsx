@@ -1,17 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Button,
-  Space,
-  Card,
-  message,
-  Modal,
-  Spin,
-  Image,
-  Tag,
-  Checkbox,
-  Empty,
-  Tabs,
-} from 'antd';
+import { Button, Space, Card, message, Modal, Spin, Image, Tag, Checkbox, Empty, Tabs } from 'antd';
 import {
   UserAddOutlined,
   ReloadOutlined,
@@ -37,7 +25,10 @@ import {
 } from '@/pages/CharacterLibrary/ScriptCharacters/config';
 import ImageGenerateModal from '@/components/ImageGenerateModal';
 import AutoBindingButton from '@/components/AutoBindingButton';
-import type { ImageGenerateSubmitValues, ImageGenerateFormValues } from '@/components/ImageGenerateModal';
+import type {
+  ImageGenerateSubmitValues,
+  ImageGenerateFormValues,
+} from '@/components/ImageGenerateModal';
 import { generateImageAsync } from '@/api/ai';
 import { useTaskStore } from '@/stores/useTaskStore';
 import { onTaskComplete } from '@/components/GlobalTaskPoller';
@@ -61,7 +52,9 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
 
   const [generateModalVisible, setGenerateModalVisible] = useState(false);
   const [generateLoading, setGenerateLoading] = useState(false);
-  const [selectedCharacterForImage, setSelectedCharacterForImage] = useState<SavedCharacter | null>(null);
+  const [selectedCharacterForImage, setSelectedCharacterForImage] = useState<SavedCharacter | null>(
+    null
+  );
 
   const fetchSavedCharacters = async () => {
     if (!currentUser) {
@@ -100,10 +93,8 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
         const imageUrl = event.result?.savedImage?.url || event.result?.images?.[0]?.url;
         if (!imageUrl) return;
 
-        setSavedCharacters(prev =>
-          prev.map(c =>
-            c.id === event.characterId ? { ...c, imageUrl } : c
-          )
+        setSavedCharacters((prev) =>
+          prev.map((c) => (c.id === event.characterId ? { ...c, imageUrl } : c))
         );
       }
     });
@@ -117,9 +108,11 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
       if (response.success) {
         const characters = response.data.characters || [];
         setExtractedCharacters(characters);
-        setSelectedCharacters(characters.map((c: ExtractedCharacter) => 
-          `${c.characterGroup || c.name}-${c.variant || '默认'}`
-        ));
+        setSelectedCharacters(
+          characters.map(
+            (c: ExtractedCharacter) => `${c.characterGroup || c.name}-${c.variant || '默认'}`
+          )
+        );
         setHasExtracted(true);
         message.success(messages.extractSuccess(characters.length));
       } else {
@@ -140,7 +133,7 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
     }
 
     const charactersToSave = extractedCharacters.filter((c) =>
-      selectedCharacters.includes(`${c.characterGroup || c.name}-${c.variant || '默认'}`),
+      selectedCharacters.includes(`${c.characterGroup || c.name}-${c.variant || '默认'}`)
     );
 
     if (charactersToSave.length === 0) {
@@ -149,12 +142,12 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
     }
 
     const duplicateKeys = charactersToSave
-      .map(c => `${c.characterGroup || c.name}-${c.variant || '默认'}`)
-      .filter(key => {
+      .map((c) => `${c.characterGroup || c.name}-${c.variant || '默认'}`)
+      .filter((key) => {
         const [group, variant] = key.split('-');
-        return savedCharacters.some(saved => 
-          (saved.characterGroup || saved.name) === group && 
-          (saved.variant || '默认') === variant
+        return savedCharacters.some(
+          (saved) =>
+            (saved.characterGroup || saved.name) === group && (saved.variant || '默认') === variant
         );
       });
 
@@ -165,8 +158,10 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
           <div>
             <p>以下角色形态已存在于角色库中，无法重复保存：</p>
             <ul style={{ marginTop: 8, marginBottom: 8 }}>
-              {duplicateKeys.map(key => (
-                <li key={key} style={{ color: '#ff4d4f' }}>{key}</li>
+              {duplicateKeys.map((key) => (
+                <li key={key} style={{ color: '#ff4d4f' }}>
+                  {key}
+                </li>
               ))}
             </ul>
             <p style={{ marginTop: 12, color: '#666' }}>
@@ -265,9 +260,8 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
       return;
     }
 
-    const variantText = character.variant && character.variant !== '默认' 
-      ? ` (${character.variant})` 
-      : '';
+    const variantText =
+      character.variant && character.variant !== '默认' ? ` (${character.variant})` : '';
 
     Modal.confirm({
       title: '确认删除',
@@ -309,325 +303,536 @@ function CharactersTab({ scriptId }: CharactersTabProps) {
       {resourceType === 'character' && (
         <>
           {/* 已保存角色列表 */}
-          <Card style={{ 
-        marginBottom: '24px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-        background: 'rgba(255, 255, 255, 0.95)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#333' }}>已保存角色</h3>
-            <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '14px' }}>
-              当前用户已保存到角色库的所有角色
-            </p>
-          </div>
-          <Space>
-            <AutoBindingButton 
-              scriptId={scriptId}
-              onBindingComplete={() => {
-                message.success('角色绑定完成，分镜数据已更新')
-                // 可以在这里刷新相关数据
-              }}
-              onBindingError={(error) => {
-                console.error('角色绑定失败:', error)
-              }}
-            />
-            <Button onClick={fetchSavedCharacters} loading={loadingSaved}>
-              {buttonTexts.refreshSaved}
-            </Button>
-          </Space>
-        </div>
-
-        {loadingSaved ? (
-          <div style={{ textAlign: 'center', padding: '60px 0' }}>
-            <Spin size="large" tip="加载中..." />
-          </div>
-        ) : savedCharacters.length === 0 ? (
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description="暂无已保存的角色"
-            style={{ padding: '40px 0' }}
+          <Card
+            style={{
+              marginBottom: '24px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              background: 'rgba(255, 255, 255, 0.95)',
+            }}
           >
-            <div style={{ color: '#999', fontSize: 12 }}>
-              请先提取并保存角色到角色库
-            </div>
-          </Empty>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-            {savedCharacters.map((character) => (
-              <Card
-                key={character.id}
-                hoverable
-                style={{ 
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                  transition: 'all 0.3s ease',
-                  border: '1px solid rgba(102, 126, 234, 0.2)'
-                }}
-                styles={{ body: { padding: '16px' } }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.3)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                }}
-                cover={
-                  <div style={{ width: '100%', height: 200, backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                    {character.imageUrl ? (
-                      <Image
-                        src={character.imageUrl}
-                        alt={character.name}
-                        width="100%"
-                        height={200}
-                        style={{ objectFit: 'contain' }}
-                        preview={{ mask: <div style={{ color: '#fff', fontSize: 14 }}>{character.name}</div> }}
-                        fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E暂无图片%3C/text%3E%3C/svg%3E"
-                      />
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
-                        <UserOutlined style={{ fontSize: 48, marginBottom: 8 }} />
-                        <div style={{ fontSize: 12 }}>暂无角色图片</div>
-                      </div>
-                    )}
-                    <div style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', borderRadius: 4, padding: '2px 6px' }}>
-                      <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>{character.id}</Tag>
-                    </div>
-                  </div>
-                }
-              >
-                <Card.Meta
-                  title={
-                    <div style={{ fontSize: 16, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {character.name}
-                      {character.variant && character.variant !== '默认' && (
-                        <Tag color="purple" style={{ marginLeft: 8, fontSize: 12 }}>{character.variant}</Tag>
-                      )}
-                    </div>
-                  }
-                  description={
-                    <div>
-                      {character.tags && character.tags.length > 0 && (
-                        <div style={{ marginBottom: 8 }}>
-                          {character.tags.map((tag, idx) => (
-                            <Tag key={idx} color="blue" style={{ fontSize: 11, marginBottom: 4 }}>{tag}</Tag>
-                          ))}
-                        </div>
-                      )}
-                      {character.description && (
-                        <div style={{ fontSize: 13, color: '#666', marginBottom: 8, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4' }}>
-                          {character.description}
-                        </div>
-                      )}
-                      <div style={{ fontSize: 12, color: '#999', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                        <span>创建时间</span>
-                        <span>{new Date(character.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        <Button size="small" type="primary" icon={<PictureOutlined />} onClick={() => handleGenerateCharacterImage(character)}>
-                          生成图像
-                        </Button>
-                        <Button size="small" icon={<UploadOutlined />} onClick={() => message.info('图像上传功能开发中...')}>
-                          上传图像
-                        </Button>
-                        <Button size="small" danger icon={<DeleteOutlined />} onClick={() => handleDeleteCharacter(character)}>
-                          删除
-                        </Button>
-                      </div>
-                    </div>
-                  }
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#333' }}>
+                  已保存角色
+                </h3>
+                <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '14px' }}>
+                  当前用户已保存到角色库的所有角色
+                </p>
+              </div>
+              <Space>
+                <AutoBindingButton
+                  scriptId={scriptId}
+                  onBindingComplete={() => {
+                    message.success('角色绑定完成，分镜数据已更新');
+                    // 可以在这里刷新相关数据
+                  }}
+                  onBindingError={(error) => {
+                    console.error('角色绑定失败:', error);
+                  }}
                 />
-              </Card>
-            ))}
-          </div>
-        )}
-      </Card>
+                <Button onClick={fetchSavedCharacters} loading={loadingSaved}>
+                  {buttonTexts.refreshSaved}
+                </Button>
+              </Space>
+            </div>
 
-      {/* 操作区域 */}
-      <Card style={{ borderRadius: '12px', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', background: 'rgba(255, 255, 255, 0.95)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#333' }}>提取新角色</h3>
-            <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '14px' }}>
-              从剧本内容和分镜数据中提取角色信息
-            </p>
-          </div>
-          <Space>
-            {!hasExtracted ? (
-              <Button type="primary" icon={<UserAddOutlined />} loading={extracting} onClick={handleExtractCharacters}>
-                {buttonTexts.extract}
-              </Button>
+            {loadingSaved ? (
+              <div style={{ textAlign: 'center', padding: '60px 0' }}>
+                <Spin size="large" tip="加载中..." />
+              </div>
+            ) : savedCharacters.length === 0 ? (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="暂无已保存的角色"
+                style={{ padding: '40px 0' }}
+              >
+                <div style={{ color: '#999', fontSize: 12 }}>请先提取并保存角色到角色库</div>
+              </Empty>
             ) : (
-              <>
-                <Button icon={<ReloadOutlined />} loading={extracting} onClick={handleExtractCharacters}>
-                  {buttonTexts.reExtract}
-                </Button>
-                <Button type="primary" loading={saving} onClick={handleSaveCharacters} disabled={selectedCharacters.length === 0}>
-                  {buttonTexts.save} ({selectedCharacters.length})
-                </Button>
-              </>
-            )}
-          </Space>
-        </div>
-
-        {extracting && (
-          <div style={{ textAlign: 'center', padding: '40px' }}>
-            <Spin size="large" />
-            <div style={{ marginTop: '16px', color: '#666' }}>{emptyStates.loading.title}</div>
-          </div>
-        )}
-
-        {!extracting && hasExtracted && (
-          <>
-            {extractedCharacters.length > 0 ? (
-              <>
-                <div style={{ marginBottom: '16px' }}>
-                  <p>提取到 <strong>{extractedCharacters.length}</strong> 个角色，请选择要保存到角色库的角色：</p>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-                  {extractedCharacters.map((character) => {
-                    const characterKey = `${character.characterGroup || character.name}-${character.variant || '默认'}`;
-                    const isSelected = selectedCharacters.includes(characterKey);
-                    const isDuplicate = savedCharacters.some(saved => 
-                      (saved.characterGroup || saved.name) === (character.characterGroup || character.name) &&
-                      (saved.variant || '默认') === (character.variant || '默认')
-                    );
-                    return (
-                      <Card
-                        key={characterKey}
-                        hoverable
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: 16,
+                }}
+              >
+                {savedCharacters.map((character) => (
+                  <Card
+                    key={character.id}
+                    hoverable
+                    style={{
+                      borderRadius: '12px',
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+                      transition: 'all 0.3s ease',
+                      border: '1px solid rgba(102, 126, 234, 0.2)',
+                    }}
+                    styles={{ body: { padding: '16px' } }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                    }}
+                    cover={
+                      <div
                         style={{
-                          borderRadius: '12px',
-                          overflow: 'hidden',
-                          border: isSelected ? '2px solid #667eea' : '1px solid rgba(102, 126, 234, 0.2)',
-                          cursor: 'pointer',
-                          opacity: isDuplicate ? 0.7 : 1,
-                          boxShadow: isSelected ? '0 4px 16px rgba(102, 126, 234, 0.4)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
-                          transition: 'all 0.3s ease'
+                          width: '100%',
+                          height: 200,
+                          backgroundColor: '#f5f5f5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          position: 'relative',
                         }}
-                        styles={{ body: { padding: '16px' } }}
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedCharacters((prev) => prev.filter((key) => key !== characterKey));
-                          } else {
-                            setSelectedCharacters((prev) => [...prev, characterKey]);
-                          }
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.transform = 'translateY(-4px)';
-                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.3)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.transform = 'translateY(0)';
-                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                          }
-                        }}
-                        cover={
-                          <div style={{ width: '100%', height: 200, backgroundColor: '#f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
-                              <UserOutlined style={{ fontSize: 48, marginBottom: 8 }} />
-                              <div style={{ fontSize: 12 }}>暂无角色图片</div>
-                            </div>
-                            <Checkbox checked={isSelected} style={{ position: 'absolute', top: 8, right: 8, zIndex: 10 }} onClick={(e) => e.stopPropagation()} />
-                            {isDuplicate && (
-                              <Tag color="warning" style={{ position: 'absolute', top: 8, left: 8, margin: 0 }}>已存在</Tag>
-                            )}
-                          </div>
-                        }
                       >
-                        <Card.Meta
-                          title={
-                            <div style={{ fontSize: 16, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {character.name}
-                              {character.variant && character.variant !== '默认' && (
-                                <Tag color="purple" style={{ marginLeft: 8, fontSize: 12 }}>{character.variant}</Tag>
-                              )}
+                        {character.imageUrl ? (
+                          <Image
+                            src={character.imageUrl}
+                            alt={character.name}
+                            width="100%"
+                            height={200}
+                            style={{ objectFit: 'contain' }}
+                            preview={{
+                              mask: (
+                                <div style={{ color: '#fff', fontSize: 14 }}>{character.name}</div>
+                              ),
+                            }}
+                            fallback="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%23f0f0f0' width='200' height='200'/%3E%3Ctext fill='%23999' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3E暂无图片%3C/text%3E%3C/svg%3E"
+                          />
+                        ) : (
+                          <div
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#999',
+                            }}
+                          >
+                            <UserOutlined style={{ fontSize: 48, marginBottom: 8 }} />
+                            <div style={{ fontSize: 12 }}>暂无角色图片</div>
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: 8,
+                            right: 8,
+                            background: 'rgba(0,0,0,0.6)',
+                            borderRadius: 4,
+                            padding: '2px 6px',
+                          }}
+                        >
+                          <Tag color="blue" style={{ margin: 0, fontSize: 11 }}>
+                            {character.id}
+                          </Tag>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <Card.Meta
+                      title={
+                        <div
+                          style={{
+                            fontSize: 16,
+                            fontWeight: 600,
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {character.name}
+                          {character.variant && character.variant !== '默认' && (
+                            <Tag color="purple" style={{ marginLeft: 8, fontSize: 12 }}>
+                              {character.variant}
+                            </Tag>
+                          )}
+                        </div>
+                      }
+                      description={
+                        <div>
+                          {character.tags && character.tags.length > 0 && (
+                            <div style={{ marginBottom: 8 }}>
+                              {character.tags.map((tag, idx) => (
+                                <Tag
+                                  key={idx}
+                                  color="blue"
+                                  style={{ fontSize: 11, marginBottom: 4 }}
+                                >
+                                  {tag}
+                                </Tag>
+                              ))}
                             </div>
-                          }
-                          description={
-                            <div>
-                              {character.tags && character.tags.length > 0 && (
-                                <div style={{ marginBottom: 8 }}>
-                                  {character.tags.map((tag, idx) => (
-                                    <Tag key={idx} color="blue" style={{ fontSize: 11, marginBottom: 4 }}>{tag}</Tag>
-                                  ))}
-                                </div>
-                              )}
-                              {character.description && (
-                                <div style={{ fontSize: 13, color: '#666', marginBottom: 8, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4' }}>
-                                  {character.description}
-                                </div>
-                              )}
-                              {character.appearance && (
-                                <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
-                                  <strong>外貌：</strong>
-                                  <span style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                                    {character.appearance}
-                                  </span>
-                                </div>
-                              )}
+                          )}
+                          {character.description && (
+                            <div
+                              style={{
+                                fontSize: 13,
+                                color: '#666',
+                                marginBottom: 8,
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                lineHeight: '1.4',
+                              }}
+                            >
+                              {character.description}
                             </div>
-                          }
-                        />
-                      </Card>
-                    );
-                  })}
-                </div>
-              </>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                <p>{emptyStates.noCharacters.title}</p>
-                <p>可能的原因：</p>
-                <ul style={{ textAlign: 'left', display: 'inline-block' }}>
-                  {emptyStates.noCharacters.reasons.map((reason, index) => (
-                    <li key={index}>{reason}</li>
-                  ))}
-                </ul>
+                          )}
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: '#999',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              marginBottom: 8,
+                            }}
+                          >
+                            <span>创建时间</span>
+                            <span>{new Date(character.createdAt).toLocaleDateString()}</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <Button
+                              size="small"
+                              type="primary"
+                              icon={<PictureOutlined />}
+                              onClick={() => handleGenerateCharacterImage(character)}
+                            >
+                              生成图像
+                            </Button>
+                            <Button
+                              size="small"
+                              icon={<UploadOutlined />}
+                              onClick={() => message.info('图像上传功能开发中...')}
+                            >
+                              上传图像
+                            </Button>
+                            <Button
+                              size="small"
+                              danger
+                              icon={<DeleteOutlined />}
+                              onClick={() => handleDeleteCharacter(character)}
+                            >
+                              删除
+                            </Button>
+                          </div>
+                        </div>
+                      }
+                    />
+                  </Card>
+                ))}
               </div>
             )}
-          </>
-        )}
+          </Card>
 
-        {!extracting && !hasExtracted && (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-            <div style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }}>{emptyStates.initial.icon}</div>
-            <p>{emptyStates.initial.title}</p>
-            <p style={{ fontSize: '12px' }}>{emptyStates.initial.description}</p>
-          </div>
-        )}
-      </Card>
+          {/* 操作区域 */}
+          <Card
+            style={{
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              background: 'rgba(255, 255, 255, 0.95)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 600, color: '#333' }}>
+                  提取新角色
+                </h3>
+                <p style={{ margin: '4px 0 0 0', color: '#666', fontSize: '14px' }}>
+                  从剧本内容和分镜数据中提取角色信息
+                </p>
+              </div>
+              <Space>
+                {!hasExtracted ? (
+                  <Button
+                    type="primary"
+                    icon={<UserAddOutlined />}
+                    loading={extracting}
+                    onClick={handleExtractCharacters}
+                  >
+                    {buttonTexts.extract}
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      icon={<ReloadOutlined />}
+                      loading={extracting}
+                      onClick={handleExtractCharacters}
+                    >
+                      {buttonTexts.reExtract}
+                    </Button>
+                    <Button
+                      type="primary"
+                      loading={saving}
+                      onClick={handleSaveCharacters}
+                      disabled={selectedCharacters.length === 0}
+                    >
+                      {buttonTexts.save} ({selectedCharacters.length})
+                    </Button>
+                  </>
+                )}
+              </Space>
+            </div>
 
-      <ImageGenerateModal
-        visible={generateModalVisible}
-        title={
-          selectedCharacterForImage 
-            ? `生成角色图像 - ${selectedCharacterForImage.name}${
-                selectedCharacterForImage.variant && selectedCharacterForImage.variant !== '默认' 
-                  ? ` (${selectedCharacterForImage.variant})` 
-                  : ''
-              }` 
-            : '生成图像'
-        }
-        initialValues={{
-          shotType: '全景',
-          scene: '纯白色背景',
-          imagePrompt: selectedCharacterForImage?.description || '',
-        }}
-        scriptId={scriptId}
-        loading={generateLoading}
-        onCancel={() => {
-          setGenerateModalVisible(false);
-          setSelectedCharacterForImage(null);
-        }}
-        onSubmit={handleImageSubmit}
-        onSave={handleSavePrompt}
-      />
+            {extracting && (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <Spin size="large" />
+                <div style={{ marginTop: '16px', color: '#666' }}>{emptyStates.loading.title}</div>
+              </div>
+            )}
+
+            {!extracting && hasExtracted && (
+              <>
+                {extractedCharacters.length > 0 ? (
+                  <>
+                    <div style={{ marginBottom: '16px' }}>
+                      <p>
+                        提取到 <strong>{extractedCharacters.length}</strong>{' '}
+                        个角色，请选择要保存到角色库的角色：
+                      </p>
+                    </div>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                        gap: 16,
+                      }}
+                    >
+                      {extractedCharacters.map((character) => {
+                        const characterKey = `${character.characterGroup || character.name}-${
+                          character.variant || '默认'
+                        }`;
+                        const isSelected = selectedCharacters.includes(characterKey);
+                        const isDuplicate = savedCharacters.some(
+                          (saved) =>
+                            (saved.characterGroup || saved.name) ===
+                              (character.characterGroup || character.name) &&
+                            (saved.variant || '默认') === (character.variant || '默认')
+                        );
+                        return (
+                          <Card
+                            key={characterKey}
+                            hoverable
+                            style={{
+                              borderRadius: '12px',
+                              overflow: 'hidden',
+                              border: isSelected
+                                ? '2px solid #667eea'
+                                : '1px solid rgba(102, 126, 234, 0.2)',
+                              cursor: 'pointer',
+                              opacity: isDuplicate ? 0.7 : 1,
+                              boxShadow: isSelected
+                                ? '0 4px 16px rgba(102, 126, 234, 0.4)'
+                                : '0 2px 8px rgba(0, 0, 0, 0.1)',
+                              transition: 'all 0.3s ease',
+                            }}
+                            styles={{ body: { padding: '16px' } }}
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedCharacters((prev) =>
+                                  prev.filter((key) => key !== characterKey)
+                                );
+                              } else {
+                                setSelectedCharacters((prev) => [...prev, characterKey]);
+                              }
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.transform = 'translateY(-4px)';
+                                e.currentTarget.style.boxShadow =
+                                  '0 8px 24px rgba(102, 126, 234, 0.3)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                              }
+                            }}
+                            cover={
+                              <div
+                                style={{
+                                  width: '100%',
+                                  height: 200,
+                                  backgroundColor: '#f5f5f5',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  position: 'relative',
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#999',
+                                  }}
+                                >
+                                  <UserOutlined style={{ fontSize: 48, marginBottom: 8 }} />
+                                  <div style={{ fontSize: 12 }}>暂无角色图片</div>
+                                </div>
+                                <Checkbox
+                                  checked={isSelected}
+                                  style={{ position: 'absolute', top: 8, right: 8, zIndex: 10 }}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                {isDuplicate && (
+                                  <Tag
+                                    color="warning"
+                                    style={{ position: 'absolute', top: 8, left: 8, margin: 0 }}
+                                  >
+                                    已存在
+                                  </Tag>
+                                )}
+                              </div>
+                            }
+                          >
+                            <Card.Meta
+                              title={
+                                <div
+                                  style={{
+                                    fontSize: 16,
+                                    fontWeight: 600,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {character.name}
+                                  {character.variant && character.variant !== '默认' && (
+                                    <Tag color="purple" style={{ marginLeft: 8, fontSize: 12 }}>
+                                      {character.variant}
+                                    </Tag>
+                                  )}
+                                </div>
+                              }
+                              description={
+                                <div>
+                                  {character.tags && character.tags.length > 0 && (
+                                    <div style={{ marginBottom: 8 }}>
+                                      {character.tags.map((tag, idx) => (
+                                        <Tag
+                                          key={idx}
+                                          color="blue"
+                                          style={{ fontSize: 11, marginBottom: 4 }}
+                                        >
+                                          {tag}
+                                        </Tag>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {character.description && (
+                                    <div
+                                      style={{
+                                        fontSize: 13,
+                                        color: '#666',
+                                        marginBottom: 8,
+                                        display: '-webkit-box',
+                                        WebkitLineClamp: 3,
+                                        WebkitBoxOrient: 'vertical',
+                                        overflow: 'hidden',
+                                        lineHeight: '1.4',
+                                      }}
+                                    >
+                                      {character.description}
+                                    </div>
+                                  )}
+                                  {character.appearance && (
+                                    <div style={{ fontSize: 12, color: '#999', marginTop: 4 }}>
+                                      <strong>外貌：</strong>
+                                      <span
+                                        style={{
+                                          display: '-webkit-box',
+                                          WebkitLineClamp: 2,
+                                          WebkitBoxOrient: 'vertical',
+                                          overflow: 'hidden',
+                                        }}
+                                      >
+                                        {character.appearance}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              }
+                            />
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                    <p>{emptyStates.noCharacters.title}</p>
+                    <p>可能的原因：</p>
+                    <ul style={{ textAlign: 'left', display: 'inline-block' }}>
+                      {emptyStates.noCharacters.reasons.map((reason, index) => (
+                        <li key={index}>{reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
+
+            {!extracting && !hasExtracted && (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                <div style={{ fontSize: '48px', color: '#d9d9d9', marginBottom: '16px' }}>
+                  {emptyStates.initial.icon}
+                </div>
+                <p>{emptyStates.initial.title}</p>
+                <p style={{ fontSize: '12px' }}>{emptyStates.initial.description}</p>
+              </div>
+            )}
+          </Card>
+
+          <ImageGenerateModal
+            visible={generateModalVisible}
+            title={
+              selectedCharacterForImage
+                ? `生成角色图像 - ${selectedCharacterForImage.name}${
+                    selectedCharacterForImage.variant &&
+                    selectedCharacterForImage.variant !== '默认'
+                      ? ` (${selectedCharacterForImage.variant})`
+                      : ''
+                  }`
+                : '生成图像'
+            }
+            initialValues={{
+              shotType: '全景',
+              scene: '纯白色背景',
+              imagePrompt: selectedCharacterForImage?.description || '',
+            }}
+            scriptId={scriptId}
+            loading={generateLoading}
+            onCancel={() => {
+              setGenerateModalVisible(false);
+              setSelectedCharacterForImage(null);
+            }}
+            onSubmit={handleImageSubmit}
+            onSave={handleSavePrompt}
+          />
         </>
       )}
 

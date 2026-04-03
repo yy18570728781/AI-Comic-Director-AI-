@@ -51,11 +51,7 @@ export default function ReferenceImageSelector({
       key: 'upload',
       label: '自定义上传',
       children: (
-        <CustomUploadTab
-          maxCount={maxCount}
-          value={selectedImages}
-          onChange={setSelectedImages}
-        />
+        <CustomUploadTab maxCount={maxCount} value={selectedImages} onChange={setSelectedImages} />
       ),
     },
     {

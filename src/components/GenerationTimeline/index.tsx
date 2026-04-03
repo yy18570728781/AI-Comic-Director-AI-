@@ -237,7 +237,7 @@ export default function GenerationTimeline({
    */
   const canDownload =
     typeof onDownload === 'function' &&
-    items.some(item => item.type === GenerationTimelineItemType.VIDEO);
+    items.some((item) => item.type === GenerationTimelineItemType.VIDEO);
 
   return (
     <div
@@ -255,10 +255,7 @@ export default function GenerationTimeline({
             placeItems: 'center',
           }}
         >
-          <Empty
-            image={Empty.PRESENTED_IMAGE_SIMPLE}
-            description={emptyDescription}
-          />
+          <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={emptyDescription} />
         </div>
       ) : (
         <Space direction="vertical" size={18} style={{ width: '100%' }}>
@@ -266,8 +263,11 @@ export default function GenerationTimeline({
             <Text style={{ fontSize: 28, fontWeight: 600, color: '#111827' }}>{dayLabel}</Text>
           </div>
 
-          {items.map(item => (
-            <div key={`${item.type}-${item.id}-${item.createdAt || ''}`} style={{ padding: '6px 0 12px' }}>
+          {items.map((item) => (
+            <div
+              key={`${item.type}-${item.id}-${item.createdAt || ''}`}
+              style={{ padding: '6px 0 12px' }}
+            >
               {item.requestText ? (
                 <div
                   style={{
@@ -319,7 +319,9 @@ export default function GenerationTimeline({
                   {renderContent(item)}
 
                   {item.description ? (
-                    <Paragraph style={{ marginBottom: 0, color: '#374151', whiteSpace: 'pre-wrap' }}>
+                    <Paragraph
+                      style={{ marginBottom: 0, color: '#374151', whiteSpace: 'pre-wrap' }}
+                    >
                       {item.description}
                     </Paragraph>
                   ) : null}

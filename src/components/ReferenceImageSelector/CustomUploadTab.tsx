@@ -25,7 +25,7 @@ export default function CustomUploadTab({
       name: `image-${index}`,
       status: 'done',
       url,
-    })),
+    }))
   );
   const [uploading, setUploading] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -39,7 +39,7 @@ export default function CustomUploadTab({
         name: `image-${index}`,
         status: 'done',
         url,
-      })),
+      }))
     );
   }, [value]);
 
@@ -56,22 +56,22 @@ export default function CustomUploadTab({
     setUploading(true);
     try {
       let fileToUpload = file as File;
-      
+
       // 检查是否需要压缩
       if (shouldCompress(fileToUpload)) {
         const sizeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
         message.info(`图片较大 (${sizeMB}MB)，正在智能压缩...`);
-        
+
         // 使用自动质量调整的压缩
         fileToUpload = await compressImage(fileToUpload, {
           maxWidth: 1920,
           maxHeight: 1080,
-          autoQuality: true // 启用自动质量调整
+          autoQuality: true, // 启用自动质量调整
         });
-        
+
         const compressedSizeMB = (fileToUpload.size / 1024 / 1024).toFixed(1);
         message.success(`压缩完成！${sizeMB}MB → ${compressedSizeMB}MB`);
-        
+
         // 压缩后再次检查大小，确保不超过合理限制
         const finalSizeMB = fileToUpload.size / 1024 / 1024;
         if (finalSizeMB > 10) {
@@ -79,10 +79,8 @@ export default function CustomUploadTab({
           return;
         }
       }
-      
+
       const res: any = await uploadFile(fileToUpload, 'reference-images');
-
-
 
       if (res.success) {
         const url = res.data.url;

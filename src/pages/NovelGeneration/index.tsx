@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Card, Input, Button, Space, Tag, Divider, message, Spin, Radio } from 'antd';
-import { ThunderboltOutlined, ReloadOutlined, CopyOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
+import {
+  ThunderboltOutlined,
+  ReloadOutlined,
+  CopyOutlined,
+  DownOutlined,
+  UpOutlined,
+} from '@ant-design/icons';
 import { useNovelStore } from '@/stores/useNovelStore';
 import { generateNovelStream } from '@/api/ai';
 import { getNovelTags } from '@/api/novel';
@@ -55,7 +61,7 @@ function NovelGeneration() {
 
   const formatCoreRequirements = () => {
     const lines: string[] = [];
-    
+
     tagConfig.forEach((category) => {
       const selected = tagSelection[category.key];
       const value = Array.isArray(selected) ? selected.join('、') : selected || '';
@@ -113,12 +119,14 @@ function NovelGeneration() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <div style={{ 
-        padding: '24px', 
-        maxWidth: 1400, 
-        margin: '0 auto',
-        paddingBottom: 100,
-      }}>
+      <div
+        style={{
+          padding: '24px',
+          maxWidth: 1400,
+          margin: '0 auto',
+          paddingBottom: 100,
+        }}
+      >
         <Card
           extra={
             <Button icon={<ReloadOutlined />} onClick={reset}>
@@ -128,7 +136,15 @@ function NovelGeneration() {
         >
           {/* 核心要求预览区 */}
           <div style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div
+              style={{
+                marginBottom: 8,
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
               核心要求
               <span style={{ fontSize: 12, color: '#999' }}>可任意增改</span>
             </div>
@@ -136,8 +152,8 @@ function NovelGeneration() {
               rows={8}
               value={formatCoreRequirements()}
               readOnly
-              style={{ 
-                background: '#f5f5f5', 
+              style={{
+                background: '#f5f5f5',
                 fontFamily: 'monospace',
                 fontSize: 13,
                 lineHeight: 1.8,
@@ -148,7 +164,15 @@ function NovelGeneration() {
           <Divider />
           {/* 大纲输入 */}
           <div style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 8, fontWeight: 500, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div
+              style={{
+                marginBottom: 8,
+                fontWeight: 500,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
               <span>小说大纲（可选）：</span>
               <span style={{ fontSize: 12, color: '#999' }}>已输入 {outlineInput.length} 字</span>
             </div>
@@ -164,30 +188,51 @@ function NovelGeneration() {
             {tagConfig.map((category) => {
               const selected = tagSelection[category.key];
               const selectedArray = Array.isArray(selected) ? selected : selected ? [selected] : [];
-              const needsCollapse = ['tone', 'maleRole', 'cheatCodeType', 'femaleRole', 'villainRole'].includes(category.key);
+              const needsCollapse = [
+                'tone',
+                'maleRole',
+                'cheatCodeType',
+                'femaleRole',
+                'villainRole',
+              ].includes(category.key);
               const isExpanded = expandedCategories[category.key] ?? false;
               const isMultiSelect = category.multiSelect ?? false;
-              
+
               return (
                 <div key={category.key} style={{ marginBottom: 16 }}>
-                  <div style={{ marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div
+                    style={{
+                      marginBottom: 8,
+                      fontWeight: 500,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
                     {category.name}：
-                    {isMultiSelect && <span style={{ fontSize: 12, color: '#999' }}>（可多选）</span>}
+                    {isMultiSelect && (
+                      <span style={{ fontSize: 12, color: '#999' }}>（可多选）</span>
+                    )}
                     {needsCollapse && (
                       <Button
                         type="link"
                         size="small"
                         icon={isExpanded ? <UpOutlined /> : <DownOutlined />}
-                        onClick={() => setExpandedCategories(prev => ({ ...prev, [category.key]: !isExpanded }))}
+                        onClick={() =>
+                          setExpandedCategories((prev) => ({
+                            ...prev,
+                            [category.key]: !isExpanded,
+                          }))
+                        }
                         style={{ padding: 0, height: 'auto' }}
                       >
                         {isExpanded ? '收起' : '展开'}
                       </Button>
                     )}
                   </div>
-                  <Space 
-                    wrap 
-                    style={{ 
+                  <Space
+                    wrap
+                    style={{
                       maxHeight: needsCollapse && !isExpanded ? '30px' : 'none',
                       overflow: 'hidden',
                       display: 'flex',
@@ -213,7 +258,15 @@ function NovelGeneration() {
 
           {/* 字数选择 */}
           <div style={{ marginBottom: 24 }}>
-            <div style={{ marginBottom: 8, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div
+              style={{
+                marginBottom: 8,
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
               字数要求
               <span style={{ fontSize: 12, color: '#999' }}>豆包模型建议 2500 字以内效果最佳</span>
             </div>
@@ -228,21 +281,15 @@ function NovelGeneration() {
 
           <Divider />
 
-          
-
           {/* 生成结果 */}
           {generatedContent && (
             <>
               <Divider />
-              <Card 
-                title="生成结果" 
+              <Card
+                title="生成结果"
                 size="small"
                 extra={
-                  <Button 
-                    icon={<CopyOutlined />} 
-                    onClick={handleCopy}
-                    size="small"
-                  >
+                  <Button icon={<CopyOutlined />} onClick={handleCopy} size="small">
                     复制全文
                   </Button>
                 }
@@ -257,9 +304,7 @@ function NovelGeneration() {
                 >
                   {generatedContent}
                 </div>
-                <div style={{ marginTop: 16, color: '#999' }}>
-                  字数：{generatedContent.length}
-                </div>
+                <div style={{ marginTop: 16, color: '#999' }}>字数：{generatedContent.length}</div>
               </Card>
             </>
           )}

@@ -1,15 +1,5 @@
 import type { ReactNode } from 'react';
-import {
-  Button,
-  Image,
-  Input,
-  InputNumber,
-  Select,
-  Space,
-  Switch,
-  Tag,
-  Typography,
-} from 'antd';
+import { Button, Image, Input, InputNumber, Select, Space, Switch, Tag, Typography } from 'antd';
 import {
   ClockCircleOutlined,
   PictureOutlined,
@@ -414,7 +404,7 @@ export default function GenerationComposer({
             {/* 主文本输入区只负责展示和回传 prompt，不做业务理解。 */}
             <TextArea
               value={prompt}
-              onChange={event => onPromptChange(event.target.value)}
+              onChange={(event) => onPromptChange(event.target.value)}
               placeholder={promptPlaceholder}
               maxLength={promptMaxLength}
               autoSize={{ minRows: 5, maxRows: 7 }}
@@ -459,7 +449,7 @@ export default function GenerationComposer({
                 ) : (
                   <Select
                     value={modelValue}
-                    onChange={value => onModelChange?.(String(value))}
+                    onChange={(value) => onModelChange?.(String(value))}
                     options={modelOptions}
                     placeholder={modelPlaceholder}
                     variant="borderless"
@@ -476,7 +466,7 @@ export default function GenerationComposer({
               {visible.resolution && (
                 <Select
                   value={resolutionValue}
-                  onChange={value => onResolutionChange?.(String(value))}
+                  onChange={(value) => onResolutionChange?.(String(value))}
                   options={resolutionOptions}
                   variant="borderless"
                   style={{
@@ -491,7 +481,7 @@ export default function GenerationComposer({
               {visible.aspectRatio && (
                 <Select
                   value={aspectRatioValue}
-                  onChange={value => onAspectRatioChange?.(String(value))}
+                  onChange={(value) => onAspectRatioChange?.(String(value))}
                   options={aspectRatioOptions}
                   variant="borderless"
                   style={{
@@ -506,7 +496,7 @@ export default function GenerationComposer({
               {visible.mode && (
                 <Select
                   value={modeValue}
-                  onChange={value => onModeChange?.(String(value))}
+                  onChange={(value) => onModeChange?.(String(value))}
                   options={modeOptions}
                   variant="borderless"
                   style={{
@@ -521,7 +511,7 @@ export default function GenerationComposer({
               {visible.duration && (
                 <Select
                   value={durationValue}
-                  onChange={value => onDurationChange?.(Number(value))}
+                  onChange={(value) => onDurationChange?.(Number(value))}
                   variant="borderless"
                   suffixIcon={<ClockCircleOutlined style={{ color: '#6b7280' }} />}
                   popupMatchSelectWidth={172}
@@ -535,7 +525,7 @@ export default function GenerationComposer({
                       },
                     },
                   }}
-                  optionRender={option => {
+                  optionRender={(option) => {
                     // 这里用自定义 optionRender，是为了让时长选择更像卡片而不是默认下拉项。
                     const active = Number(option.value) === durationValue;
 
@@ -558,7 +548,7 @@ export default function GenerationComposer({
                       </div>
                     );
                   }}
-                  options={durationOptions.map(option => ({
+                  options={durationOptions.map((option) => ({
                     label: `${option}s`,
                     value: option,
                   }))}
@@ -576,7 +566,7 @@ export default function GenerationComposer({
                   min={batchCountMin}
                   max={batchCountMax}
                   value={batchCountValue}
-                  onChange={value => onBatchCountChange?.(Number(value) || batchCountMin)}
+                  onChange={(value) => onBatchCountChange?.(Number(value) || batchCountMin)}
                   style={{
                     width: 85,
                     height: 34,

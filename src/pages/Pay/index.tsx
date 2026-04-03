@@ -105,7 +105,15 @@ const PayPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f5f5f5' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          background: '#f5f5f5',
+        }}
+      >
         <Spin size="large" />
       </div>
     );
@@ -133,14 +141,16 @@ const PayPage: React.FC = () => {
 
   return (
     <div style={{ padding: 24, background: '#f5f5f5', minHeight: '100vh' }}>
-      <div style={{ 
-        background: '#fff', 
-        borderRadius: 12, 
-        padding: 24,
-        textAlign: 'center',
-      }}>
+      <div
+        style={{
+          background: '#fff',
+          borderRadius: 12,
+          padding: 24,
+          textAlign: 'center',
+        }}
+      >
         <WalletOutlined style={{ fontSize: 48, color: '#1890ff', marginBottom: 16 }} />
-        
+
         <Title level={4} style={{ marginBottom: 24 }}>
           {orderInfo?.packageName || '积分充值'}
         </Title>

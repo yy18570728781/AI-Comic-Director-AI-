@@ -5,7 +5,7 @@ import { getCachedEmailSuffix, setCachedEmailSuffix } from '@/utils/emailUtils';
 interface EmailState {
   // 全局邮箱后缀
   emailSuffix: string;
-  
+
   // 设置邮箱后缀
   setEmailSuffix: (suffix: string) => void;
 }
@@ -15,7 +15,7 @@ export const useEmailStore = create<EmailState>()(
     (set) => ({
       // 初始状态
       emailSuffix: getCachedEmailSuffix(),
-      
+
       // 设置邮箱后缀
       setEmailSuffix: (suffix: string) => {
         setCachedEmailSuffix(suffix); // 同时保存到localStorage

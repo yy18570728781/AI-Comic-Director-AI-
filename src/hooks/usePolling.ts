@@ -16,22 +16,19 @@ interface UsePollingOptions<T> {
  * @param fetchFn 轮询请求函数
  * @param options 配置项
  */
-export function usePolling<T>(
-  fetchFn: () => Promise<T>,
-  options: UsePollingOptions<T> = {}
-) {
+export function usePolling<T>(fetchFn: () => Promise<T>, options: UsePollingOptions<T> = {}) {
   const { interval = 2000, shouldStop, onSuccess, onError } = options;
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isPolling, setIsPolling] = useState(false);
-  
+
   // 用 ref 存储最新的回调，避免 useCallback 依赖变化导致重建
   const fetchFnRef = useRef(fetchFn);
   const optionsRef = useRef({ shouldStop, onSuccess, onError });
-  
+
   useEffect(() => {
     fetchFnRef.current = fetchFn;
   }, [fetchFn]);
-  
+
   useEffect(() => {
     optionsRef.current = { shouldStop, onSuccess, onError };
   }, [shouldStop, onSuccess, onError]);
@@ -55,7 +52,7 @@ export function usePolling<T>(
       try {
         const data = await fetchFnRef.current();
         optionsRef.current.onSuccess?.(data);
-        
+
         if (optionsRef.current.shouldStop?.(data)) {
           stop();
         }
@@ -66,7 +63,7 @@ export function usePolling<T>(
 
     // 立即执行一次
     poll();
-    
+
     // 设置定时器
     timerRef.current = setInterval(poll, interval);
   }, [interval, stop]);

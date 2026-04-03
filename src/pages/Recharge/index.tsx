@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Card, Button, Tag, Modal, message, Spin, Space, Typography, QRCode, InputNumber } from 'antd';
+import {
+  Card,
+  Button,
+  Tag,
+  Modal,
+  message,
+  Spin,
+  Space,
+  Typography,
+  QRCode,
+  InputNumber,
+} from 'antd';
 import { CheckCircleFilled, CrownFilled, FireFilled, EditOutlined } from '@ant-design/icons';
 import {
   getRechargePackages,
@@ -90,7 +101,7 @@ const RechargePage: React.FC = () => {
       const data = await getRechargePackages();
       setPackages(data);
       // 默认选中热门套餐
-      const hotPkg = data.find(p => p.isHot);
+      const hotPkg = data.find((p) => p.isHot);
       if (hotPkg) setSelectedPkg(hotPkg);
     } catch (error) {
       message.error('加载套餐失败');
@@ -173,11 +184,11 @@ const RechargePage: React.FC = () => {
   // 倒计时
   const startCountdown = () => {
     if (countdownRef.current) clearInterval(countdownRef.current);
-    
+
     setCountdown(COUNTDOWN_SECONDS);
-    
+
     countdownRef.current = setInterval(() => {
-      setCountdown(prev => {
+      setCountdown((prev) => {
         if (prev <= 1) {
           handleClosePayModal();
           message.warning('支付超时，请重新下单');
@@ -210,7 +221,9 @@ const RechargePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div
+        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
         <Spin size="large" />
       </div>
     );
@@ -223,8 +236,14 @@ const RechargePage: React.FC = () => {
         积分充值
       </Title>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
-        {packages.map(pkg => (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: 16,
+        }}
+      >
+        {packages.map((pkg) => (
           <Card
             key={pkg.id}
             hoverable
@@ -233,7 +252,10 @@ const RechargePage: React.FC = () => {
               setIsCustomMode(false);
             }}
             style={{
-              border: !isCustomMode && selectedPkg?.id === pkg.id ? '2px solid #1890ff' : '1px solid #d9d9d9',
+              border:
+                !isCustomMode && selectedPkg?.id === pkg.id
+                  ? '2px solid #1890ff'
+                  : '1px solid #d9d9d9',
               position: 'relative',
             }}
           >
@@ -249,7 +271,9 @@ const RechargePage: React.FC = () => {
             )}
 
             <div style={{ textAlign: 'center' }}>
-              <Text strong style={{ fontSize: 18 }}>{pkg.name}</Text>
+              <Text strong style={{ fontSize: 18 }}>
+                {pkg.name}
+              </Text>
               <div style={{ margin: '16px 0' }}>
                 {/* 计算原价：积分数 * 0.1 = 原价（1积分=0.1元） */}
                 {pkg.points * 0.1 > pkg.amountYuan && (
@@ -263,7 +287,9 @@ const RechargePage: React.FC = () => {
               </div>
               <div>
                 <Text type="secondary">获得 </Text>
-                <Text strong style={{ color: '#faad14', fontSize: 20 }}>{pkg.points}</Text>
+                <Text strong style={{ color: '#faad14', fontSize: 20 }}>
+                  {pkg.points}
+                </Text>
                 <Text type="secondary"> 积分</Text>
               </div>
               {pkg.tag && (
@@ -304,7 +330,9 @@ const RechargePage: React.FC = () => {
           </Tag>
 
           <div style={{ textAlign: 'center' }}>
-            <Text strong style={{ fontSize: 18 }}>自定义金额</Text>
+            <Text strong style={{ fontSize: 18 }}>
+              自定义金额
+            </Text>
             <div style={{ margin: '16px 0' }}>
               <InputNumber
                 value={customAmount}
@@ -326,7 +354,9 @@ const RechargePage: React.FC = () => {
               <Text type="secondary"> 积分</Text>
             </div>
             <div style={{ marginTop: 8 }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>最低10元，无折扣</Text>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                最低10元，无折扣
+              </Text>
             </div>
           </div>
 
@@ -356,9 +386,7 @@ const RechargePage: React.FC = () => {
           >
             {isWechatBrowser() ? '立即支付' : '微信扫码支付'}
           </Button>
-          <Text type="secondary">
-            支付即表示同意《用户服务协议》
-          </Text>
+          <Text type="secondary">支付即表示同意《用户服务协议》</Text>
         </Space>
       </div>
 
@@ -385,9 +413,13 @@ const RechargePage: React.FC = () => {
             </Text>
           </div>
           <div style={{ marginTop: 8 }}>
-            <Text type="secondary" style={{ fontSize: 12 }}>订单号：{orderNo}</Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              订单号：{orderNo}
+            </Text>
           </div>
-          <div style={{ marginTop: 16, padding: '8px 16px', background: '#f5f5f5', borderRadius: 4 }}>
+          <div
+            style={{ marginTop: 16, padding: '8px 16px', background: '#f5f5f5', borderRadius: 4 }}
+          >
             <Text type="secondary">剩余支付时间：</Text>
             <Text strong style={{ color: countdown < 60 ? '#f5222d' : '#1890ff', fontSize: 16 }}>
               {formatCountdown(countdown)}
@@ -395,7 +427,9 @@ const RechargePage: React.FC = () => {
           </div>
           <div style={{ marginTop: 16 }}>
             <Spin size="small" />
-            <Text type="secondary" style={{ marginLeft: 8 }}>等待支付...</Text>
+            <Text type="secondary" style={{ marginLeft: 8 }}>
+              等待支付...
+            </Text>
           </div>
         </div>
       </Modal>

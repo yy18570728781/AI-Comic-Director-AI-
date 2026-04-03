@@ -1,10 +1,6 @@
 import { message } from 'antd';
 import axios from 'axios';
-import type {
-  AxiosRequestConfig,
-  AxiosResponse,
-  InternalAxiosRequestConfig,
-} from 'axios';
+import type { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:7001';
 
@@ -43,7 +39,7 @@ service.interceptors.request.use(
 
     return config;
   },
-  error => {
+  (error) => {
     console.error('请求错误:', error);
     return Promise.reject(error);
   }
@@ -53,14 +49,11 @@ service.interceptors.response.use(
   (response: AxiosResponse) => {
     const data = response.data;
 
-    console.log(
-      `[API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`,
-      {
-        status: response.status,
-        success: data?.success,
-        message: data?.message,
-      }
-    );
+    console.log(`[API Response] ${response.config.method?.toUpperCase()} ${response.config.url}`, {
+      status: response.status,
+      success: data?.success,
+      message: data?.message,
+    });
 
     if (data && typeof data === 'object' && 'success' in data && data.success === false) {
       const errorMessage = data.message || '操作失败';
@@ -68,7 +61,9 @@ service.interceptors.response.use(
       // 兼容后端返回 200 + success:false 的鉴权失败场景。
       // 只要语义上已经明确是登录态问题，前端就按统一的过期流程处理。
       if (
-        (errorMessage.includes('登录') || errorMessage.includes('Token') || errorMessage.includes('认证')) &&
+        (errorMessage.includes('登录') ||
+          errorMessage.includes('Token') ||
+          errorMessage.includes('认证')) &&
         !errorMessage.includes('微信') &&
         !window.location.pathname.includes('/login')
       ) {
@@ -84,7 +79,7 @@ service.interceptors.response.use(
 
     return data;
   },
-  error => {
+  (error) => {
     console.error('响应错误:', error);
 
     if (error.response?.status === 401) {

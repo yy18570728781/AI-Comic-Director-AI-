@@ -105,7 +105,7 @@ export function useVideoComposer({
    * 用 useMemo 是因为后面很多派生值都依赖它，集中缓存更清晰。
    */
   const currentModel = useMemo(
-    () => models.find(model => model.id === selectedModelId),
+    () => models.find((model) => model.id === selectedModelId),
     [models, selectedModelId]
   );
 
@@ -138,7 +138,7 @@ export function useVideoComposer({
    */
   const modelOptions: ComposerOption[] = useMemo(
     () =>
-      models.map(model => ({
+      models.map((model) => ({
         label: model.name,
         value: model.id,
         title: model.description,
@@ -148,7 +148,7 @@ export function useVideoComposer({
 
   const resolutionOptions: ComposerOption[] = useMemo(
     () =>
-      (modelConfig?.resolutions || ['720p']).map(item => ({
+      (modelConfig?.resolutions || ['720p']).map((item) => ({
         label: item,
         value: item,
       })),
@@ -157,7 +157,7 @@ export function useVideoComposer({
 
   const aspectRatioOptions: ComposerOption[] = useMemo(
     () =>
-      (modelConfig?.aspectRatios || ['16:9']).map(item => ({
+      (modelConfig?.aspectRatios || ['16:9']).map((item) => ({
         label: item,
         value: item,
       })),
@@ -166,7 +166,7 @@ export function useVideoComposer({
 
   const modeOptions: ComposerOption[] = useMemo(
     () =>
-      supportedModes.map(mode => ({
+      supportedModes.map((mode) => ({
         label: modeLabels[mode] || mode,
         value: mode,
       })),
@@ -184,7 +184,8 @@ export function useVideoComposer({
   const pricing = currentModel?.pricing;
   const billingMode = pricing?.billingMode ?? 'per_second';
   const pricingTiers = Array.isArray(pricing?.pricingTiers) ? pricing.pricingTiers : [];
-  const matchedTier = pricingTiers.find(item => item.resolution === resolution) ?? pricingTiers[0];
+  const matchedTier =
+    pricingTiers.find((item) => item.resolution === resolution) ?? pricingTiers[0];
   const creditsPerSecond = matchedTier?.creditsPerSecond ?? 2;
   const creditsPerVideo = pricing?.perVideo?.creditsPerVideo ?? creditsPerSecond;
   const totalCredits =
@@ -201,11 +202,7 @@ export function useVideoComposer({
    * 如果不自动纠正，前端会保留一个实际上已经不合法的模式值。
    */
   useEffect(() => {
-    const recommendedMode = getRecommendedMode(
-      selectedImages.length,
-      supportedModes,
-      selectedMode
-    );
+    const recommendedMode = getRecommendedMode(selectedImages.length, supportedModes, selectedMode);
 
     if (recommendedMode !== selectedMode) {
       setSelectedMode(recommendedMode);
@@ -220,7 +217,7 @@ export function useVideoComposer({
    */
   useEffect(() => {
     if (modelConfig?.resolutions?.[0]) {
-      setResolution(prev =>
+      setResolution((prev) =>
         modelConfig.resolutions
           ? modelConfig.resolutions.includes(prev)
             ? prev
@@ -230,7 +227,7 @@ export function useVideoComposer({
     }
 
     if (modelConfig?.aspectRatios?.[0]) {
-      setAspectRatio(prev =>
+      setAspectRatio((prev) =>
         modelConfig.aspectRatios
           ? modelConfig.aspectRatios.includes(prev)
             ? prev
@@ -239,7 +236,7 @@ export function useVideoComposer({
       );
     }
 
-    setDuration(prev => {
+    setDuration((prev) => {
       if (prev < minDuration) return minDuration;
       if (prev > maxDuration) return maxDuration;
       return prev;

@@ -35,13 +35,13 @@ export const useNovelStore = create<NovelStoreState>((set) => ({
   selectTag: (categoryKey, tag, multiSelect = false) =>
     set((state) => {
       const current = state.tagSelection[categoryKey];
-      
+
       if (multiSelect) {
         const currentArray = Array.isArray(current) ? current : current ? [current] : [];
         const newArray = currentArray.includes(tag)
-          ? currentArray.filter(t => t !== tag)
+          ? currentArray.filter((t) => t !== tag)
           : [...currentArray, tag];
-        
+
         return {
           tagSelection: {
             ...state.tagSelection,
@@ -49,7 +49,7 @@ export const useNovelStore = create<NovelStoreState>((set) => ({
           },
         };
       }
-      
+
       return {
         tagSelection: {
           ...state.tagSelection,

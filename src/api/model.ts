@@ -114,7 +114,9 @@ export const getPlatforms = (): Promise<ApiResponse<Platform[]>> => {
 };
 
 // 获取模型列表
-export const getModels = (params?: ModelListParams): Promise<ApiResponse<PaginatedResult<AiModel>>> => {
+export const getModels = (
+  params?: ModelListParams
+): Promise<ApiResponse<PaginatedResult<AiModel>>> => {
   return request.get('/api/admin/models', { params });
 };
 
@@ -129,7 +131,10 @@ export const createModel = (data: CreateModelRequest): Promise<ApiResponse<AiMod
 };
 
 // 更新模型
-export const updateModel = (id: string, data: UpdateModelRequest): Promise<ApiResponse<AiModel>> => {
+export const updateModel = (
+  id: string,
+  data: UpdateModelRequest
+): Promise<ApiResponse<AiModel>> => {
   return request.put(`/api/admin/models/${id}`, data);
 };
 
@@ -144,10 +149,12 @@ export const toggleModels = (ids: string[], enabled: boolean): Promise<ApiRespon
 };
 
 // 获取可用模型列表（前端使用）
-export const getModelList = (): Promise<ApiResponse<{
-  imageModels: ModelOption[];
-  videoModels: ModelOption[];
-}>> => {
+export const getModelList = (): Promise<
+  ApiResponse<{
+    imageModels: ModelOption[];
+    videoModels: ModelOption[];
+  }>
+> => {
   return request.get('/api/ai/models');
 };
 

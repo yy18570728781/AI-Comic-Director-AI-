@@ -14,17 +14,10 @@ import {
   Empty,
 } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  ArrowLeftOutlined,
-  ThunderboltOutlined,
-  MergeCellsOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, ThunderboltOutlined, MergeCellsOutlined } from '@ant-design/icons';
 
 import { setFirstFrame, setLastFrame, deleteImage } from '@/api/image-action';
-import {
-  getScriptDetail,
-  generateStoryboardStream,
-} from '@/api/script';
+import { getScriptDetail, generateStoryboardStream } from '@/api/script';
 import { useAIGeneration } from '@/hooks/useAIGeneration';
 import { useScriptData } from '@/hooks/useScriptData';
 import { getCharactersForAI } from '@/utils/characterUtils';
@@ -64,12 +57,7 @@ function ScriptDetail() {
   } = useScriptData(script, setScript);
 
   // 使用统一的 AI 生成 hook
-  const { 
-    generateImage, 
-    generateVideo, 
-    generatingImageIds, 
-    generatingVideoIds 
-  } = useAIGeneration({
+  const { generateImage, generateVideo, generatingImageIds, generatingVideoIds } = useAIGeneration({
     onImageComplete: (image, shotId) => {
       if (shotId && image?.id) {
         updateShotImage(shotId, image);
@@ -79,30 +67,30 @@ function ScriptDetail() {
       console.log('🎬 [主页面] onVideoComplete 被调用:', { video, shotId });
       if (shotId && video?.id) {
         updateShotVideo(shotId, video);
-      } 
+      }
     },
     onError: async (error, type, shotId) => {
       // 处理失败情况，局部刷新对应分镜的数据
       if (type === 'video' && shotId) {
         try {
           // 延迟一下确保后端已更新状态
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
           // 重新获取该分镜的数据
           const { getScriptDetail } = await import('@/api/script');
           const res = await getScriptDetail(parseInt(id!));
-          
+
           if (res.success && res.data) {
             const updatedShot = res.data.shots?.find((s: any) => s.id === shotId);
             if (updatedShot) {
               // 局部更新该分镜的数据
               setScript((prevScript: any) => {
                 if (!prevScript) return prevScript;
-                
-                const updatedShots = prevScript.shots.map((shot: any) => 
+
+                const updatedShots = prevScript.shots.map((shot: any) =>
                   shot.id === shotId ? updatedShot : shot
                 );
-                
+
                 return { ...prevScript, shots: updatedShots };
               });
             }
@@ -136,20 +124,20 @@ function ScriptDetail() {
   const handleGenerateStoryboard = async () => {
     setGenerateLoading(true);
     setGeneratingRawText('');
-    
+
     // 立即跳转到分镜脚本标签
     setActiveTab('shots');
-    
+
     // 清空当前的分镜数据，显示流式效果
-    setScript((prev: any) => prev ? { ...prev, shots: [] } : prev);
-    
+    setScript((prev: any) => (prev ? { ...prev, shots: [] } : prev));
+
     try {
       // 获取角色库信息作为参考
       const characters = await getCharactersForAI(parseInt(id!));
 
       await generateStoryboardStream(
         parseInt(id!),
-        { 
+        {
           shotCount: 30,
           characters,
         },
@@ -166,10 +154,10 @@ function ScriptDetail() {
           console.log('✅ 分镜生成完成，准备刷新数据');
           setGeneratingRawText('');
           setGenerateLoading(false);
-          
+
           // 等待一小段时间确保后端保存完成
-          await new Promise(resolve => setTimeout(resolve, 500));
-          
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
           // 刷新数据
           await loadScript();
           message.success('分镜脚本生成成功');
@@ -207,7 +195,7 @@ function ScriptDetail() {
           .map((s: string) => s.trim())
           .filter(Boolean),
       });
-      
+
       setEditingShotId(null);
       editForm.resetFields();
     } catch (error) {
@@ -350,8 +338,8 @@ function ScriptDetail() {
       model: config.model || 'doubao-seedance-1-0-lite-i2v-250428',
       mode,
       duration: config.duration || 5,
-      referenceImages: lastFrameImage 
-        ? [firstFrameImage.url, lastFrameImage.url] 
+      referenceImages: lastFrameImage
+        ? [firstFrameImage.url, lastFrameImage.url]
         : [firstFrameImage.url],
       aspectRatio: config.aspectRatio,
       generateAudio: config.generateAudio ?? false,
@@ -381,10 +369,7 @@ function ScriptDetail() {
       key: 'shots',
       label: (
         <span>
-          分镜脚本{' '}
-          {script.shots?.length > 0 && (
-            <Tag color="blue">{script.shots.length}</Tag>
-          )}
+          分镜脚本 {script.shots?.length > 0 && <Tag color="blue">{script.shots.length}</Tag>}
         </span>
       ),
     },
@@ -395,13 +380,12 @@ function ScriptDetail() {
           分镜图像{' '}
           {script.shots?.reduce(
             (total: number, shot: any) => total + (shot.images?.length || 0),
-            0,
+            0
           ) > 0 && (
             <Tag color="blue">
               {script.shots.reduce(
-                (total: number, shot: any) =>
-                  total + (shot.images?.length || 0),
-                0,
+                (total: number, shot: any) => total + (shot.images?.length || 0),
+                0
               )}
             </Tag>
           )}
@@ -415,13 +399,12 @@ function ScriptDetail() {
           视频{' '}
           {script.shots?.reduce(
             (total: number, shot: any) => total + (shot.videos?.length || 0),
-            0,
+            0
           ) > 0 && (
             <Tag color="blue">
               {script.shots.reduce(
-                (total: number, shot: any) =>
-                  total + (shot.videos?.length || 0),
-                0,
+                (total: number, shot: any) => total + (shot.videos?.length || 0),
+                0
               )}
             </Tag>
           )}
@@ -436,8 +419,8 @@ function ScriptDetail() {
     return (
       <>
         <div style={{ display: activeTab === 'script' ? 'block' : 'none' }}>
-          <ScriptTab 
-            content={script.content} 
+          <ScriptTab
+            content={script.content}
             hasShots={script.shots?.length > 0}
             generateLoading={generateLoading}
             generatingRawText={generatingRawText}
@@ -487,10 +470,11 @@ function ScriptDetail() {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh',
-
-    }}>
+    <div
+      style={{
+        minHeight: '100vh',
+      }}
+    >
       {/* 固定的头部和标签页导航 - 合并为一个整体 */}
       <div
         style={{
@@ -512,10 +496,7 @@ function ScriptDetail() {
             }}
           >
             <Space>
-              <Button
-                icon={<ArrowLeftOutlined />}
-                onClick={() => navigate('/script-management')}
-              >
+              <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/script-management')}>
                 返回
               </Button>
               <h2 style={{ margin: 0 }}>{script.title}</h2>
@@ -552,7 +533,7 @@ function ScriptDetail() {
               />
             </div>
             <Space style={{ marginLeft: 16 }}>
-              <AutoBindingButton 
+              <AutoBindingButton
                 scriptId={script?.id}
                 onBindingComplete={() => {
                   message.success('角色绑定完成，分镜数据已更新');
@@ -607,14 +588,13 @@ function ScriptDetail() {
             <TextArea rows={3} placeholder="用于生成分镜图片的提示词" />
           </Form.Item>
           <Form.Item label="视频提示词" name="videoPrompt">
-            <TextArea rows={6} placeholder="用于生成分镜视频的完整提示词，包含运镜、时间轴、画面细节、对白/旁白等" />
+            <TextArea
+              rows={6}
+              placeholder="用于生成分镜视频的完整提示词，包含运镜、时间轴、画面细节、对白/旁白等"
+            />
           </Form.Item>
           <Space>
-            <Form.Item
-              label="镜头类型"
-              name="shotType"
-              style={{ marginBottom: 0 }}
-            >
+            <Form.Item label="镜头类型" name="shotType" style={{ marginBottom: 0 }}>
               <Select style={{ width: 120 }}>
                 <Select.Option value="特写">特写</Select.Option>
                 <Select.Option value="近景">近景</Select.Option>
@@ -623,11 +603,7 @@ function ScriptDetail() {
                 <Select.Option value="远景">远景</Select.Option>
               </Select>
             </Form.Item>
-            <Form.Item
-              label="时长(秒)"
-              name="duration"
-              style={{ marginBottom: 0 }}
-            >
+            <Form.Item label="时长(秒)" name="duration" style={{ marginBottom: 0 }}>
               <InputNumber min={1} max={30} />
             </Form.Item>
           </Space>

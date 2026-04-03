@@ -46,9 +46,14 @@ export const savedCharacterTableColumns: TableColumnsType<SavedCharacter> = [
     dataIndex: 'characterId',
     key: 'characterId',
     width: 120,
-    render: (characterId: string) => React.createElement(Tag, {
-      color: 'blue'
-    }, characterId),
+    render: (characterId: string) =>
+      React.createElement(
+        Tag,
+        {
+          color: 'blue',
+        },
+        characterId
+      ),
   },
   {
     title: '描述',
@@ -86,29 +91,44 @@ export const characterTableColumns: TableColumnsType<ExtractedCharacter> = [
     title: '出现场景',
     dataIndex: 'scenes',
     key: 'scenes',
-    render: (scenes: string[]) => React.createElement(
-      'div',
-      null,
-      scenes.slice(0, 3).map((scene, index) =>
-        React.createElement(Tag, {
-          key: index,
-          color: 'blue',
-          style: { marginBottom: 4 }
-        }, scene)
+    render: (scenes: string[]) =>
+      React.createElement(
+        'div',
+        null,
+        scenes.slice(0, 3).map((scene, index) =>
+          React.createElement(
+            Tag,
+            {
+              key: index,
+              color: 'blue',
+              style: { marginBottom: 4 },
+            },
+            scene
+          )
+        ),
+        scenes.length > 3 &&
+          React.createElement(
+            Tag,
+            {
+              color: 'default',
+            },
+            `+${scenes.length - 3}`
+          )
       ),
-      scenes.length > 3 && React.createElement(Tag, {
-        color: 'default'
-      }, `+${scenes.length - 3}`)
-    ),
   },
   {
     title: '对话数量',
     dataIndex: 'dialogueCount',
     key: 'dialogueCount',
     width: 100,
-    render: (count: number) => React.createElement(Tag, {
-      color: getDialogueCountColor(count)
-    }, count),
+    render: (count: number) =>
+      React.createElement(
+        Tag,
+        {
+          color: getDialogueCountColor(count),
+        },
+        count
+      ),
   },
 ];
 
@@ -124,7 +144,9 @@ export const getDialogueCountColor = (count: number): string => {
 /**
  * 角色详情展开配置
  */
-export const getCharacterExpandedContent = (record: ExtractedCharacter): DescriptionsProps['items'] => {
+export const getCharacterExpandedContent = (
+  record: ExtractedCharacter
+): DescriptionsProps['items'] => {
   const items: DescriptionsProps['items'] = [
     {
       key: 'description',
@@ -194,23 +216,31 @@ export const getScriptDescriptionItems = (script: any): DescriptionsProps['items
   {
     key: 'shotCount',
     label: '分镜数量',
-    children: React.createElement(Tag, {
-      color: script.shotCount > 0 ? 'green' : 'default'
-    }, `${script.shotCount} 个分镜`),
+    children: React.createElement(
+      Tag,
+      {
+        color: script.shotCount > 0 ? 'green' : 'default',
+      },
+      `${script.shotCount} 个分镜`
+    ),
   },
   {
     key: 'style',
     label: '风格',
-    children: script.style ? 
-      React.createElement(Tag, { color: 'blue' }, script.style) :
-      React.createElement('span', { style: { color: '#ccc' } }, '未设置'),
+    children: script.style
+      ? React.createElement(Tag, { color: 'blue' }, script.style)
+      : React.createElement('span', { style: { color: '#ccc' } }, '未设置'),
   },
   {
     key: 'status',
     label: '状态',
-    children: React.createElement(Tag, {
-      color: script.status === 'published' ? 'green' : 'orange'
-    }, script.status === 'published' ? '已发布' : '草稿'),
+    children: React.createElement(
+      Tag,
+      {
+        color: script.status === 'published' ? 'green' : 'orange',
+      },
+      script.status === 'published' ? '已发布' : '草稿'
+    ),
   },
 ];
 
@@ -228,11 +258,7 @@ export const emptyStates = {
   },
   noCharacters: {
     title: '未能从该剧本中提取到角色信息',
-    reasons: [
-      '剧本内容为空或格式不规范',
-      '分镜数据中没有角色信息',
-      'AI分析服务暂时不可用',
-    ],
+    reasons: ['剧本内容为空或格式不规范', '分镜数据中没有角色信息', 'AI分析服务暂时不可用'],
   },
 };
 

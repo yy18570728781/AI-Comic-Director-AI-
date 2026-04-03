@@ -51,8 +51,8 @@ function ScriptGeneration() {
 
     try {
       await generateScriptStream(
-        { 
-          novel: values.novel, 
+        {
+          novel: values.novel,
           style: tagSelection.cameraStyle,
         },
         (content: string) => {
@@ -85,7 +85,7 @@ function ScriptGeneration() {
     }
 
     const { novel } = form.getFieldsValue();
-    
+
     localStorage.setItem('pendingScriptContent', scriptResult);
     localStorage.setItem('pendingScriptStyle', tagSelection.cameraStyle);
     localStorage.setItem('pendingScriptTitle', novel.substring(0, 20) + '...');
@@ -96,19 +96,23 @@ function ScriptGeneration() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <div style={{ 
-        padding: '24px', 
-        maxWidth: 1400, 
-        margin: '0 auto',
-        paddingBottom: 100,
-      }}>
+      <div
+        style={{
+          padding: '24px',
+          maxWidth: 1400,
+          margin: '0 auto',
+          paddingBottom: 100,
+        }}
+      >
         <Card>
           <Form form={form} layout="vertical" onFinish={handleGenerate}>
             <Form.Item
               label={
                 <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
                   <span>小说内容</span>
-                  <span style={{ fontSize: 12, color: '#999', fontWeight: 'normal' }}>已输入 {novelContent.length} 字</span>
+                  <span style={{ fontSize: 12, color: '#999', fontWeight: 'normal' }}>
+                    已输入 {novelContent.length} 字
+                  </span>
                 </div>
               }
               name="novel"
@@ -135,7 +139,9 @@ function ScriptGeneration() {
                           key={option.value}
                           color={selected === option.label ? 'blue' : 'default'}
                           style={{ cursor: 'pointer', fontSize: 14, padding: '4px 12px' }}
-                          onClick={() => setTagSelection(prev => ({ ...prev, [category.key]: option.label }))}
+                          onClick={() =>
+                            setTagSelection((prev) => ({ ...prev, [category.key]: option.label }))
+                          }
                         >
                           {option.label}
                         </Tag>
@@ -147,16 +153,12 @@ function ScriptGeneration() {
             </div>
 
             {scriptResult && (
-              <Card 
-                title="生成结果" 
+              <Card
+                title="生成结果"
                 size="small"
                 style={{ marginBottom: 24 }}
                 extra={
-                  <Button 
-                    icon={<CopyOutlined />} 
-                    onClick={handleCopy}
-                    size="small"
-                  >
+                  <Button icon={<CopyOutlined />} onClick={handleCopy} size="small">
                     复制全文
                   </Button>
                 }
@@ -171,9 +173,7 @@ function ScriptGeneration() {
                 >
                   {scriptResult}
                 </div>
-                <div style={{ marginTop: 16, color: '#999' }}>
-                  字数：{scriptResult.length}
-                </div>
+                <div style={{ marginTop: 16, color: '#999' }}>字数：{scriptResult.length}</div>
               </Card>
             )}
           </Form>

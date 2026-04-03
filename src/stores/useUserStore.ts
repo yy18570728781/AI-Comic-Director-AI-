@@ -60,15 +60,15 @@ export const useUserStore = create<UserState>()(
       loading: false,
 
       // 操作方法
-      setCurrentUser: user =>
+      setCurrentUser: (user) =>
         set({
           currentUser: user,
           isAuthenticated: !!user,
         }),
 
-      setToken: token => set({ token }),
-      setUsers: users => set({ users }),
-      setLoading: loading => set({ loading }),
+      setToken: (token) => set({ token }),
+      setUsers: (users) => set({ users }),
+      setLoading: (loading) => set({ loading }),
 
       // 登录
       login: (user, token) =>
@@ -129,7 +129,7 @@ export const useUserStore = create<UserState>()(
     {
       name: 'user-storage',
       // 只持久化必要的数据
-      partialize: state => ({
+      partialize: (state) => ({
         currentUser: state.currentUser,
         token: state.token,
         isAuthenticated: state.isAuthenticated,

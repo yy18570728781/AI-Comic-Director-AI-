@@ -14,7 +14,7 @@ export const EMAIL_SUFFIXES = [
   '@outlook.com',
   '@aliyun.com',
   '@vip.sina.com',
-  '@vip.163.com'
+  '@vip.163.com',
 ];
 
 // 默认邮箱后缀
@@ -56,13 +56,13 @@ export const parseEmail = (email: string): { prefix: string; suffix: string } =>
   if (!email || !email.includes('@')) {
     return { prefix: '', suffix: getCachedEmailSuffix() };
   }
-  
+
   const [prefix, ...suffixParts] = email.split('@');
   const suffix = '@' + suffixParts.join('@');
-  
+
   return {
     prefix: prefix || '',
-    suffix: EMAIL_SUFFIXES.includes(suffix) ? suffix : getCachedEmailSuffix()
+    suffix: EMAIL_SUFFIXES.includes(suffix) ? suffix : getCachedEmailSuffix(),
   };
 };
 

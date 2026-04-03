@@ -95,10 +95,7 @@ export function getRecommendedMode(
  *
  * 这里先按模式能力做兜底，再兼容后端显式返回的 maxImages。
  */
-export function getMaxImageCount(
-  supportedModes: string[],
-  maxImages?: number
-): number {
+export function getMaxImageCount(supportedModes: string[], maxImages?: number): number {
   if (supportedModes.includes('ref2v')) return maxImages || 4;
   if (supportedModes.includes('flf2v')) return 2;
   return 1;

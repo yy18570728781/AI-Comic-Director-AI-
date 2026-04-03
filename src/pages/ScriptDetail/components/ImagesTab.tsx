@@ -88,10 +88,7 @@ export default function ImagesTab({
   if (!shots || shots.length === 0) {
     return (
       <Card>
-        <Empty
-          description="请先生成分镜脚本"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+        <Empty description="请先生成分镜脚本" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       </Card>
     );
   }
@@ -105,11 +102,7 @@ export default function ImagesTab({
       }}
     >
       {shots.map((shot) => (
-        <Card
-          key={shot.id}
-          style={{ height: '100%' }}
-          bodyStyle={{ padding: 0 }}
-        >
+        <Card key={shot.id} style={{ height: '100%' }} bodyStyle={{ padding: 0 }}>
           {/* 卡片头部 */}
           <div
             style={{
@@ -177,9 +170,7 @@ export default function ImagesTab({
               </Tag>
               {shot.images?.find((img: any) => img && img.isFirstFrame) ? (
                 <Image
-                  src={
-                    shot.images.find((img: any) => img && img.isFirstFrame)?.url
-                  }
+                  src={shot.images.find((img: any) => img && img.isFirstFrame)?.url}
                   alt="首帧"
                   style={{
                     width: '100%',
@@ -222,9 +213,7 @@ export default function ImagesTab({
                 </Tag>
                 {shot.images?.find((img: any) => img && img.isLastFrame) ? (
                   <Image
-                    src={
-                      shot.images.find((img: any) => img && img.isLastFrame)?.url
-                    }
+                    src={shot.images.find((img: any) => img && img.isLastFrame)?.url}
                     alt="尾帧"
                     style={{
                       width: '100%',
@@ -251,9 +240,7 @@ export default function ImagesTab({
           >
             {shot.imagePrompt && (
               <div style={{ marginBottom: 8 }}>
-                <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>
-                  图像提示词：
-                </div>
+                <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>图像提示词：</div>
                 <div
                   style={{
                     fontSize: 12,
@@ -273,9 +260,7 @@ export default function ImagesTab({
             )}
             {shot.videoPrompt && (
               <div>
-                <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>
-                  视频提示词：
-                </div>
+                <div style={{ fontSize: 12, color: '#999', marginBottom: 4 }}>视频提示词：</div>
                 <div
                   style={{
                     fontSize: 12,
@@ -311,65 +296,70 @@ export default function ImagesTab({
             </div>
           )}
 
-          {(shot.videos?.length ?? 0) > 0 && (() => {
-            const hasSuccessVideo = shot.videos?.some((video: any) => video.status === 'completed' && video.url);
-            const hasFailedVideo = shot.videos?.some((video: any) => video.status === 'failed');
-            const hasPendingVideo = shot.videos?.some((video: any) => video.status === 'pending' || video.status === 'processing');
+          {(shot.videos?.length ?? 0) > 0 &&
+            (() => {
+              const hasSuccessVideo = shot.videos?.some(
+                (video: any) => video.status === 'completed' && video.url
+              );
+              const hasFailedVideo = shot.videos?.some((video: any) => video.status === 'failed');
+              const hasPendingVideo = shot.videos?.some(
+                (video: any) => video.status === 'pending' || video.status === 'processing'
+              );
 
-            if (hasSuccessVideo) {
-              return (
-                <div
-                  style={{
-                    padding: '0 16px 8px',
-                    fontSize: 12,
-                    color: '#52c41a',
-                  }}
-                >
-                  ✅ 视频生成成功
-                </div>
-              );
-            } else if (hasFailedVideo) {
-              const failedVideo = shot.videos?.find((video: any) => video.status === 'failed');
-              const errorMsg = failedVideo?.errorMessage;
-              let displayMsg = '❌ 视频生成失败';
-              
-              if (errorMsg) {
-                try {
-                  const error = JSON.parse(errorMsg);
-                  if (error.code === 'OutputVideoSensitiveContentDetected') {
-                    displayMsg = '❌ 内容审核未通过，请优化提示词';
+              if (hasSuccessVideo) {
+                return (
+                  <div
+                    style={{
+                      padding: '0 16px 8px',
+                      fontSize: 12,
+                      color: '#52c41a',
+                    }}
+                  >
+                    ✅ 视频生成成功
+                  </div>
+                );
+              } else if (hasFailedVideo) {
+                const failedVideo = shot.videos?.find((video: any) => video.status === 'failed');
+                const errorMsg = failedVideo?.errorMessage;
+                let displayMsg = '❌ 视频生成失败';
+
+                if (errorMsg) {
+                  try {
+                    const error = JSON.parse(errorMsg);
+                    if (error.code === 'OutputVideoSensitiveContentDetected') {
+                      displayMsg = '❌ 内容审核未通过，请优化提示词';
+                    }
+                  } catch (e) {
+                    // 解析失败，使用默认消息
                   }
-                } catch (e) {
-                  // 解析失败，使用默认消息
                 }
+
+                return (
+                  <div
+                    style={{
+                      padding: '0 16px 8px',
+                      fontSize: 12,
+                      color: '#ff4d4f',
+                    }}
+                  >
+                    {displayMsg}
+                  </div>
+                );
+              } else if (hasPendingVideo) {
+                return (
+                  <div
+                    style={{
+                      padding: '0 16px 8px',
+                      fontSize: 12,
+                      color: '#1890ff',
+                    }}
+                  >
+                    🔄 视频处理中
+                  </div>
+                );
               }
-              
-              return (
-                <div
-                  style={{
-                    padding: '0 16px 8px',
-                    fontSize: 12,
-                    color: '#ff4d4f',
-                  }}
-                >
-                  {displayMsg}
-                </div>
-              );
-            } else if (hasPendingVideo) {
-              return (
-                <div
-                  style={{
-                    padding: '0 16px 8px',
-                    fontSize: 12,
-                    color: '#1890ff',
-                  }}
-                >
-                  🔄 视频处理中
-                </div>
-              );
-            }
-            return null;
-          })()}
+              return null;
+            })()}
 
           {/* 操作按钮区域 */}
           <div
@@ -389,9 +379,7 @@ export default function ImagesTab({
               icon={<VideoCameraOutlined />}
               onClick={() => handleOpenVideoModal(shot)}
               loading={generatingVideos.has(shot.id)}
-              disabled={
-                !shot.images?.some((img: any) => img && img.isFirstFrame)
-              }
+              disabled={!shot.images?.some((img: any) => img && img.isFirstFrame)}
             >
               生成视频
             </Button>
@@ -414,16 +402,8 @@ export default function ImagesTab({
                 {shot.images.length} 张
               </Button>
             )}
-            <Popconfirm
-              title="确定删除这个分镜吗？"
-              onConfirm={() => onDeleteShot(shot.id)}
-            >
-              <Button
-                type="primary"
-                danger
-                size="middle"
-                icon={<DeleteOutlined />}
-              >
+            <Popconfirm title="确定删除这个分镜吗？" onConfirm={() => onDeleteShot(shot.id)}>
+              <Button type="primary" danger size="middle" icon={<DeleteOutlined />}>
                 删除
               </Button>
             </Popconfirm>

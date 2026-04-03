@@ -1,9 +1,5 @@
 import { Modal, Form, Input, Select, Button, message, Progress } from 'antd';
-import {
-  ThunderboltOutlined,
-  PictureOutlined,
-  LoadingOutlined,
-} from '@ant-design/icons';
+import { ThunderboltOutlined, PictureOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { optimizeImagePrompt, generateImageAsync } from '@/api/ai';
 import { useTaskStore } from '@/stores/useTaskStore';
@@ -47,7 +43,7 @@ export default function ImageGenerateModalQueue({
   const { imageModel, imageModels } = useModelStore();
 
   // 计算所需积分
-  const selectedModel = imageModels.find(m => m.id === imageModel);
+  const selectedModel = imageModels.find((m) => m.id === imageModel);
   const requiredCredits = selectedModel?.pricing?.image?.creditsPerImage || 0;
 
   // 使用全局任务 store
@@ -208,11 +204,7 @@ export default function ImageGenerateModalQueue({
             name="imagePrompt"
             rules={[{ required: true, message: '请输入图像提示词' }]}
           >
-            <TextArea
-              rows={4}
-              placeholder="描述你想要生成的图像..."
-              disabled={generating}
-            />
+            <TextArea rows={4} placeholder="描述你想要生成的图像..." disabled={generating} />
           </Form.Item>
 
           <div style={{ marginBottom: 16 }}>
@@ -260,13 +252,7 @@ export default function ImageGenerateModalQueue({
                 </div>
               )}
               <Progress
-                percent={
-                  jobState === 'completed'
-                    ? 100
-                    : jobState === 'active'
-                      ? 50
-                      : 10
-                }
+                percent={jobState === 'completed' ? 100 : jobState === 'active' ? 50 : 10}
                 status={jobState === 'failed' ? 'exception' : 'active'}
                 showInfo={false}
               />

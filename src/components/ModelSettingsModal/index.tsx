@@ -8,10 +8,7 @@ interface ModelSettingsModalProps {
   onClose: () => void;
 }
 
-export default function ModelSettingsModal({
-  open,
-  onClose,
-}: ModelSettingsModalProps) {
+export default function ModelSettingsModal({ open, onClose }: ModelSettingsModalProps) {
   const {
     imageModel,
     videoModel,
@@ -68,9 +65,7 @@ export default function ModelSettingsModal({
               {imageModels.map((m) => (
                 <Select.Option key={m.id} value={m.id}>
                   <div style={{ padding: '8px 0' }}>
-                    <div style={{ fontWeight: 500, lineHeight: 1.5 }}>
-                      {m.name}
-                    </div>
+                    <div style={{ fontWeight: 500, lineHeight: 1.5 }}>{m.name}</div>
                     <div
                       style={{
                         fontSize: 12,
@@ -105,9 +100,7 @@ export default function ModelSettingsModal({
               {videoModels.map((m) => (
                 <Select.Option key={m.id} value={m.id}>
                   <div style={{ padding: '8px 0' }}>
-                    <div style={{ fontWeight: 500, lineHeight: 1.5 }}>
-                      {m.name}
-                    </div>
+                    <div style={{ fontWeight: 500, lineHeight: 1.5 }}>{m.name}</div>
                     <div
                       style={{
                         fontSize: 12,

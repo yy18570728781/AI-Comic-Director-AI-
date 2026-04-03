@@ -71,9 +71,7 @@ export default function ProjectImagesTab({
           description="本项目暂无已生成的图像"
           style={{ padding: '40px 0' }}
         >
-          <div style={{ color: '#999', fontSize: 12 }}>
-            请先生成黄色或场景图像
-          </div>
+          <div style={{ color: '#999', fontSize: 12 }}>请先生成黄色或场景图像</div>
         </Empty>
       </div>
     );
@@ -94,9 +92,7 @@ export default function ProjectImagesTab({
             style={{
               position: 'relative',
               cursor: 'pointer',
-              border: selectedImages.includes(url)
-                ? '2px solid #1890ff'
-                : '2px solid transparent',
+              border: selectedImages.includes(url) ? '2px solid #1890ff' : '2px solid transparent',
               borderRadius: 4,
               overflow: 'hidden',
               width: 150,

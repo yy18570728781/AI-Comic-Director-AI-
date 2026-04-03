@@ -121,7 +121,10 @@ export async function queryOrderStatus(orderNo: string): Promise<{
 /**
  * 获取充值记录
  */
-export async function getRechargeOrders(page = 1, pageSize = 20): Promise<{
+export async function getRechargeOrders(
+  page = 1,
+  pageSize = 20
+): Promise<{
   success: boolean;
   data: any[];
   total: number;

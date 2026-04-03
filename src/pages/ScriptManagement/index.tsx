@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Card,
-  Button,
-  Input,
-  message,
-  Empty,
-  Spin,
-  Space,
-  Tag,
-  Popconfirm,
-} from 'antd';
+import { Card, Button, Input, message, Empty, Spin, Space, Tag, Popconfirm } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
@@ -176,21 +166,14 @@ function ScriptManagement() {
             allowClear
           />
         </Space>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleOpenCreate}
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleOpenCreate}>
           创建剧本
         </Button>
       </div>
 
       <Spin spinning={loading}>
         {scripts.length === 0 ? (
-          <Empty
-            description="暂无剧本，点击右上角创建剧本"
-            style={{ marginTop: 100 }}
-          />
+          <Empty description="暂无剧本，点击右上角创建剧本" style={{ marginTop: 100 }} />
         ) : (
           <div
             style={{
@@ -204,14 +187,8 @@ function ScriptManagement() {
                 key={script.id}
                 hoverable
                 actions={[
-                  <EyeOutlined
-                    key="view"
-                    onClick={() => handleView(script.id)}
-                  />,
-                  <EditOutlined
-                    key="edit"
-                    onClick={() => handleOpenEdit(script)}
-                  />,
+                  <EyeOutlined key="view" onClick={() => handleView(script.id)} />,
+                  <EditOutlined key="edit" onClick={() => handleOpenEdit(script)} />,
                   <Popconfirm
                     title="确定删除这个剧本吗？"
                     onConfirm={() => handleDelete(script.id)}
@@ -226,9 +203,7 @@ function ScriptManagement() {
                   title={script.title}
                   description={
                     <div>
-                      <div
-                        style={{ marginBottom: 8, color: '#666', fontSize: 12 }}
-                      >
+                      <div style={{ marginBottom: 8, color: '#666', fontSize: 12 }}>
                         {dayjs(script.createdAt).format('YYYY年MM月DD日')}
                       </div>
                       <div style={{ marginBottom: 8, minHeight: 40 }}>

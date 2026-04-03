@@ -116,7 +116,7 @@ export default function CreationStudio() {
    */
   const { generateVideo } = useAIGeneration({
     onVideoComplete: (video) => {
-      const currentModel = models.find(item => item.id === videoModel);
+      const currentModel = models.find((item) => item.id === videoModel);
 
       /**
        * nextRecord:
@@ -134,12 +134,12 @@ export default function CreationStudio() {
 
       // 历史结果按“旧的在上，新的追加到底部”的顺序保存，
       // 这样滚动流天然就是越新的内容越靠下，符合聊天区阅读习惯。
-      setGeneratedVideos(prev => [...prev, nextRecord]);
-      setLoadingPlaceholders(prev => Math.max(0, prev - 1));
+      setGeneratedVideos((prev) => [...prev, nextRecord]);
+      setLoadingPlaceholders((prev) => Math.max(0, prev - 1));
       refreshPoints();
     },
     onError: () => {
-      setLoadingPlaceholders(prev => Math.max(0, prev - 1));
+      setLoadingPlaceholders((prev) => Math.max(0, prev - 1));
     },
     showMessage: true,
   });
@@ -177,7 +177,7 @@ export default function CreationStudio() {
   useEffect(() => {
     setModels(videoModels);
 
-    const currentModel = videoModels.find(model => model.id === videoModel) || videoModels[0];
+    const currentModel = videoModels.find((model) => model.id === videoModel) || videoModels[0];
     if (!currentModel) return;
 
     if (!videoModel || currentModel.id !== videoModel) {
@@ -242,7 +242,7 @@ export default function CreationStudio() {
    */
   const timelineItems = useMemo<GenerationTimelineItem[]>(
     () =>
-      generatedVideos.map(item => ({
+      generatedVideos.map((item) => ({
         id: item.id,
         type: GenerationTimelineItemType.VIDEO,
         createdAt: item.createdAt,
@@ -254,7 +254,7 @@ export default function CreationStudio() {
           { label: item.modelName },
           { label: item.resolution },
           { label: item.ratio },
-        ].filter(tag => Boolean(tag.label)),
+        ].filter((tag) => Boolean(tag.label)),
       })),
     [generatedVideos]
   );
@@ -294,7 +294,7 @@ export default function CreationStudio() {
 
     try {
       // 提交前先增加占位卡片，保证上方滚动区立刻出现“生成中”的反馈。
-      setLoadingPlaceholders(prev => prev + batchCount);
+      setLoadingPlaceholders((prev) => prev + batchCount);
 
       for (let index = 0; index < batchCount; index += 1) {
         await generateVideo({
@@ -320,7 +320,11 @@ export default function CreationStudio() {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}`,
-                libraryTags: ['创作工作台', '视频生成', targetAudience === 'female' ? '女生' : '男生'],
+                libraryTags: [
+                  '创作工作台',
+                  '视频生成',
+                  targetAudience === 'female' ? '女生' : '男生',
+                ],
               }
             : {}),
         });
@@ -338,7 +342,7 @@ export default function CreationStudio() {
    * 删除指定索引的参考图。
    */
   const handleRemoveImage = (index: number) => {
-    setSelectedImages(prev => prev.filter((_, currentIndex) => currentIndex !== index));
+    setSelectedImages((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
   };
 
   /**
@@ -409,19 +413,19 @@ export default function CreationStudio() {
           onModelChange={handleModelChange}
           resolutionValue={resolution}
           resolutionOptions={resolutionOptions}
-          onResolutionChange={value => setResolution(value)}
+          onResolutionChange={(value) => setResolution(value)}
           aspectRatioValue={aspectRatio}
           aspectRatioOptions={aspectRatioOptions}
-          onAspectRatioChange={value => setAspectRatio(value)}
+          onAspectRatioChange={(value) => setAspectRatio(value)}
           modeValue={selectedMode}
           modeOptions={modeOptions}
-          onModeChange={value => setSelectedMode(value)}
+          onModeChange={(value) => setSelectedMode(value)}
           durationValue={duration}
           durationOptions={durationOptions}
-          onDurationChange={value => setDuration(value)}
+          onDurationChange={(value) => setDuration(value)}
           batchCountValue={batchCount}
           batchCountMax={10}
-          onBatchCountChange={value => setBatchCount(value)}
+          onBatchCountChange={(value) => setBatchCount(value)}
           saveToLibraryConfig={{
             checked: saveToLibrary,
             label: '存素材库',
@@ -445,7 +449,7 @@ export default function CreationStudio() {
           extraConfigContent={
             <Select
               value={targetAudience}
-              onChange={value => setTargetAudience(value)}
+              onChange={(value) => setTargetAudience(value)}
               variant="borderless"
               options={[
                 { label: '女生', value: 'female' },
@@ -476,7 +480,7 @@ export default function CreationStudio() {
       <ReferenceImageSelector
         visible={selectorVisible}
         onCancel={() => setSelectorVisible(false)}
-        onConfirm={images => {
+        onConfirm={(images) => {
           setSelectedImages(images);
           setSelectorVisible(false);
         }}

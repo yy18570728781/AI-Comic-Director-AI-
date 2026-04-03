@@ -65,8 +65,11 @@
   content: '';
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 20%, rgba(88, 28, 180, 0.15) 0%, transparent 60%),
+  background: radial-gradient(
+      ellipse 80% 60% at 50% 20%,
+      rgba(88, 28, 180, 0.15) 0%,
+      transparent 60%
+    ),
     radial-gradient(ellipse 60% 40% at 80% 60%, rgba(30, 64, 175, 0.1) 0%, transparent 50%),
     radial-gradient(ellipse 50% 50% at 20% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
   pointer-events: none;
@@ -252,8 +255,7 @@
 [data-theme='theme1'] .home-hero-glow {
   width: 800px;
   height: 800px;
-  background:
-    radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 50%),
     radial-gradient(circle at 30% 40%, rgba(59, 130, 246, 0.1) 0%, transparent 40%);
 }
 
@@ -313,10 +315,7 @@
   border: none !important;
   color: #fff !important;
   box-shadow: 0 8px 24px rgba(90, 103, 242, 0.28) !important;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s,
-    filter 0.2s !important;
+  transition: transform 0.2s, box-shadow 0.2s, filter 0.2s !important;
 }
 
 .home-cta-btn:hover {
@@ -367,10 +366,7 @@
   border-radius: 16px;
   padding: 32px 24px;
   text-align: center;
-  transition:
-    transform 0.3s,
-    border-color 0.3s,
-    box-shadow 0.3s;
+  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
   animation: fadeInUp 0.6s ease both;
 }
 

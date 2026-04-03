@@ -28,17 +28,12 @@ export default function VideosTab({ shots }: VideosTabProps) {
   if (!shots || shots.length === 0) {
     return (
       <Card>
-        <Empty
-          description="请先生成分镜脚本"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+        <Empty description="请先生成分镜脚本" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       </Card>
     );
   }
 
-  const shotsWithVideos = shots.filter(
-    (shot) => (shot.videos?.length ?? 0) > 0,
-  );
+  const shotsWithVideos = shots.filter((shot) => (shot.videos?.length ?? 0) > 0);
 
   if (shotsWithVideos.length === 0) {
     return (
@@ -100,12 +95,32 @@ export default function VideosTab({ shots }: VideosTabProps) {
                 {(shot.videos || []).map((video: any, idx) => (
                   <div key={idx} style={{ marginBottom: 16 }}>
                     <div style={{ marginBottom: 8 }}>
-                      <Tag color={video.status === 'completed' ? 'green' : video.status === 'failed' ? 'red' : 'blue'}>
+                      <Tag
+                        color={
+                          video.status === 'completed'
+                            ? 'green'
+                            : video.status === 'failed'
+                            ? 'red'
+                            : 'blue'
+                        }
+                      >
                         视频 #{idx + 1}
                       </Tag>
                       {video?.model && <Tag>{video.model}</Tag>}
-                      <Tag color={video.status === 'completed' ? 'success' : video.status === 'failed' ? 'error' : 'processing'}>
-                        {video.status === 'completed' ? '已完成' : video.status === 'failed' ? '失败' : '处理中'}
+                      <Tag
+                        color={
+                          video.status === 'completed'
+                            ? 'success'
+                            : video.status === 'failed'
+                            ? 'error'
+                            : 'processing'
+                        }
+                      >
+                        {video.status === 'completed'
+                          ? '已完成'
+                          : video.status === 'failed'
+                          ? '失败'
+                          : '处理中'}
                       </Tag>
                       {video?.createdAt && (
                         <span
@@ -119,7 +134,7 @@ export default function VideosTab({ shots }: VideosTabProps) {
                         </span>
                       )}
                     </div>
-                    
+
                     {video.status === 'completed' && video?.url ? (
                       <video
                         width={400}
@@ -144,24 +159,25 @@ export default function VideosTab({ shots }: VideosTabProps) {
                         }}
                       >
                         <div style={{ fontWeight: 500, marginBottom: 8 }}>❌ 生成失败</div>
-                        {video.errorMessage && (() => {
-                          try {
-                            const error = JSON.parse(video.errorMessage);
-                            if (error.code === 'OutputVideoSensitiveContentDetected') {
-                              return (
-                                <div style={{ fontSize: 12 }}>
-                                  内容审核未通过，建议：
-                                  <br />• 避免使用"颤抖"、"震惊"等强烈情绪词汇
-                                  <br />• 使用更中性的描述，如"缓缓"、"专注"
-                                  <br />• 点击"AI 优化"按钮自动优化提示词
-                                </div>
-                              );
+                        {video.errorMessage &&
+                          (() => {
+                            try {
+                              const error = JSON.parse(video.errorMessage);
+                              if (error.code === 'OutputVideoSensitiveContentDetected') {
+                                return (
+                                  <div style={{ fontSize: 12 }}>
+                                    内容审核未通过，建议：
+                                    <br />• 避免使用"颤抖"、"震惊"等强烈情绪词汇
+                                    <br />• 使用更中性的描述，如"缓缓"、"专注"
+                                    <br />• 点击"AI 优化"按钮自动优化提示词
+                                  </div>
+                                );
+                              }
+                              return <div style={{ fontSize: 12 }}>{error.message}</div>;
+                            } catch (e) {
+                              return <div style={{ fontSize: 12 }}>{video.errorMessage}</div>;
                             }
-                            return <div style={{ fontSize: 12 }}>{error.message}</div>;
-                          } catch (e) {
-                            return <div style={{ fontSize: 12 }}>{video.errorMessage}</div>;
-                          }
-                        })()}
+                          })()}
                       </div>
                     ) : (
                       <div
@@ -180,15 +196,13 @@ export default function VideosTab({ shots }: VideosTabProps) {
                         {video.status === 'processing' ? '🔄 视频生成中...' : '⏳ 等待处理'}
                       </div>
                     )}
-                    
+
                     <div style={{ marginTop: 8 }}>
                       <Space>
                         <Button
                           size="small"
                           disabled={!video?.url}
-                          onClick={() =>
-                            video?.url && window.open(video.url, '_blank')
-                          }
+                          onClick={() => video?.url && window.open(video.url, '_blank')}
                         >
                           下载视频
                         </Button>

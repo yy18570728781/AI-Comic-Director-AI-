@@ -102,10 +102,7 @@ export default function ImageBlendModal({
                 style={{
                   padding: '16px',
                   border: '2px solid',
-                  borderColor:
-                    form.getFieldValue('model') === 'seedream'
-                      ? '#1890ff'
-                      : '#d9d9d9',
+                  borderColor: form.getFieldValue('model') === 'seedream' ? '#1890ff' : '#d9d9d9',
                   borderRadius: 8,
                   cursor: 'pointer',
                   transition: 'all 0.3s',
@@ -117,9 +114,7 @@ export default function ImageBlendModal({
                     <span style={{ color: '#1890ff', marginLeft: 8 }}>✓</span>
                   )}
                 </div>
-                <div style={{ fontSize: 12, color: '#999' }}>
-                  多图融合，角色一致（推荐）
-                </div>
+                <div style={{ fontSize: 12, color: '#999' }}>多图融合，角色一致（推荐）</div>
               </div>
 
               <div
@@ -132,8 +127,7 @@ export default function ImageBlendModal({
                   padding: '16px',
                   border: '2px solid',
                   borderColor:
-                    form.getFieldValue('model') ===
-                    'gemini-2.5-flash-image-preview'
+                    form.getFieldValue('model') === 'gemini-2.5-flash-image-preview'
                       ? '#1890ff'
                       : '#d9d9d9',
                   borderRadius: 8,
@@ -143,14 +137,11 @@ export default function ImageBlendModal({
               >
                 <div style={{ fontWeight: 500, marginBottom: 4 }}>
                   Gemini 2.5 Flash
-                  {form.getFieldValue('model') ===
-                    'gemini-2.5-flash-image-preview' && (
+                  {form.getFieldValue('model') === 'gemini-2.5-flash-image-preview' && (
                     <span style={{ color: '#1890ff', marginLeft: 8 }}>✓</span>
                   )}
                 </div>
-                <div style={{ fontSize: 12, color: '#999' }}>
-                  Google 最新，快速高效
-                </div>
+                <div style={{ fontSize: 12, color: '#999' }}>Google 最新，快速高效</div>
               </div>
 
               <div
@@ -162,26 +153,15 @@ export default function ImageBlendModal({
                   cursor: 'not-allowed',
                 }}
               >
-                <div style={{ fontWeight: 500, marginBottom: 4 }}>
-                  nanoBanana Pro
-                </div>
-                <div style={{ fontSize: 12, color: '#999' }}>
-                  支持多图融合，速度快（未配置）
-                </div>
+                <div style={{ fontWeight: 500, marginBottom: 4 }}>nanoBanana Pro</div>
+                <div style={{ fontSize: 12, color: '#999' }}>支持多图融合，速度快（未配置）</div>
               </div>
             </div>
           </Form.Item>
 
           {/* 提示词 */}
-          <Form.Item
-            label="提示词"
-            name="prompt"
-            extra="描述你想生成的图像内容"
-          >
-            <TextArea
-              rows={4}
-              placeholder="例如：一个年轻女性在花园中散步，阳光明媚..."
-            />
+          <Form.Item label="提示词" name="prompt" extra="描述你想生成的图像内容">
+            <TextArea rows={4} placeholder="例如：一个年轻女性在花园中散步，阳光明媚..." />
           </Form.Item>
 
           {/* 参考图选择 */}
@@ -195,8 +175,7 @@ export default function ImageBlendModal({
               onClick={() => setSelectorVisible(true)}
               style={{ marginBottom: 8 }}
             >
-              选择参考图{' '}
-              {referenceImages.length > 0 && `(${referenceImages.length})`}
+              选择参考图 {referenceImages.length > 0 && `(${referenceImages.length})`}
             </Button>
             {referenceImages.length > 0 && (
               <div
@@ -245,18 +224,10 @@ export default function ImageBlendModal({
             rules={[{ required: true, message: '请选择图像比例' }]}
           >
             <Select>
-              <Select.Option value="1:1">
-                1:1（正方形 - 1024x1024）
-              </Select.Option>
-              <Select.Option value="16:9">
-                16:9（横屏 - 1280x720）
-              </Select.Option>
-              <Select.Option value="9:16">
-                9:16（竖屏 - 720x1280）
-              </Select.Option>
-              <Select.Option value="3:4">
-                3:4（标准竖屏 - 768x1152）
-              </Select.Option>
+              <Select.Option value="1:1">1:1（正方形 - 1024x1024）</Select.Option>
+              <Select.Option value="16:9">16:9（横屏 - 1280x720）</Select.Option>
+              <Select.Option value="9:16">9:16（竖屏 - 720x1280）</Select.Option>
+              <Select.Option value="3:4">3:4（标准竖屏 - 768x1152）</Select.Option>
             </Select>
           </Form.Item>
         </Form>

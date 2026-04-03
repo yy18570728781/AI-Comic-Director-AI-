@@ -52,8 +52,8 @@ function ImageToImage() {
   const [quality, setQuality] = useState<string>('standard');
   const [aspectRatio, setAspectRatio] = useState<string>('16:9');
   const [selectorVisible, setSelectorVisible] = useState(false);
-  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>(() => 
-    storage.get<GeneratedImage[]>('imageToImage_generatedImages', []) ?? []
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>(
+    () => storage.get<GeneratedImage[]>('imageToImage_generatedImages', []) ?? []
   );
   const [batchCount, setBatchCount] = useState<number>(1);
   const [saveToLibrary, setSaveToLibrary] = useState(false);
@@ -75,18 +75,18 @@ function ImageToImage() {
   // 使用统一的 AI 生成 hook
   const { generateImage, tasks, generatingImageIds } = useAIGeneration({
     onImageComplete: (image) => {
-      setGeneratedImages(prev => [image, ...prev]); // 最新的排在前面
-      setLoadingPlaceholders(prev => Math.max(0, prev - 1));
+      setGeneratedImages((prev) => [image, ...prev]); // 最新的排在前面
+      setLoadingPlaceholders((prev) => Math.max(0, prev - 1));
       refreshPoints();
     },
     onError: () => {
-      setLoadingPlaceholders(prev => Math.max(0, prev - 1));
+      setLoadingPlaceholders((prev) => Math.max(0, prev - 1));
     },
     showMessage: true,
   });
 
   // 计算状态
-  const pendingTasks = tasks.filter(t => t.type === 'image');
+  const pendingTasks = tasks.filter((t) => t.type === 'image');
   const generating = generatingImageIds.size > 0 || pendingTasks.length > 0;
   const { imageModels, loadModels } = useModelStore();
 
@@ -99,7 +99,7 @@ function ImageToImage() {
         setModels(imageModels);
 
         // 初始化当前模型的配置项
-        const currentModel = imageModels.find(m => m.id === imageModel);
+        const currentModel = imageModels.find((m) => m.id === imageModel);
         const currentConfig = currentModel?.config;
 
         // 只有当模型配置中有 qualities 时才覆盖默认值
@@ -121,13 +121,11 @@ function ImageToImage() {
   }, [imageModel, imageModels, loadModels]);
 
   // 获取当前选中的模型配置
-  const currentModel = models.find((m) => m.id === imageModel) as
-    | ModelConfig
-    | undefined;
+  const currentModel = models.find((m) => m.id === imageModel) as ModelConfig | undefined;
   const modelConfig = currentModel?.config;
 
   // 计算当前积分消费
-  const creditsPerImage = currentModel?.pricing?.image?.creditsPerImage ?? 5;  // 默认5积分
+  const creditsPerImage = currentModel?.pricing?.image?.creditsPerImage ?? 5; // 默认5积分
   const totalCredits = creditsPerImage * batchCount;
   const hasEnoughPoints = (currentUser?.points ?? 0) >= totalCredits;
 
@@ -136,9 +134,7 @@ function ImageToImage() {
     setImageModel(value);
 
     // 获取新模型的配置
-    const newModel = models.find((m) => m.id === value) as
-      | ModelConfig
-      | undefined;
+    const newModel = models.find((m) => m.id === value) as ModelConfig | undefined;
     const newConfig = newModel?.config;
 
     // 如果新模型有配置，使用第一项；否则保持默认值
@@ -174,7 +170,7 @@ function ImageToImage() {
 
     try {
       // 立即添加占位图
-      setLoadingPlaceholders(prev => prev + batchCount);
+      setLoadingPlaceholders((prev) => prev + batchCount);
 
       // 批量提交任务
       for (let i = 0; i < batchCount; i++) {
@@ -184,11 +180,18 @@ function ImageToImage() {
           quality,
           aspectRatio,
           referenceImages: selectedImages,
-          ...(saveToLibrary ? {
-            saveToLibrary: true,
-            libraryName: `融图_${new Date().toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}`,
-            libraryTags: ['融图', 'AI生成'],
-          } : {}),
+          ...(saveToLibrary
+            ? {
+                saveToLibrary: true,
+                libraryName: `融图_${new Date().toLocaleString('zh-CN', {
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}`,
+                libraryTags: ['融图', 'AI生成'],
+              }
+            : {}),
         });
       }
     } finally {
@@ -213,16 +216,10 @@ function ImageToImage() {
             }}
           >
             <Spin spinning={loading}>
-              <Space
-                direction="vertical"
-                style={{ width: '100%' }}
-                size="large"
-              >
+              <Space direction="vertical" style={{ width: '100%' }} size="large">
                 {/* 参考图部分 */}
                 <div>
-                  <div style={{ marginBottom: 12, fontWeight: 500 }}>
-                    参考图片
-                  </div>
+                  <div style={{ marginBottom: 12, fontWeight: 500 }}>参考图片</div>
                   <div
                     style={{
                       border: `1px dashed ${token.colorBorder}`,
@@ -267,9 +264,7 @@ function ImageToImage() {
                         </div>
                       </div>
                     ) : (
-                      <div style={{ color: token.colorTextTertiary }}>
-                        暂未选择参考图
-                      </div>
+                      <div style={{ color: token.colorTextTertiary }}>暂未选择参考图</div>
                     )}
                     <Button
                       type="primary"
@@ -298,9 +293,7 @@ function ImageToImage() {
 
                 {/* 画质选择 */}
                 <div>
-                  <div style={{ marginBottom: 12, fontWeight: 500 }}>
-                    画质
-                  </div>
+                  <div style={{ marginBottom: 12, fontWeight: 500 }}>画质</div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <Tag
                       color={quality === 'standard' ? 'blue' : 'default'}
@@ -330,12 +323,8 @@ function ImageToImage() {
 
                 {/* 画面比例选择 */}
                 <div>
-                  <div style={{ marginBottom: 12, fontWeight: 500 }}>
-                    画面比例
-                  </div>
-                  <div
-                    style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}
-                  >
+                  <div style={{ marginBottom: 12, fontWeight: 500 }}>画面比例</div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <Tag
                       color={aspectRatio === '1:1' ? 'blue' : 'default'}
                       onClick={() => setAspectRatio('1:1')}
@@ -376,9 +365,7 @@ function ImageToImage() {
 
                 {/* 生成数量 */}
                 <div>
-                  <div style={{ marginBottom: 12, fontWeight: 500 }}>
-                    生成数量
-                  </div>
+                  <div style={{ marginBottom: 12, fontWeight: 500 }}>生成数量</div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {[1, 2, 3, 4, 5].map((count) => (
                       <Tag
@@ -404,17 +391,16 @@ function ImageToImage() {
 
                 {/* 保存到资源库开关 */}
                 <div>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: 8,
-                  }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 8,
+                    }}
+                  >
                     <span style={{ fontWeight: 500 }}>保存到资源库</span>
-                    <Switch 
-                      checked={saveToLibrary} 
-                      onChange={setSaveToLibrary}
-                    />
+                    <Switch checked={saveToLibrary} onChange={setSaveToLibrary} />
                   </div>
                   <div
                     style={{
@@ -450,20 +436,21 @@ function ImageToImage() {
                   loading={isSubmitting}
                   disabled={!selectedImages.length || !prompt.trim() || !hasEnoughPoints}
                 >
-                  {selectedImages.length > 1 &&
-                  modelConfig?.supportMultiImageFusion
+                  {selectedImages.length > 1 && modelConfig?.supportMultiImageFusion
                     ? `多图融合 (${selectedImages.length}张图) - 消耗 ${totalCredits} 积分`
                     : `图生图 (${batchCount}张) - 消耗 ${totalCredits} 积分`}
                 </Button>
-                
+
                 {/* 积分不足提示 */}
                 {!hasEnoughPoints && (
-                  <div style={{ 
-                    color: '#ff4d4f', 
-                    fontSize: 12, 
-                    marginTop: 8,
-                    textAlign: 'center',
-                  }}>
+                  <div
+                    style={{
+                      color: '#ff4d4f',
+                      fontSize: 12,
+                      marginTop: 8,
+                      textAlign: 'center',
+                    }}
+                  >
                     ⚠️ 积分不足，当前余额 {currentUser?.points ?? 0} 积分
                   </div>
                 )}
@@ -490,8 +477,7 @@ function ImageToImage() {
                             color: token.colorTextSecondary,
                           }}
                         >
-                          {task.model || '图片'} -
-                          {String(task.jobId).substring(0, 8)}...
+                          {task.model || '图片'} -{String(task.jobId).substring(0, 8)}...
                         </div>
                         <div
                           style={{
@@ -506,9 +492,7 @@ function ImageToImage() {
                       </div>
                     ))}
                     {pendingTasks.length > 5 && (
-                      <div
-                        style={{ fontSize: 12, color: token.colorTextTertiary }}
-                      >
+                      <div style={{ fontSize: 12, color: token.colorTextTertiary }}>
                         还有 {pendingTasks.length - 5} 个任务...
                       </div>
                     )}
@@ -523,11 +507,13 @@ function ImageToImage() {
         <Col xs={24} lg={14}>
           <Card
             title={
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <span>生成结果 {generatedImages.length > 0 && `(${generatedImages.length})`}</span>
                 {generatedImages.length > 0 && (
-                  <Button 
-                    size="small" 
+                  <Button
+                    size="small"
                     danger
                     onClick={() => {
                       setGeneratedImages([]);
@@ -553,17 +539,21 @@ function ImageToImage() {
               padding: 0,
             }}
           >
-            <div style={{
-              height: '100%',
-              overflowY: 'auto',
-              padding: 24,
-            }}>
+            <div
+              style={{
+                height: '100%',
+                overflowY: 'auto',
+                padding: 24,
+              }}
+            >
               {generatedImages.length === 0 && loadingPlaceholders === 0 ? (
-                <div style={{ 
-                  textAlign: 'center', 
-                  padding: '100px 20px',
-                  color: token.colorTextTertiary,
-                }}>
+                <div
+                  style={{
+                    textAlign: 'center',
+                    padding: '100px 20px',
+                    color: token.colorTextTertiary,
+                  }}
+                >
                   <PictureOutlined style={{ fontSize: 64, marginBottom: 16 }} />
                   <div>暂无生成结果</div>
                   <div style={{ fontSize: 12, marginTop: 8 }}>
@@ -617,7 +607,7 @@ function ImageToImage() {
                         </div>
                       </div>
                     ))}
-                    
+
                     {/* 已生成的图片 */}
                     {generatedImages.map((img, idx) => (
                       <div

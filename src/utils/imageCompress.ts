@@ -42,22 +42,19 @@ const getAutoQuality = (fileSizeMB: number): number => {
  * @param options 压缩选项
  * @returns 压缩后的文件
  */
-export const compressImage = (
-  file: File,
-  options: CompressOptions = {}
-): Promise<File> => {
+export const compressImage = (file: File, options: CompressOptions = {}): Promise<File> => {
   const {
-    maxWidth = 2560,  // 提高最大宽度，支持高分辨率参考图
+    maxWidth = 2560, // 提高最大宽度，支持高分辨率参考图
     maxHeight = 2560, // 提高最大高度
     outputType = file.type,
-    autoQuality = true
+    autoQuality = true,
   } = options;
 
   // 计算文件大小（MB）
   const fileSizeMB = file.size / 1024 / 1024;
 
   // 自动计算压缩质量或使用指定质量
-  const quality = autoQuality ? getAutoQuality(fileSizeMB) : (options.quality || 0.8);
+  const quality = autoQuality ? getAutoQuality(fileSizeMB) : options.quality || 0.8;
 
   console.log(`📦 开始压缩图片: ${file.name}`);
   console.log(`📊 原始大小: ${fileSizeMB.toFixed(2)}MB`);
@@ -104,9 +101,14 @@ export const compressImage = (
               });
 
               const compressedSizeMB = compressedFile.size / 1024 / 1024;
-              const compressionRatio = ((fileSizeMB - compressedSizeMB) / fileSizeMB * 100).toFixed(1);
+              const compressionRatio = (
+                ((fileSizeMB - compressedSizeMB) / fileSizeMB) *
+                100
+              ).toFixed(1);
 
-              console.log(`✅ 压缩完成: ${fileSizeMB.toFixed(2)}MB → ${compressedSizeMB.toFixed(2)}MB`);
+              console.log(
+                `✅ 压缩完成: ${fileSizeMB.toFixed(2)}MB → ${compressedSizeMB.toFixed(2)}MB`
+              );
               console.log(`📉 压缩率: ${compressionRatio}%`);
 
               resolve(compressedFile);
@@ -159,7 +161,7 @@ export const getImageDimensions = (file: File): Promise<{ width: number; height:
     img.onload = () => {
       resolve({
         width: img.naturalWidth,
-        height: img.naturalHeight
+        height: img.naturalHeight,
       });
     };
 

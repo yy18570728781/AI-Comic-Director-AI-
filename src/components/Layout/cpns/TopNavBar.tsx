@@ -2,12 +2,7 @@ import { useState } from 'react';
 import { Menu, Button, Space, Avatar, Tooltip } from 'antd';
 import type { MenuProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import {
-  UserOutlined,
-  SettingOutlined,
-  WalletOutlined,
-  SwapOutlined,
-} from '@ant-design/icons';
+import { UserOutlined, SettingOutlined, WalletOutlined, SwapOutlined } from '@ant-design/icons';
 
 import ModelSettingsModal from '@/components/ModelSettingsModal';
 import UserProfileModal from '@/components/UserProfileModal';
@@ -23,7 +18,10 @@ interface TopNavBarProps {
   showUserActions?: boolean;
 }
 
-export default function TopNavBar({ showThemeToggle = false, showUserActions = true }: TopNavBarProps) {
+export default function TopNavBar({
+  showThemeToggle = false,
+  showUserActions = true,
+}: TopNavBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser } = useUserStore();
@@ -41,7 +39,9 @@ export default function TopNavBar({ showThemeToggle = false, showUserActions = t
     ? '/script-management'
     : location.pathname;
 
-  const menuItems = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes((currentUser?.role as UserRoleEnum) || UserRoleEnum.USER) 
+  const menuItems = [UserRoleEnum.ADMIN, UserRoleEnum.SUPER_ADMIN].includes(
+    (currentUser?.role as UserRoleEnum) || UserRoleEnum.USER
+  )
     ? [...(topMenuItems ?? []), ...(adminMenuItems ?? [])]
     : topMenuItems;
 
@@ -69,20 +69,38 @@ export default function TopNavBar({ showThemeToggle = false, showUserActions = t
           )} */}
           {showUserActions && currentUser ? (
             <>
-              <Button className="topnav-recharge-btn" icon={<WalletOutlined />} onClick={() => navigate('/recharge')}>
+              <Button
+                className="topnav-recharge-btn"
+                icon={<WalletOutlined />}
+                onClick={() => navigate('/recharge')}
+              >
                 积分充值
               </Button>
               <span className="topnav-points">
                 可用积分: <strong>{currentUser.points ?? 0}</strong>
               </span>
-              <Button type="text" icon={<SettingOutlined />} className="topnav-icon-btn" onClick={() => setModelModalVisible(true)} />
+              <Button
+                type="text"
+                icon={<SettingOutlined />}
+                className="topnav-icon-btn"
+                onClick={() => setModelModalVisible(true)}
+              />
               <div className="topnav-user" onClick={() => setUserModalVisible(true)}>
-                <Avatar size={28} icon={<UserOutlined />} src={currentUser.avatar} style={{ backgroundColor: '#7265e6' }} />
+                <Avatar
+                  size={28}
+                  icon={<UserOutlined />}
+                  src={currentUser.avatar}
+                  style={{ backgroundColor: '#7265e6' }}
+                />
                 <span className="topnav-username">{currentUser.username || '用户'}</span>
               </div>
             </>
-          ) : !currentUser && (
-            <Button type="primary" onClick={() => navigate('/login')}>登录 / 注册</Button>
+          ) : (
+            !currentUser && (
+              <Button type="primary" onClick={() => navigate('/login')}>
+                登录 / 注册
+              </Button>
+            )
           )}
         </Space>
       </header>

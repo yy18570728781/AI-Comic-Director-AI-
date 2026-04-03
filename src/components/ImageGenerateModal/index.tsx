@@ -38,14 +38,14 @@ interface ImageGenerateModalProps {
 
 /**
  * 通用图像生成配置弹窗
- * 
+ *
  * 功能特性：
  * 1. 自动添加角色参考图（基于 initialReferenceImages）
  * 2. 角色选择与参考图双向同步
  * 3. 支持手动添加/删除参考图
  * 4. AI 提示词优化
  * 5. 表单配置保存（可选）
- * 
+ *
  * 不包含任何业务逻辑（不调 updateShot 等），业务由父组件通过回调处理
  */
 export default function ImageGenerateModal({
@@ -61,19 +61,19 @@ export default function ImageGenerateModal({
 }: ImageGenerateModalProps) {
   // === 表单相关状态 ===
   const [form] = Form.useForm();
-  
+
   // === 参考图管理状态 ===
   const [referenceImages, setReferenceImages] = useState<string[]>([]); // 当前选中的参考图URL列表
   const [selectorVisible, setSelectorVisible] = useState(false); // 参考图选择器弹窗显示状态
-  
+
   // === 功能状态 ===
   const [optimizing, setOptimizing] = useState(false); // AI优化提示词加载状态
   const [saving, setSaving] = useState(false); // 保存表单加载状态
-  
+
   // === 图片预览状态 ===
   const [previewOpen, setPreviewOpen] = useState(false); // 图片预览弹窗显示状态
   const [previewImage, setPreviewImage] = useState(''); // 当前预览的图片URL
-  
+
   // === 角色选择相关状态 ===
   const [characters, setCharacters] = useState<any[]>([]); // 角色列表数据
   const [loadingCharacters, setLoadingCharacters] = useState(false); // 角色列表加载状态
@@ -112,8 +112,8 @@ export default function ImageGenerateModal({
   useEffect(() => {
     if (characters.length > 0 && initialReferenceImages.length > 0) {
       const matchedCharacterIds = characters
-        .filter(char => char.imageUrl && initialReferenceImages.includes(char.imageUrl))
-        .map(char => char.id);
+        .filter((char) => char.imageUrl && initialReferenceImages.includes(char.imageUrl))
+        .map((char) => char.id);
       setSelectedCharacterIds(matchedCharacterIds);
     }
   }, [characters, initialReferenceImages]);
@@ -130,7 +130,7 @@ export default function ImageGenerateModal({
       imagePrompt: '',
       ...initialValues,
     });
-    
+
     // 设置初始参考图（通常来自角色绑定）
     setReferenceImages(initialReferenceImages);
     // 角色选中状态由上面的 useEffect 自动处理
@@ -148,24 +148,24 @@ export default function ImageGenerateModal({
   const handleCharacterChange = (characterIds: number[]) => {
     const prevIds = selectedCharacterIds;
     setSelectedCharacterIds(characterIds);
-    
+
     // 计算新增和删除的角色
-    const addedIds = characterIds.filter(id => !prevIds.includes(id));
-    const removedIds = prevIds.filter(id => !characterIds.includes(id));
-    
+    const addedIds = characterIds.filter((id) => !prevIds.includes(id));
+    const removedIds = prevIds.filter((id) => !characterIds.includes(id));
+
     // 获取新增角色的图片URL
     const addedImages = characters
-      .filter(char => addedIds.includes(char.id) && char.imageUrl)
-      .map(char => char.imageUrl);
-    
+      .filter((char) => addedIds.includes(char.id) && char.imageUrl)
+      .map((char) => char.imageUrl);
+
     // 获取删除角色的图片URL
     const removedImages = characters
-      .filter(char => removedIds.includes(char.id) && char.imageUrl)
-      .map(char => char.imageUrl);
-    
+      .filter((char) => removedIds.includes(char.id) && char.imageUrl)
+      .map((char) => char.imageUrl);
+
     // 更新参考图列表：先删除后添加，并去重
-    setReferenceImages(prev => {
-      let updated = prev.filter(url => !removedImages.includes(url));
+    setReferenceImages((prev) => {
+      let updated = prev.filter((url) => !removedImages.includes(url));
       const allImages = [...updated, ...addedImages];
       return Array.from(new Set(allImages)); // 去重处理
     });
@@ -174,14 +174,14 @@ export default function ImageGenerateModal({
   // 处理用户手动删除参考图时的角色同步
   const handleRemoveReferenceImage = (index: number) => {
     const removedUrl = referenceImages[index];
-    
+
     // 从参考图列表中删除
-    setReferenceImages(prev => prev.filter((_, i) => i !== index));
-    
+    setReferenceImages((prev) => prev.filter((_, i) => i !== index));
+
     // 如果删除的是角色参考图，同步取消选中该角色
-    const characterToRemove = characters.find(char => char.imageUrl === removedUrl);
+    const characterToRemove = characters.find((char) => char.imageUrl === removedUrl);
     if (characterToRemove) {
-      setSelectedCharacterIds(prev => prev.filter(id => id !== characterToRemove.id));
+      setSelectedCharacterIds((prev) => prev.filter((id) => id !== characterToRemove.id));
     }
   };
 
@@ -260,7 +260,7 @@ export default function ImageGenerateModal({
     footerButtons.push(
       <Button key="save" onClick={handleSave} loading={saving}>
         保存
-      </Button>,
+      </Button>
     );
   }
   footerButtons.push(
@@ -272,7 +272,7 @@ export default function ImageGenerateModal({
       icon={<ThunderboltOutlined />}
     >
       生成图像
-    </Button>,
+    </Button>
   );
 
   return (
@@ -372,10 +372,7 @@ export default function ImageGenerateModal({
             ⚙️ 生成配置（仅用于本次生成）
           </div>
 
-          <Form.Item
-            label="参考图（可选）"
-            extra="选择参考图片，AI 将基于参考图生成相似风格的图像"
-          >
+          <Form.Item label="参考图（可选）" extra="选择参考图片，AI 将基于参考图生成相似风格的图像">
             {/* 角色选择器 */}
             <Form.Item noStyle>
               <Select
@@ -389,8 +386,10 @@ export default function ImageGenerateModal({
                 filterOption={(input, option) =>
                   (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                 }
-                options={characters.map(char => ({
-                  label: `${char.name}${char.variant && char.variant !== '默认' ? ` (${char.variant})` : ''}`,
+                options={characters.map((char) => ({
+                  label: `${char.name}${
+                    char.variant && char.variant !== '默认' ? ` (${char.variant})` : ''
+                  }`,
                   value: char.id,
                   disabled: !char.imageUrl,
                 }))}
@@ -404,8 +403,7 @@ export default function ImageGenerateModal({
               onClick={() => setSelectorVisible(true)}
               style={{ marginBottom: 8 }}
             >
-              选择其他参考图{' '}
-              {referenceImages.length > 0 && `(${referenceImages.length})`}
+              选择其他参考图 {referenceImages.length > 0 && `(${referenceImages.length})`}
             </Button>
             {referenceImages.length > 0 && (
               <div

@@ -1,16 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Modal,
-  Form,
-  Input,
-  Button,
-  Space,
-  message,
-  InputNumber,
-  Tag,
-  Switch,
-  Image,
-} from 'antd';
+import { Modal, Form, Input, Button, Space, message, InputNumber, Tag, Switch, Image } from 'antd';
 import { ThunderboltOutlined, SyncOutlined } from '@ant-design/icons';
 import { useModelStore } from '@/stores/useModelStore';
 import { useVideoModelSupport } from '@/hooks/useVideoModelSupport';
@@ -49,7 +38,7 @@ interface ModelConfig {
     resolutions?: string[];
     aspectRatios?: string[];
     durations?: number[];
-    supportedModes?: string[];  // 添加这个属性
+    supportedModes?: string[]; // 添加这个属性
     supportFirstLastFrame?: boolean;
     supportCameraMovement?: boolean;
     supportWatermark?: boolean;
@@ -83,15 +72,16 @@ export default function VideoGenerateModal({
   // 计算所需积分（基于当前表单的时长和分辨率）
   const duration = Form.useWatch('duration', form) || 5;
   const resolution = Form.useWatch('resolution', form) || '720p';
-  
-  const selectedModel = videoModels.find(m => m.id === videoModel);
+
+  const selectedModel = videoModels.find((m) => m.id === videoModel);
   const pricing = selectedModel?.pricing;
   const billingMode = pricing?.billingMode ?? 'per_second';
   const pricingTiers = Array.isArray(pricing?.pricingTiers) ? pricing.pricingTiers : [];
   const pricingTier = pricingTiers.find((p) => p.resolution === resolution) ?? pricingTiers[0];
   const creditsPerSecond = pricingTier?.creditsPerSecond || 2;
   const creditsPerVideo = pricing?.perVideo?.creditsPerVideo ?? creditsPerSecond;
-  const requiredCredits = billingMode === 'per_video' ? creditsPerVideo : creditsPerSecond * duration;
+  const requiredCredits =
+    billingMode === 'per_video' ? creditsPerVideo : creditsPerSecond * duration;
 
   // 获取模型列表
   useEffect(() => {
@@ -101,9 +91,9 @@ export default function VideoGenerateModal({
         setModels(videoModels);
 
         // 初始化当前模型的配置项
-        const currentModel = videoModels.find(m => m.id === videoModel);
+        const currentModel = videoModels.find((m) => m.id === videoModel);
         const currentConfig = currentModel?.config;
-        
+
         if (currentConfig?.aspectRatios?.[0]) {
           setAspectRatio(currentConfig.aspectRatios[0]);
         }
@@ -126,7 +116,7 @@ export default function VideoGenerateModal({
     if (visible && shot) {
       // 统一使用 videoPrompt 字段
       const initialVideoPrompt = shot.videoPrompt || '';
-      
+
       form.setFieldsValue({
         videoPrompt: initialVideoPrompt,
         duration: shot.duration || 5,
@@ -140,7 +130,7 @@ export default function VideoGenerateModal({
     if (visible && shot) {
       const currentVideoPrompt = form.getFieldValue('videoPrompt');
       const newVideoPrompt = shot.videoPrompt || '';
-      
+
       // 只有当数据真的发生变化时才更新，避免用户正在编辑时被覆盖
       if (currentVideoPrompt !== newVideoPrompt && newVideoPrompt) {
         form.setFieldsValue({
@@ -163,7 +153,7 @@ export default function VideoGenerateModal({
     try {
       const { optimizeVideoPrompt } = await import('@/api/ai');
       const duration = form.getFieldValue('duration') || 5;
-      
+
       const res = await optimizeVideoPrompt({
         prompt: videoPrompt,
         duration,
@@ -289,9 +279,7 @@ export default function VideoGenerateModal({
       <Form form={form} layout="vertical">
         {/* 首帧和尾帧预览 */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>
-            参考帧
-          </div>
+          <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 8 }}>参考帧</div>
           <div style={{ display: 'flex', gap: 16 }}>
             {/* 首帧 */}
             <div style={{ flex: 1 }}>
@@ -465,7 +453,6 @@ export default function VideoGenerateModal({
               suffix="秒"
             />
           </Form.Item>
-
         </div>
 
         {/* 生成配置区域 */}

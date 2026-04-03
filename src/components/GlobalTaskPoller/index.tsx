@@ -53,11 +53,11 @@ export function onTaskFailed(listener: TaskFailedListener): () => void {
 }
 
 function emitComplete(event: TaskCompleteEvent) {
-  completeListeners.forEach(fn => fn(event));
+  completeListeners.forEach((fn) => fn(event));
 }
 
 function emitFailed(event: TaskFailedEvent) {
-  failedListeners.forEach(fn => fn(event));
+  failedListeners.forEach((fn) => fn(event));
 }
 
 // ==================== 轮询组件 ====================
@@ -68,7 +68,7 @@ export function GlobalTaskPoller() {
 
   const poll = useCallback(async () => {
     const currentTasks = useTaskStore.getState().tasks;
-    
+
     if (currentTasks.length === 0) {
       timerRef.current = null;
       return;
@@ -76,19 +76,18 @@ export function GlobalTaskPoller() {
 
     try {
       const res: any = await batchGetAllTaskStatus({
-        tasks: currentTasks.map(t => ({
+        tasks: currentTasks.map((t) => ({
           jobId: t.jobId,
           type: t.type,
           videoId: t.videoId,
         })),
       });
 
-
       if (res.success && res.data) {
         const finishedIds: (string | number)[] = [];
 
         res.data.forEach((item: any) => {
-          const task = currentTasks.find(t => String(t.jobId) === String(item.jobId));
+          const task = currentTasks.find((t) => String(t.jobId) === String(item.jobId));
           if (!task) return;
 
           console.log(`🔍 [检查任务] #${task.jobId}:`, {

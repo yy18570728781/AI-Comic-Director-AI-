@@ -74,7 +74,11 @@ export function getPointRecords(
   });
 }
 
-export function rechargePoints(userId: number, points: number, bonus?: number): Promise<ApiResponse> {
+export function rechargePoints(
+  userId: number,
+  points: number,
+  bonus?: number
+): Promise<ApiResponse> {
   return request({
     url: `/api/user/${userId}/recharge`,
     method: 'POST',

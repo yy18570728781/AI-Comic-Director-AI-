@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { Card, Form, Input, Button, Tabs, message, Space } from 'antd';
-import { LockOutlined, LoginOutlined, UserAddOutlined, SafetyOutlined, WechatOutlined, MailOutlined } from '@ant-design/icons';
+import {
+  LockOutlined,
+  LoginOutlined,
+  UserAddOutlined,
+  SafetyOutlined,
+  WechatOutlined,
+  MailOutlined,
+} from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { loginWithPassword, registerWithPassword, sendEmailCode, resetPassword } from '@/api/auth';
 import { useUserStore } from '@/stores/useUserStore';
@@ -14,7 +21,7 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { setCurrentUser } = useUserStore();
-  
+
   const [loginForm] = Form.useForm();
   const [registerForm] = Form.useForm();
   const [resetForm] = Form.useForm();
@@ -23,7 +30,7 @@ function Login() {
   const [resetLoading, setResetLoading] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  
+
   // 一级菜单：微信 / 邮箱
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('wechat');
   // 二级菜单（邮箱下）：登录 / 注册 / 重置密码
@@ -48,9 +55,9 @@ function Login() {
         message.error('请先输入邮箱地址');
         return;
       }
-      
+
       await formInstance.validateFields(['email']);
-      
+
       setSendingCode(true);
       const response: any = await sendEmailCode(email);
       if (response.success) {
@@ -105,7 +112,12 @@ function Login() {
   };
 
   // 邮箱注册
-  const handleRegister = async (values: { email: string; password: string; confirmPassword: string; code: string }) => {
+  const handleRegister = async (values: {
+    email: string;
+    password: string;
+    confirmPassword: string;
+    code: string;
+  }) => {
     try {
       setRegisterLoading(true);
       const response: any = await registerWithPassword(values.email, values.password, values.code);
@@ -124,7 +136,12 @@ function Login() {
   };
 
   // 重置密码
-  const handleResetPassword = async (values: { email: string; code: string; newPassword: string; confirmPassword: string }) => {
+  const handleResetPassword = async (values: {
+    email: string;
+    code: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) => {
     try {
       setResetLoading(true);
       const response: any = await resetPassword(values.email, values.code, values.newPassword);
@@ -151,7 +168,7 @@ function Login() {
         rules={[
           { required: true, message: '请输入邮箱地址' },
           { type: 'email', message: '邮箱格式不正确' },
-          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' }
+          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' },
         ]}
       >
         <Input prefix={<MailOutlined />} placeholder="请输入邮箱地址" size="large" />
@@ -161,13 +178,20 @@ function Login() {
         name="password"
         rules={[
           { required: true, message: '请输入密码' },
-          { min: 6, message: '密码至少6位' }
+          { min: 6, message: '密码至少6位' },
         ]}
       >
         <Input.Password prefix={<LockOutlined />} placeholder="请输入密码" size="large" />
       </Form.Item>
       <Form.Item>
-        <Button type="primary" htmlType="submit" size="large" loading={loginLoading} block icon={<LoginOutlined />}>
+        <Button
+          type="primary"
+          htmlType="submit"
+          size="large"
+          loading={loginLoading}
+          block
+          icon={<LoginOutlined />}
+        >
           登录
         </Button>
       </Form.Item>
@@ -181,14 +205,20 @@ function Login() {
 
   // 渲染邮箱注册表单
   const renderEmailRegisterForm = () => (
-    <Form form={registerForm} name="register" onFinish={handleRegister} autoComplete="off" layout="vertical">
+    <Form
+      form={registerForm}
+      name="register"
+      onFinish={handleRegister}
+      autoComplete="off"
+      layout="vertical"
+    >
       <Form.Item
         label="邮箱地址"
         name="email"
         rules={[
           { required: true, message: '请输入邮箱地址' },
           { type: 'email', message: '邮箱格式不正确' },
-          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' }
+          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' },
         ]}
       >
         <Input prefix={<MailOutlined />} placeholder="请输入邮箱地址" size="large" />
@@ -198,12 +228,22 @@ function Login() {
         name="code"
         rules={[
           { required: true, message: '请输入验证码' },
-          { len: 6, message: '验证码为6位数字' }
+          { len: 6, message: '验证码为6位数字' },
         ]}
       >
         <Space.Compact style={{ width: '100%' }}>
-          <Input prefix={<SafetyOutlined />} placeholder="请输入6位验证码" size="large" maxLength={6} />
-          <Button size="large" onClick={() => handleSendEmailCode(registerForm)} loading={sendingCode} disabled={countdown > 0}>
+          <Input
+            prefix={<SafetyOutlined />}
+            placeholder="请输入6位验证码"
+            size="large"
+            maxLength={6}
+          />
+          <Button
+            size="large"
+            onClick={() => handleSendEmailCode(registerForm)}
+            loading={sendingCode}
+            disabled={countdown > 0}
+          >
             {countdown > 0 ? `${countdown}s` : '发送验证码'}
           </Button>
         </Space.Compact>
@@ -214,7 +254,7 @@ function Login() {
         rules={[
           { required: true, message: '请输入密码' },
           { min: 6, message: '密码至少6位' },
-          { max: 20, message: '密码最多20位' }
+          { max: 20, message: '密码最多20位' },
         ]}
       >
         <Input.Password prefix={<LockOutlined />} placeholder="请输入密码（6-20位）" size="large" />
@@ -236,7 +276,14 @@ function Login() {
         <Input.Password prefix={<LockOutlined />} placeholder="请再次输入密码" size="large" />
       </Form.Item>
       <Form.Item>
-        <Button type="primary" htmlType="submit" size="large" loading={registerLoading} block icon={<UserAddOutlined />}>
+        <Button
+          type="primary"
+          htmlType="submit"
+          size="large"
+          loading={registerLoading}
+          block
+          icon={<UserAddOutlined />}
+        >
           注册
         </Button>
       </Form.Item>
@@ -245,14 +292,20 @@ function Login() {
 
   // 渲染重置密码表单
   const renderResetPasswordForm = () => (
-    <Form form={resetForm} name="reset-password" onFinish={handleResetPassword} autoComplete="off" layout="vertical">
+    <Form
+      form={resetForm}
+      name="reset-password"
+      onFinish={handleResetPassword}
+      autoComplete="off"
+      layout="vertical"
+    >
       <Form.Item
         label="邮箱地址"
         name="email"
         rules={[
           { required: true, message: '请输入邮箱地址' },
           { type: 'email', message: '邮箱格式不正确' },
-          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' }
+          { pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: '请输入有效的邮箱地址' },
         ]}
       >
         <Input prefix={<MailOutlined />} placeholder="请输入注册时的邮箱地址" size="large" />
@@ -262,12 +315,22 @@ function Login() {
         name="code"
         rules={[
           { required: true, message: '请输入验证码' },
-          { len: 6, message: '验证码为6位数字' }
+          { len: 6, message: '验证码为6位数字' },
         ]}
       >
         <Space.Compact style={{ width: '100%' }}>
-          <Input prefix={<SafetyOutlined />} placeholder="请输入6位验证码" size="large" maxLength={6} />
-          <Button size="large" onClick={() => handleSendEmailCode(resetForm)} loading={sendingCode} disabled={countdown > 0}>
+          <Input
+            prefix={<SafetyOutlined />}
+            placeholder="请输入6位验证码"
+            size="large"
+            maxLength={6}
+          />
+          <Button
+            size="large"
+            onClick={() => handleSendEmailCode(resetForm)}
+            loading={sendingCode}
+            disabled={countdown > 0}
+          >
             {countdown > 0 ? `${countdown}s` : '发送验证码'}
           </Button>
         </Space.Compact>
@@ -278,10 +341,14 @@ function Login() {
         rules={[
           { required: true, message: '请输入新密码' },
           { min: 6, message: '密码至少6位' },
-          { max: 20, message: '密码最多20位' }
+          { max: 20, message: '密码最多20位' },
         ]}
       >
-        <Input.Password prefix={<LockOutlined />} placeholder="请输入新密码（6-20位）" size="large" />
+        <Input.Password
+          prefix={<LockOutlined />}
+          placeholder="请输入新密码（6-20位）"
+          size="large"
+        />
       </Form.Item>
       <Form.Item
         label="确认新密码"
@@ -300,7 +367,14 @@ function Login() {
         <Input.Password prefix={<LockOutlined />} placeholder="请再次输入新密码" size="large" />
       </Form.Item>
       <Form.Item>
-        <Button type="primary" htmlType="submit" size="large" loading={resetLoading} block icon={<LockOutlined />}>
+        <Button
+          type="primary"
+          htmlType="submit"
+          size="large"
+          loading={resetLoading}
+          block
+          icon={<LockOutlined />}
+        >
           重置密码
         </Button>
       </Form.Item>
@@ -314,21 +388,53 @@ function Login() {
 
   // 邮箱登录区域的子 Tab 配置
   const emailTabItems = [
-    { key: 'login', label: <span><LoginOutlined /> 登录</span>, children: renderEmailLoginForm() },
-    { key: 'register', label: <span><UserAddOutlined /> 注册</span>, children: renderEmailRegisterForm() },
-    { key: 'reset', label: <span><LockOutlined /> 重置密码</span>, children: renderResetPasswordForm() },
+    {
+      key: 'login',
+      label: (
+        <span>
+          <LoginOutlined /> 登录
+        </span>
+      ),
+      children: renderEmailLoginForm(),
+    },
+    {
+      key: 'register',
+      label: (
+        <span>
+          <UserAddOutlined /> 注册
+        </span>
+      ),
+      children: renderEmailRegisterForm(),
+    },
+    {
+      key: 'reset',
+      label: (
+        <span>
+          <LockOutlined /> 重置密码
+        </span>
+      ),
+      children: renderResetPasswordForm(),
+    },
   ];
 
   // 一级 Tab 配置
   const mainTabItems = [
     {
       key: 'wechat',
-      label: <span><WechatOutlined /> 微信扫码</span>,
+      label: (
+        <span>
+          <WechatOutlined /> 微信扫码
+        </span>
+      ),
       children: <WechatQrLogin onSuccess={handleWechatLoginSuccess} />,
     },
     {
       key: 'email',
-      label: <span><MailOutlined /> 邮箱登录</span>,
+      label: (
+        <span>
+          <MailOutlined /> 邮箱登录
+        </span>
+      ),
       children: (
         <Tabs
           activeKey={emailTab}

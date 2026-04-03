@@ -118,7 +118,7 @@ export default function ShotsTab({
           <Alert
             message={`正在生成分镜脚本... 已接收 ${generatingRawText.length} 字符`}
             description={
-              <Collapse 
+              <Collapse
                 style={{ marginTop: 12 }}
                 defaultActiveKey={['raw']}
                 items={[
@@ -126,21 +126,23 @@ export default function ShotsTab({
                     key: 'raw',
                     label: '查看流式生成的 JSON',
                     children: (
-                      <div style={{ 
-                        maxHeight: 500, 
-                        overflow: 'auto', 
-                        whiteSpace: 'pre-wrap',
-                        fontSize: 12,
-                        fontFamily: 'monospace',
-                        background: '#f5f5f5',
-                        padding: 12,
-                        borderRadius: 4,
-                        lineHeight: 1.6
-                      }}>
+                      <div
+                        style={{
+                          maxHeight: 500,
+                          overflow: 'auto',
+                          whiteSpace: 'pre-wrap',
+                          fontSize: 12,
+                          fontFamily: 'monospace',
+                          background: '#f5f5f5',
+                          padding: 12,
+                          borderRadius: 4,
+                          lineHeight: 1.6,
+                        }}
+                      >
                         {generatingRawText}
                       </div>
-                    )
-                  }
+                    ),
+                  },
                 ]}
               />
             }
@@ -153,10 +155,7 @@ export default function ShotsTab({
 
     return (
       <Card>
-        <Empty
-          description="还没有生成分镜脚本"
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        >
+        <Empty description="还没有生成分镜脚本" image={Empty.PRESENTED_IMAGE_SIMPLE}>
           <Button
             type="primary"
             icon={<ThunderboltOutlined />}
@@ -186,17 +185,10 @@ export default function ShotsTab({
             }
             extra={
               <Space>
-                <Button
-                  size="small"
-                  icon={<EditOutlined />}
-                  onClick={() => onEditShot(shot)}
-                >
+                <Button size="small" icon={<EditOutlined />} onClick={() => onEditShot(shot)}>
                   编辑
                 </Button>
-                <Popconfirm
-                  title="确定删除这个分镜吗？"
-                  onConfirm={() => onDeleteShot(shot.id)}
-                >
+                <Popconfirm title="确定删除这个分镜吗？" onConfirm={() => onDeleteShot(shot.id)}>
                   <Button size="small" danger icon={<DeleteOutlined />}>
                     删除
                   </Button>
@@ -305,7 +297,11 @@ export default function ShotsTab({
                                   >
                                     设为首帧
                                   </Button>
-                                  <Tooltip title={!supportsFirstLastFrame ? '当前视频模型不支持首尾帧' : ''}>
+                                  <Tooltip
+                                    title={
+                                      !supportsFirstLastFrame ? '当前视频模型不支持首尾帧' : ''
+                                    }
+                                  >
                                     <Button
                                       type="primary"
                                       icon={<StarOutlined />}

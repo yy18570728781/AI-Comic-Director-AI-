@@ -10,7 +10,9 @@ const { Content } = AntdLayout;
 
 export default function TopNavLayout() {
   const { currentUser, refreshPoints } = useUserStore();
-  const { token: { colorBgContainer, borderRadiusLG } } = theme.useToken();
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
   useEffect(() => {
     if (currentUser?.id) refreshPoints();

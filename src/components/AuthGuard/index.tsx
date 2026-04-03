@@ -10,8 +10,7 @@ interface AuthGuardProps {
 
 function AuthGuard({ children }: AuthGuardProps) {
   const location = useLocation();
-  const { currentUser, isAuthenticated, setCurrentUser, logout } =
-    useUserStore();
+  const { currentUser, isAuthenticated, setCurrentUser, logout } = useUserStore();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -15,10 +15,10 @@ const WechatQrLogin: React.FC<WechatQrLoginProps> = ({ onSuccess }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [sceneId, setSceneId] = useState<string>('');
   const [countdown, setCountdown] = useState<number>(0);
-  
+
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onSuccessRef = useRef(onSuccess);
-  
+
   // 保持 onSuccess 最新引用
   useEffect(() => {
     onSuccessRef.current = onSuccess;
@@ -39,7 +39,7 @@ const WechatQrLogin: React.FC<WechatQrLoginProps> = ({ onSuccess }) => {
       onSuccess: (res: any) => {
         if (!res.success) return;
         const { status: loginStatus, token, userInfo } = res.data;
-        
+
         if (loginStatus === 'scanned') {
           setStatus('scanned');
         } else if (loginStatus === 'confirmed' && token) {
@@ -85,14 +85,14 @@ const WechatQrLogin: React.FC<WechatQrLoginProps> = ({ onSuccess }) => {
       setStatus('loading');
       stopPolling();
       stopCountdown();
-      
+
       const response: any = await generateWechatQrCode();
-      
+
       if (response.success) {
         setQrCodeUrl(response.data.qrCodeUrl);
         setSceneId(response.data.sceneId);
         setStatus('waiting');
-        
+
         // 计算倒计时秒数
         const seconds = Math.floor((response.data.expireTime - Date.now()) / 1000);
         startCountdown(seconds);
@@ -115,7 +115,7 @@ const WechatQrLogin: React.FC<WechatQrLoginProps> = ({ onSuccess }) => {
   // 组件挂载时生成二维码
   useEffect(() => {
     generateQrCode();
-    
+
     return () => {
       stopPolling();
       stopCountdown();

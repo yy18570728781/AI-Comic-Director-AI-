@@ -82,11 +82,11 @@ export const createNamespacedStorage = (namespace: string) => ({
   has(key: string): boolean {
     return storage.has(`${namespace}:${key}`);
   },
-  
+
   clearAll(): void {
     try {
       const keys = Object.keys(localStorage);
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (key.startsWith(`${namespace}:`)) {
           localStorage.removeItem(key);
         }
@@ -163,11 +163,11 @@ export const createNamespacedSessionStorage = (namespace: string) => ({
   has(key: string): boolean {
     return sessionStore.has(`${namespace}:${key}`);
   },
-  
+
   clearAll(): void {
     try {
       const keys = Object.keys(sessionStorage);
-      keys.forEach(key => {
+      keys.forEach((key) => {
         if (key.startsWith(`${namespace}:`)) {
           sessionStorage.removeItem(key);
         }

@@ -28,27 +28,27 @@ export const getCharactersForAI = async (scriptId: number): Promise<AICharacter[
       page: 1,
       pageSize: 1000,
     });
-    
+
     if (!success || !data.list?.length) return undefined;
 
     // 按角色名分组，收集每个角色的所有服装变体
     const characterMap = new Map<string, CharacterVariant[]>();
-    
+
     data.list.forEach((char: any) => {
       const { name, variant = '默认', tags = [] } = char;
-      
+
       if (!characterMap.has(name)) {
         characterMap.set(name, []);
       }
-      
+
       characterMap.get(name)!.push({ variant, tags });
     });
-    
+
     const characters = Array.from(characterMap.entries()).map(([name, variants]) => ({
       name,
       variants,
     }));
-    
+
     console.log(`📚 [角色工具] 找到${characters.length}个角色参考:`, characters);
     return characters;
   } catch (error) {

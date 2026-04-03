@@ -28,7 +28,13 @@ export default function AppRouter() {
       <Route path="/" element={<Home />} />
 
       {/* 主应用路由 - 需要认证，Layout 内部根据主题切换布局 */}
-      <Route element={<AuthGuard><Layout /></AuthGuard>}>
+      <Route
+        element={
+          <AuthGuard>
+            <Layout />
+          </AuthGuard>
+        }
+      >
         <Route path="ai-creation" element={<AICreation />} />
         <Route path="script-management" element={<ScriptManagement />} />
         <Route path="script-management/:id" element={<ScriptDetail />} />

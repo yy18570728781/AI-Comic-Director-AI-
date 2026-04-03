@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import ImageGenerateModal from '@/components/ImageGenerateModal';
-import type { ImageGenerateSubmitValues, ImageGenerateFormValues } from '@/components/ImageGenerateModal';
+import type {
+  ImageGenerateSubmitValues,
+  ImageGenerateFormValues,
+} from '@/components/ImageGenerateModal';
 import { updateShot } from '@/api/script';
 
 interface ShotImageGenerateModalProps {
@@ -14,7 +17,7 @@ interface ShotImageGenerateModalProps {
 
 /**
  * 分镜专用的图像生成弹窗
- * 
+ *
  * 功能特性：
  * 1. 在通用 ImageGenerateModal 基础上增加了分镜保存逻辑
  * 2. 自动从 shot.characterImageMappings 提取角色参考图

@@ -43,7 +43,7 @@ function ScriptModal({ open, loading, script, onCancel, onSubmit }: ScriptModalP
       width="80%"
       style={{ maxWidth: 900, top: 20 }}
       styles={{
-        body: { maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' }
+        body: { maxHeight: 'calc(100vh - 150px)', overflowY: 'auto' },
       }}
       destroyOnClose
     >
@@ -66,8 +66,8 @@ function ScriptModal({ open, loading, script, onCancel, onSubmit }: ScriptModalP
           name="content"
           rules={[{ required: true, message: '请输入剧本内容' }]}
         >
-          <TextArea 
-            rows={20} 
+          <TextArea
+            rows={20}
             placeholder="粘贴从AI创作工坊生成的剧本内容"
             style={{ minHeight: 400 }}
           />

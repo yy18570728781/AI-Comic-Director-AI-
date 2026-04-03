@@ -9,19 +9,20 @@ interface ScriptTabProps {
   onRegenerateStoryboard: () => void;
 }
 
-export default function ScriptTab({ 
-  content, 
-  hasShots, 
+export default function ScriptTab({
+  content,
+  hasShots,
   generateLoading,
   generatingRawText = '',
-  onRegenerateStoryboard 
+  onRegenerateStoryboard,
 }: ScriptTabProps) {
   const showGeneratingUI = generateLoading && generatingRawText;
-  
+
   return (
     <Card
       extra={
-        hasShots && !generateLoading && (
+        hasShots &&
+        !generateLoading && (
           <Popconfirm
             title="重新生成分镜脚本"
             description={
@@ -35,11 +36,7 @@ export default function ScriptTab({
             cancelText="取消"
             okButtonProps={{ danger: true }}
           >
-            <Button
-              type="primary"
-              danger
-              icon={<ThunderboltOutlined />}
-            >
+            <Button type="primary" danger icon={<ThunderboltOutlined />}>
               重新生成分镜脚本
             </Button>
           </Popconfirm>
@@ -50,7 +47,7 @@ export default function ScriptTab({
         <Alert
           message={`正在生成分镜脚本... 已接收 ${generatingRawText.length} 字符`}
           description={
-            <Collapse 
+            <Collapse
               style={{ marginTop: 12 }}
               defaultActiveKey={['raw']}
               items={[
@@ -58,21 +55,23 @@ export default function ScriptTab({
                   key: 'raw',
                   label: '查看流式生成的 JSON',
                   children: (
-                    <div style={{ 
-                      maxHeight: 500, 
-                      overflow: 'auto', 
-                      whiteSpace: 'pre-wrap',
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                      background: '#f5f5f5',
-                      padding: 12,
-                      borderRadius: 4,
-                      lineHeight: 1.6
-                    }}>
+                    <div
+                      style={{
+                        maxHeight: 500,
+                        overflow: 'auto',
+                        whiteSpace: 'pre-wrap',
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                        background: '#f5f5f5',
+                        padding: 12,
+                        borderRadius: 4,
+                        lineHeight: 1.6,
+                      }}
+                    >
                       {generatingRawText}
                     </div>
-                  )
-                }
+                  ),
+                },
               ]}
             />
           }

@@ -70,13 +70,13 @@ export default function ResourceLibrary() {
         setLoading(false);
       }
     },
-    [resourceType, mediaType, keyword, pageSize],
+    [resourceType, mediaType, keyword, pageSize]
   );
 
   // 防抖的搜索函数
   const debouncedFetchResources = useMemo(
     () => debounce(() => fetchResources(1), 500),
-    [fetchResources],
+    [fetchResources]
   );
 
   // 当 resourceType 变化时立即请求，keyword 变化时防抖请求
@@ -110,11 +110,7 @@ export default function ResourceLibrary() {
 
   // 获取资源的显示图片
   const getResourceImage = (resource: any): string | null => {
-    if (
-      resource.images &&
-      resource.images.length > 0 &&
-      resource.images[0]?.url
-    ) {
+    if (resource.images && resource.images.length > 0 && resource.images[0]?.url) {
       return resource.images[0].url;
     }
     if (resource.referenceImages && resource.referenceImages.length > 0) {
@@ -170,9 +166,7 @@ export default function ResourceLibrary() {
               }}
             >
               <div>
-                <span style={{ marginRight: 8, fontWeight: 500 }}>
-                  资源类型：
-                </span>
+                <span style={{ marginRight: 8, fontWeight: 500 }}>资源类型：</span>
                 <Radio.Group
                   value={resourceType}
                   onChange={(e) => setResourceType(e.target.value)}
@@ -186,9 +180,7 @@ export default function ResourceLibrary() {
                 </Radio.Group>
               </div>
               <div>
-                <span style={{ marginRight: 8, fontWeight: 500 }}>
-                  媒体类型：
-                </span>
+                <span style={{ marginRight: 8, fontWeight: 500 }}>媒体类型：</span>
                 <Radio.Group
                   value={mediaType}
                   onChange={(e) => setMediaType(e.target.value)}
@@ -227,10 +219,10 @@ export default function ResourceLibrary() {
                 !currentUser
                   ? '请登录后查看您的资源'
                   : keyword
-                    ? '没有找到匹配的资源'
-                    : resourceType === 'all'
-                      ? '暂无资源'
-                      : `暂无${getTypeName(resourceType)}资源`
+                  ? '没有找到匹配的资源'
+                  : resourceType === 'all'
+                  ? '暂无资源'
+                  : `暂无${getTypeName(resourceType)}资源`
               }
               style={{ padding: '60px 0' }}
             >
@@ -238,8 +230,8 @@ export default function ResourceLibrary() {
                 {!currentUser
                   ? '登录后可以创建和管理您的专属资源'
                   : keyword
-                    ? '尝试调整搜索关键词'
-                    : '请先创建资源并上传参考图'}
+                  ? '尝试调整搜索关键词'
+                  : '请先创建资源并上传参考图'}
               </div>
             </Empty>
           </Card>
@@ -455,16 +447,11 @@ export default function ResourceLibrary() {
                                 flexWrap: 'wrap',
                               }}
                             >
-                              {resource.tags
-                                .slice(0, 3)
-                                .map((tag: string, index: number) => (
-                                  <Tag
-                                    key={index}
-                                    style={{ margin: 0, fontSize: 11 }}
-                                  >
-                                    {tag}
-                                  </Tag>
-                                ))}
+                              {resource.tags.slice(0, 3).map((tag: string, index: number) => (
+                                <Tag key={index} style={{ margin: 0, fontSize: 11 }}>
+                                  {tag}
+                                </Tag>
+                              ))}
                               {resource.tags.length > 3 && (
                                 <Tag style={{ margin: 0, fontSize: 11 }}>
                                   +{resource.tags.length - 3}
