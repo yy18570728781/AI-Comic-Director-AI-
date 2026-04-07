@@ -465,10 +465,7 @@ export default function EcommerceZone() {
                 </div>
               </div>
             </div>
-            <button type="button" className="ecommerce-zone__upload-button">
-              <UploadOutlined />
-              <span>拖拽至此上传</span>
-            </button>
+
             <div className="ecommerce-zone__toolbar-actions">
               <button type="button" className="ecommerce-zone__toolbar-button">
                 <SettingOutlined />
