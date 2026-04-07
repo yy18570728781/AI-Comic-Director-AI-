@@ -728,12 +728,18 @@ export default function ModelManagement() {
 
 // 图像模型配置表单
 function ImageConfigForm() {
+  const commonAspectRatioOptions = [
+    { label: '1:1', value: '1:1' },
+    { label: '16:9', value: '16:9' },
+    { label: '9:16', value: '9:16' },
+    { label: '3:4', value: '3:4' },
+    { label: '4:3', value: '4:3' },
+    { label: '3:2', value: '3:2' },
+    { label: '2:3', value: '2:3' },
+  ];
+
   return (
     <>
-      <Form.Item label="支持的尺寸" name={['config', 'sizes']}>
-        <Select mode="tags" placeholder="如 1024x1024, 1920x1920" />
-      </Form.Item>
-
       <Form.Item label="质量选项" name={['config', 'qualities']}>
         <Select mode="tags" placeholder="如 standard, hd" />
       </Form.Item>
@@ -742,8 +748,16 @@ function ImageConfigForm() {
         <Select mode="tags" placeholder="如 默认, 3D卡通, 动画" />
       </Form.Item>
 
-      <Form.Item label="画面比例" name={['config', 'aspectRatios']}>
-        <Select mode="tags" placeholder="如 1:1, 16:9, 9:16" />
+      <Form.Item
+        label="画面比例"
+        name={['config', 'aspectRatios']}
+        rules={[{ required: true, message: '请至少配置一个画面比例' }]}
+      >
+        <Select
+          mode="tags"
+          placeholder="请选择或输入画面比例"
+          options={commonAspectRatioOptions}
+        />
       </Form.Item>
 
       <Form.Item
