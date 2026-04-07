@@ -119,6 +119,7 @@ export default function ModelManagement() {
       enabled: true,
       priority: 0,
       type: 'image',
+      apiPath: undefined,
       config: {},
       pricing: {
         billingMode: 'per_second',
@@ -137,6 +138,8 @@ export default function ModelManagement() {
     const perVideo = pricing?.perVideo;
     form.setFieldsValue({
       ...record,
+      // 关键逻辑：只回显顶层 apiPath，不再从 config 里兜底读取。
+      apiPath: record.apiPath,
       pricing: {
         ...(pricing || {}),
         billingMode,
@@ -170,6 +173,8 @@ export default function ModelManagement() {
         platform: values.platform,
         enabled: values.enabled ?? true,
         priority: values.priority ?? 0,
+        // 关键逻辑：apiPath 现在属于基础信息，走顶层字段提交。
+        apiPath: values.apiPath?.trim() || undefined,
         config: values.config || {},
       };
 
@@ -648,8 +653,10 @@ export default function ModelManagement() {
 
               <Form.Item
                 label="后缀路径"
-                name={['config', 'apiPath']}
+                name="apiPath"
                 extra="用于模型级接口后缀覆盖，例如 /v1beta/models/xxx:generateContent"
+                // 关键逻辑：前端录入阶段先去掉首尾空格，避免保存出带空格的非法路径。
+                normalize={(value) => (typeof value === 'string' ? value.trim() : value)}
               >
                 <Input placeholder="请输入接口后缀路径，可选" />
               </Form.Item>
