@@ -16,7 +16,6 @@ export interface ModelConfig {
   supportMultiImageFusion?: boolean;
   supportSeed?: boolean;
   supportNegativePrompt?: boolean;
-  /** 模型级接口路径，用于覆盖平台默认端点 */
 
   // 视频模型配置
   supportedModes?: string[];
@@ -27,6 +26,12 @@ export interface ModelConfig {
   supportCameraMovement?: boolean;
   supportWatermark?: boolean;
   supportGenerateAudio?: boolean;
+
+  // 文本模型配置
+  temperature?: number;
+  maxTokens?: number;
+  supportSystemPrompt?: boolean;
+  supportStream?: boolean;
 
   // 通用扩展配置
   ext?: Record<string, any>;
@@ -203,5 +208,9 @@ export interface ModelOption {
     supportCameraMovement?: boolean;
     supportWatermark?: boolean;
     supportGenerateAudio?: boolean;
+    temperature?: number;
+    maxTokens?: number;
+    supportSystemPrompt?: boolean;
+    supportStream?: boolean;
   };
 }

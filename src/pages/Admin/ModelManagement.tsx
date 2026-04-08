@@ -711,6 +711,16 @@ export default function ModelManagement() {
                   <VideoPricingForm />
                 </>
               )}
+
+              {modelType === 'text' && (
+                <Card size="small" style={{ background: '#fafafa' }}>
+                  <div style={{ color: '#666', lineHeight: 1.8 }}>
+                    文本模型当前不在这里配置积分和成本。
+                    <br />
+                    后续如果要接收费，直接在这一步扩展文本定价字段即可。
+                  </div>
+                </Card>
+              )}
             </>
           )}
 
@@ -718,6 +728,7 @@ export default function ModelManagement() {
             <>
               {modelType === 'image' && <ImageConfigForm />}
               {modelType === 'video' && <VideoConfigForm />}
+              {modelType === 'text' && <TextConfigForm />}
             </>
           )}
         </Form>
@@ -831,6 +842,54 @@ function VideoConfigForm() {
         label="支持音画同步"
         name={['config', 'supportGenerateAudio']}
         valuePropName="checked"
+      >
+        <Switch />
+      </Form.Item>
+    </>
+  );
+}
+
+// 文本模型配置表单
+function TextConfigForm() {
+  return (
+    <>
+      <Form.Item
+        label="默认温度"
+        name={['config', 'temperature']}
+        extra="控制文本生成的随机性，建议 0-2 之间"
+      >
+        <InputNumber
+          placeholder="如 0.7"
+          style={{ width: '100%' }}
+          min={0}
+          max={2}
+          step={0.1}
+          precision={1}
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="最大输出 Token"
+        name={['config', 'maxTokens']}
+        extra="作为该文本模型的默认最大输出长度"
+      >
+        <InputNumber placeholder="如 4000" style={{ width: '100%' }} min={1} step={100} />
+      </Form.Item>
+
+      <Form.Item
+        label="支持 System Prompt"
+        name={['config', 'supportSystemPrompt']}
+        valuePropName="checked"
+        extra="关闭后，运行时会把 system 内容合并到 user 消息中"
+      >
+        <Switch />
+      </Form.Item>
+
+      <Form.Item
+        label="支持流式输出"
+        name={['config', 'supportStream']}
+        valuePropName="checked"
+        extra="先作为能力声明保留，便于后续接流式模型"
       >
         <Switch />
       </Form.Item>
