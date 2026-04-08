@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import AIComposeTab from './AIComposeTab';
 import CustomUploadTab from './CustomUploadTab';
 import ResourceLibraryTab from './ResourceLibraryTab';
+import type { AIBizType } from '@/types/ai-task';
 import './style.less';
 
 interface ReferenceImageSelectorProps {
@@ -14,6 +15,7 @@ interface ReferenceImageSelectorProps {
   projectId?: number;
   scriptId?: number;
   defaultImages?: string[];
+  bizType?: AIBizType;
 }
 
 /**
@@ -27,6 +29,7 @@ export default function ReferenceImageSelector({
   maxCount = 3,
   scriptId,
   defaultImages = [],
+  bizType = 'default',
 }: ReferenceImageSelectorProps) {
   const [activeTab, setActiveTab] = useState('ai-compose');
 
@@ -55,6 +58,7 @@ export default function ReferenceImageSelector({
           maxCount={maxCount}
           value={selectedImages}
           onChange={setSelectedImages}
+          bizType={bizType}
         />
       ),
     },

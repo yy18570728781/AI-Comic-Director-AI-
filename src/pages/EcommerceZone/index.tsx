@@ -522,6 +522,7 @@ export default function EcommerceZone() {
         }}
         maxCount={selectorMode === 'character' ? 1 : maxImageCount}
         defaultImages={selectedImages}
+        bizType="ecommerce"
       />
     </div>
   );

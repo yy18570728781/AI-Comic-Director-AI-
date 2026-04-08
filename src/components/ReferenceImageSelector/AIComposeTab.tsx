@@ -9,6 +9,7 @@ import {
 
 import { useAIGeneration, type GeneratedImage } from '@/hooks/useAIGeneration';
 import { useModelStore } from '@/stores/useModelStore';
+import type { AIBizType } from '@/types/ai-task';
 import { storage } from '@/utils';
 import CustomUploadTab from './CustomUploadTab';
 import ResourceLibraryTab from './ResourceLibraryTab';
@@ -18,6 +19,7 @@ interface AIComposeTabProps {
   maxCount?: number;
   value?: string[];
   onChange?: (urls: string[]) => void;
+  bizType?: AIBizType;
 }
 
 type SlotKey = 'character' | 'product' | 'background';
@@ -44,6 +46,7 @@ export default function AIComposeTab({
   maxCount = 3,
   value = [],
   onChange,
+  bizType = 'default',
 }: AIComposeTabProps) {
   const { imageModel, imageModels, loadModels, setImageModel } = useModelStore();
 
@@ -204,6 +207,7 @@ export default function AIComposeTab({
         await generateImage({
           prompt: finalPrompt,
           model: currentImageModel?.id,
+          bizType,
           quality: currentImageModel?.config?.qualities?.[0] || 'hd',
           aspectRatio,
           referenceImages,
