@@ -889,7 +889,7 @@ function TextConfigForm() {
         label="支持流式输出"
         name={['config', 'supportStream']}
         valuePropName="checked"
-        extra="先作为能力声明保留，便于后续接流式模型"
+        extra="开启后，小说/剧本等流式接口会直接走流式返回；关闭后会自动降级为一次性文本返回"
       >
         <Switch />
       </Form.Item>
