@@ -163,6 +163,7 @@ export const getModelList = (): Promise<
   ApiResponse<{
     imageModels: ModelOption[];
     videoModels: ModelOption[];
+    textModels: ModelOption[];
   }>
 > => {
   return request.get('/api/ai/models');

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Button, Modal, Form, Select, Spin } from 'antd';
 
 import { useModelStore } from '@/stores/useModelStore';
@@ -12,20 +12,23 @@ export default function ModelSettingsModal({ open, onClose }: ModelSettingsModal
   const {
     imageModel,
     videoModel,
+    textModel,
     imageModels,
     videoModels,
+    textModels,
     loading: modelLoading,
     setImageModel,
     setVideoModel,
+    setTextModel,
     loadModels,
   } = useModelStore();
 
-  // 打开弹窗时加载模型列表
+  // 关键逻辑：弹窗打开时再拉一次模型列表，确保后台新增模型后这里能拿到最新值。
   useEffect(() => {
     if (open) {
       loadModels();
     }
-  }, [open]);
+  }, [open, loadModels]);
 
   return (
     <Modal
@@ -62,7 +65,7 @@ export default function ModelSettingsModal({ open, onClose }: ModelSettingsModal
               listHeight={200}
               dropdownStyle={{ padding: 8 }}
             >
-              {imageModels.map((m) => (
+              {imageModels.map(m => (
                 <Select.Option key={m.id} value={m.id}>
                   <div style={{ padding: '8px 0' }}>
                     <div style={{ fontWeight: 500, lineHeight: 1.5 }}>{m.name}</div>
@@ -97,7 +100,42 @@ export default function ModelSettingsModal({ open, onClose }: ModelSettingsModal
               listHeight={200}
               dropdownStyle={{ padding: 8 }}
             >
-              {videoModels.map((m) => (
+              {videoModels.map(m => (
+                <Select.Option key={m.id} value={m.id}>
+                  <div style={{ padding: '8px 0' }}>
+                    <div style={{ fontWeight: 500, lineHeight: 1.5 }}>{m.name}</div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: '#999',
+                        lineHeight: 1.5,
+                        marginTop: 2,
+                      }}
+                    >
+                      {m.description}
+                    </div>
+                  </div>
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            label={<span style={{ fontWeight: 500 }}>文本生成模型</span>}
+            style={{ marginBottom: 0 }}
+          >
+            <div style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>
+              选择用于小说、剧本、提示词优化等文本能力的 AI 模型
+            </div>
+            <Select
+              value={textModel}
+              onChange={setTextModel}
+              style={{ width: '100%', height: 48 }}
+              listItemHeight={60}
+              listHeight={200}
+              dropdownStyle={{ padding: 8 }}
+            >
+              {textModels.map(m => (
                 <Select.Option key={m.id} value={m.id}>
                   <div style={{ padding: '8px 0' }}>
                     <div style={{ fontWeight: 500, lineHeight: 1.5 }}>{m.name}</div>

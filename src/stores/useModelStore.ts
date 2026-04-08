@@ -3,22 +3,25 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 import { getModelList } from '@/api/model';
 
-// 模型配置（需要持久化）
+// 模型配置，需要持久化到本地
 export interface ModelConfig {
   imageModel: string;
   videoModel: string;
+  textModel: string;
 }
 
 // 默认模型配置
 export const DEFAULT_MODEL_CONFIG: ModelConfig = {
-  imageModel: 'doubao-seedream-4-5-251128', // 默认使用即梦4.5
-  videoModel: 'doubao-seedance-1-0-pro-fast-251015', // 默认使用 Seedance Pro Fast
+  imageModel: 'doubao-seedream-4-5-251128',
+  videoModel: 'doubao-seedance-1-0-pro-fast-251015',
+  // 关键逻辑：文本默认值先保留旧主链路模型，避免用户本地没有配置时出现空值。
+  textModel: 'doubao-1-5-pro-32k-250115',
 };
 
-// 配置版本号，用于强制更新
-const CONFIG_VERSION = 6; // 增加版本号，强制重置配置
+// 配置版本号，用于强制刷新本地缓存
+const CONFIG_VERSION = 7;
 
-// 模型选项接口（与后端返回的格式一致）
+// 模型选项结构，与后端 /api/ai/models 返回保持一致
 export interface ModelOption {
   id: string;
   name: string;
@@ -59,13 +62,18 @@ export interface ModelOption {
     supportCameraMovement?: boolean;
     supportWatermark?: boolean;
     supportGenerateAudio?: boolean;
+    temperature?: number;
+    maxTokens?: number;
+    supportSystemPrompt?: boolean;
+    supportStream?: boolean;
   };
 }
 
-// 模型列表状态（纯内存，不持久化）
+// 纯内存的模型列表状态
 interface ModelListState {
   imageModels: ModelOption[];
   videoModels: ModelOption[];
+  textModels: ModelOption[];
   loading: boolean;
   error: string | null;
   loadModels: () => Promise<void>;
@@ -75,6 +83,7 @@ interface ModelListState {
 export interface ModelState extends ModelConfig, ModelListState {
   setImageModel: (model: string) => void;
   setVideoModel: (model: string) => void;
+  setTextModel: (model: string) => void;
   resetModelConfig: () => void;
 }
 
@@ -84,55 +93,56 @@ export const useModelStore = create<ModelState>()(
       ...DEFAULT_MODEL_CONFIG,
       imageModels: [],
       videoModels: [],
+      textModels: [],
       loading: false,
       error: null,
 
-      // 加载模型列表（纯内存存储，页面刷新后重新获取）
+      // 关键逻辑：模型列表只缓存到内存，页面刷新后重新拉最新配置。
       loadModels: async () => {
-        const { imageModels, videoModels } = get();
-        // 如果内存中已有数据，不再重复加载
-        if (imageModels.length > 0 && videoModels.length > 0) {
+        const { imageModels, videoModels, textModels } = get();
+        if (imageModels.length > 0 && videoModels.length > 0 && textModels.length > 0) {
           return;
         }
 
         set({ loading: true, error: null });
+
         try {
           const res = await getModelList();
           if (res.success && res.data) {
-            // 直接使用后端返回的数据结构，不做转换
             set({
               imageModels: res.data.imageModels || [],
               videoModels: res.data.videoModels || [],
+              textModels: res.data.textModels || [],
               loading: false,
             });
-          } else {
-            set({ loading: false, error: '获取模型列表失败' });
+            return;
           }
+
+          set({ loading: false, error: '获取模型列表失败' });
         } catch (error: any) {
           set({ loading: false, error: error.message || '获取模型列表失败' });
         }
       },
 
       setImageModel: (imageModel) => set({ imageModel }),
-
       setVideoModel: (videoModel) => set({ videoModel }),
+      setTextModel: (textModel) => set({ textModel }),
 
       resetModelConfig: () => set({ ...DEFAULT_MODEL_CONFIG }),
     }),
     {
-      name: 'model-config-storage', // 只持久化这个配置对象
+      name: 'model-config-storage',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        // 只持久化用户选择的模型，模型列表不持久化
+      partialize: state => ({
+        // 关键逻辑：只持久化用户选择，不持久化模型列表本身。
         imageModel: state.imageModel,
         videoModel: state.videoModel,
-        version: CONFIG_VERSION, // 添加版本号
+        textModel: state.textModel,
+        version: CONFIG_VERSION,
       }),
-      // 添加版本检查
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => state => {
         if (state && (state as any).version !== CONFIG_VERSION) {
-          console.log('🔄 模型配置版本更新，重置为默认配置');
-          // 版本不匹配，重置为默认配置
+          console.log('模型配置版本已更新，重置为默认配置');
           Object.assign(state, DEFAULT_MODEL_CONFIG);
         }
       },
