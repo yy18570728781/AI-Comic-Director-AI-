@@ -40,7 +40,7 @@ export default function ImageGenerateModalQueue({
   const [jobState, setJobState] = useState<string>('');
 
   // 获取全局选择的图像模型
-  const { imageModel, imageModels } = useModelStore();
+  const { imageModel, imageModels, textModel } = useModelStore();
 
   // 计算所需积分
   const selectedModel = imageModels.find((m) => m.id === imageModel);
@@ -105,6 +105,8 @@ export default function ImageGenerateModalQueue({
     try {
       const res = await optimizeImagePrompt({
         prompt: imagePrompt,
+        // 关键逻辑：队列版弹窗和普通弹窗保持一致，统一走文本模型配置。
+        model: textModel,
       });
 
       if (res.data?.optimized) {

@@ -64,7 +64,7 @@ export default function VideoGenerateModal({
   const [aspectRatio, setAspectRatio] = useState<string>('16:9');
 
   // 获取全局选择的视频模型和模型列表
-  const { videoModel, videoModels, loadModels } = useModelStore();
+  const { videoModel, videoModels, loadModels, textModel } = useModelStore();
 
   // 获取当前视频模型支持的功能
   const { supportsFirstLastFrame } = useVideoModelSupport();
@@ -158,6 +158,8 @@ export default function VideoGenerateModal({
         prompt: videoPrompt,
         duration,
         modelId: videoModel,
+        // 关键逻辑：视频提示词优化使用文本模型，videoModel 仍只负责视频生成平台。
+        model: textModel,
       });
 
       if (res.success && res.data.optimized) {

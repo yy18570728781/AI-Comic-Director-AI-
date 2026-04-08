@@ -3,13 +3,14 @@ import { request } from './request';
 // AI 创作相关接口
 
 /**
- * 生成小说（流式）
+ * 流式生成小说
  */
 export async function generateNovelStream(
   data: {
     theme: string;
     outline?: string;
     length?: number;
+    model?: string;
   },
   onChunk: (content: string) => void,
   onError?: (error: string) => void,
@@ -48,31 +49,26 @@ export async function generateNovelStream(
 
     while (true) {
       const { done, value } = await reader.read();
-
       if (done) break;
 
       const chunk = decoder.decode(value, { stream: true });
       const lines = chunk.split('\n');
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.substring(6);
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.substring(6);
 
-          if (data === '[DONE]') {
-            onDone?.();
-            break;
-          }
+        if (payload === '[DONE]') {
+          onDone?.();
+          break;
+        }
 
-          try {
-            const json = JSON.parse(data);
-            if (json.content) {
-              onChunk(json.content);
-            } else if (json.error) {
-              onError?.(json.error);
-            }
-          } catch (e) {
-            // 忽略解析错误
-          }
+        try {
+          const json = JSON.parse(payload);
+          if (json.content) onChunk(json.content);
+          if (json.error) onError?.(json.error);
+        } catch {
+          // 关键逻辑：SSE 分片可能被拆断，解析失败时忽略本片段。
         }
       }
     }
@@ -83,12 +79,14 @@ export async function generateNovelStream(
 }
 
 /**
- * 生成剧本（流式）
+ * 流式生成剧本
  */
 export async function generateScriptStream(
   data: {
     novel: string;
     style?: string;
+    cameraStyle?: string;
+    model?: string;
   },
   onChunk: (content: string) => void,
   onError?: (error: string) => void,
@@ -127,31 +125,26 @@ export async function generateScriptStream(
 
     while (true) {
       const { done, value } = await reader.read();
-
       if (done) break;
 
       const chunk = decoder.decode(value, { stream: true });
       const lines = chunk.split('\n');
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.substring(6);
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.substring(6);
 
-          if (data === '[DONE]') {
-            onDone?.();
-            break;
-          }
+        if (payload === '[DONE]') {
+          onDone?.();
+          break;
+        }
 
-          try {
-            const json = JSON.parse(data);
-            if (json.content) {
-              onChunk(json.content);
-            } else if (json.error) {
-              onError?.(json.error);
-            }
-          } catch (e) {
-            // 忽略解析错误
-          }
+        try {
+          const json = JSON.parse(payload);
+          if (json.content) onChunk(json.content);
+          if (json.error) onError?.(json.error);
+        } catch {
+          // 关键逻辑：SSE 分片可能被拆断，解析失败时忽略本片段。
         }
       }
     }
@@ -169,6 +162,7 @@ export function generateNovel(data: {
   outline?: string;
   provider?: string;
   length?: number;
+  model?: string;
 }) {
   return request({
     url: '/api/ai/novel/generate',
@@ -180,7 +174,12 @@ export function generateNovel(data: {
 /**
  * 生成剧本
  */
-export function generateScript(data: { novel: string; provider?: string; style?: string }) {
+export function generateScript(data: {
+  novel: string;
+  provider?: string;
+  style?: string;
+  model?: string;
+}) {
   return request({
     url: '/api/ai/script/generate',
     method: 'post',
@@ -195,6 +194,7 @@ export function generateStoryboard(data: {
   script: string;
   provider?: string;
   shotCount?: number;
+  model?: string;
 }) {
   return request({
     url: '/api/ai/storyboard/generate',
@@ -206,7 +206,11 @@ export function generateStoryboard(data: {
 /**
  * 提取角色和场景
  */
-export function extractCharactersAndScenes(data: { script: string; provider?: string }) {
+export function extractCharactersAndScenes(data: {
+  script: string;
+  provider?: string;
+  model?: string;
+}) {
   return request({
     url: '/api/ai/extract/characters-scenes',
     method: 'post',
@@ -215,9 +219,14 @@ export function extractCharactersAndScenes(data: { script: string; provider?: st
 }
 
 /**
- * 优化图像提示词（保持中文）
+ * 优化图像提示词
  */
-export function optimizeImagePrompt(data: { prompt: string; style?: string; provider?: string }) {
+export function optimizeImagePrompt(data: {
+  prompt: string;
+  style?: string;
+  provider?: string;
+  model?: string;
+}) {
   return request({
     url: '/api/ai/prompt/optimize/image-chinese',
     method: 'post',
@@ -226,12 +235,13 @@ export function optimizeImagePrompt(data: { prompt: string; style?: string; prov
 }
 
 /**
- * 优化图像提示词（转换为英文）
+ * 优化图像提示词，转英文
  */
 export function optimizeImagePromptToEnglish(data: {
   prompt: string;
   style?: string;
   provider?: string;
+  model?: string;
 }) {
   return request({
     url: '/api/ai/prompt/optimize/image',
@@ -243,7 +253,13 @@ export function optimizeImagePromptToEnglish(data: {
 /**
  * 优化视频提示词
  */
-export function optimizeVideoPrompt(data: { prompt: string; duration?: number; modelId?: string }) {
+export function optimizeVideoPrompt(data: {
+  prompt: string;
+  duration?: number;
+  modelId?: string;
+  provider?: string;
+  model?: string;
+}) {
   return request({
     url: '/api/ai/prompt/optimize/video',
     method: 'post',
@@ -270,9 +286,6 @@ export function generateImage(data: {
   });
 }
 
-/**
- * 批量生成图像
- */
 export function batchGenerateImages(data: { requests: any[] }) {
   return request({
     url: '/api/ai/image/batch-generate',
@@ -281,13 +294,10 @@ export function batchGenerateImages(data: { requests: any[] }) {
   });
 }
 
-/**
- * 生成视频
- */
 export function generateVideo(data: {
   prompt: string;
   model?: string;
-  mode: 't2v' | 'i2v' | 'flf2v' | 'ref2v'; // 必传！
+  mode: 't2v' | 'i2v' | 'flf2v' | 'ref2v';
   duration?: number;
   referenceImages?: string[];
   fps?: number;
@@ -300,9 +310,6 @@ export function generateVideo(data: {
   });
 }
 
-/**
- * 查询视频状态
- */
 export function getVideoStatus(data: { taskId: string; model: string }) {
   return request({
     url: '/api/ai/video/status',
@@ -311,9 +318,6 @@ export function getVideoStatus(data: { taskId: string; model: string }) {
   });
 }
 
-/**
- * 获取可用的 AI 模型列表
- */
 export function getModels() {
   return request({
     url: '/api/ai/models',
@@ -321,15 +325,6 @@ export function getModels() {
   });
 }
 
-/**
- * ========================================
- * 队列异步接口
- * ========================================
- */
-
-/**
- * 异步生成图像（使用队列）
- */
 export function generateImageAsync(data: {
   prompt: string;
   model?: string;
@@ -355,9 +350,6 @@ export function generateImageAsync(data: {
   });
 }
 
-/**
- * 批量异步生成图像（使用队列）
- */
 export function batchGenerateImagesAsync(data: {
   shots: Array<{
     id: number;
@@ -374,9 +366,6 @@ export function batchGenerateImagesAsync(data: {
   });
 }
 
-/**
- * 异步生成视频（使用队列）
- */
 export function generateVideoAsync(data: {
   prompt: string;
   model?: string;
@@ -394,9 +383,6 @@ export function generateVideoAsync(data: {
   });
 }
 
-/**
- * 批量异步生成视频（使用队列）
- */
 export function batchGenerateVideosAsync(data: {
   tasks: Array<{
     shotId?: number;
@@ -417,9 +403,6 @@ export function batchGenerateVideosAsync(data: {
   });
 }
 
-/**
- * 查询队列任务状态
- */
 export function getQueueJobStatus(
   queueName: 'image' | 'video' | 'storyboard',
   jobId: string | number
@@ -430,9 +413,6 @@ export function getQueueJobStatus(
   });
 }
 
-/**
- * 批量查询队列任务状态
- */
 export function batchGetQueueJobStatus(
   queueName: 'image' | 'video' | 'storyboard',
   jobIds: (string | number)[]
@@ -444,9 +424,6 @@ export function batchGetQueueJobStatus(
   });
 }
 
-/**
- * 查询队列统计
- */
 export function getQueueStats(queueName?: 'image' | 'video' | 'storyboard') {
   return request({
     url: queueName ? `/api/queue/stats/${queueName}` : '/api/queue/stats',
@@ -462,10 +439,6 @@ export interface UnifiedTaskStatusItem {
   failedReason?: string;
   videoId?: number;
   taskTable?: 'image_tasks' | 'shot_videos';
-  /**
-   * 任务表详情。
-   * 关键逻辑：前端展示任务详情时优先读这里，不再需要分别请求图片表和视频表。
-   */
   taskDetail?: {
     id: number;
     taskId?: string;
@@ -495,11 +468,6 @@ export interface UnifiedTaskStatusItem {
   };
 }
 
-/**
- * 统一批量查询所有类型任务状态
- *
- * 一次请求查询所有类型的任务，减少 HTTP 请求次数
- */
 export function batchGetAllTaskStatus(data: {
   tasks: Array<{
     jobId: string | number;

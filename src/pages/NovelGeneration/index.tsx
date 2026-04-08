@@ -10,6 +10,7 @@ import {
 import { useNovelStore } from '@/stores/useNovelStore';
 import { generateNovelStream } from '@/api/ai';
 import { getNovelTags } from '@/api/novel';
+import { useModelStore } from '@/stores/useModelStore';
 
 const { TextArea } = Input;
 
@@ -29,6 +30,7 @@ function NovelGeneration() {
   const [tagConfig, setTagConfig] = useState<TagCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const { textModel } = useModelStore();
 
   const {
     tagSelection,
@@ -85,7 +87,13 @@ function NovelGeneration() {
 
     try {
       await generateNovelStream(
-        { theme: coreReq, outline: outlineInput, length: wordCount },
+        {
+          theme: coreReq,
+          outline: outlineInput,
+          length: wordCount,
+          // 关键逻辑：小说生成走当前选中的文本模型。
+          model: textModel,
+        },
         (content) => {
           accumulatedText += content;
           setGeneratedContent(accumulatedText);

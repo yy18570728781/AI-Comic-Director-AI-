@@ -79,7 +79,7 @@ export default function ImageGenerateModal({
   const [loadingCharacters, setLoadingCharacters] = useState(false); // 角色列表加载状态
   const [selectedCharacterIds, setSelectedCharacterIds] = useState<number[]>([]); // 当前选中的角色ID列表
 
-  const { imageModel } = useModelStore();
+  const { imageModel, textModel } = useModelStore();
   const { currentUser } = useUserStore();
 
   // === 角色列表加载 ===
@@ -196,7 +196,11 @@ export default function ImageGenerateModal({
 
     setOptimizing(true);
     try {
-      const res = await optimizeImagePrompt({ prompt: imagePrompt });
+      const res = await optimizeImagePrompt({
+        prompt: imagePrompt,
+        // 关键逻辑：图片提示词优化也使用当前选中的文本模型。
+        model: textModel,
+      });
       if (res.data?.optimized) {
         form.setFieldsValue({ imagePrompt: res.data.optimized });
         message.success('AI 优化完成！');

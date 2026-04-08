@@ -4,6 +4,7 @@ import { CopyOutlined, FileAddOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { generateScriptStream } from '@/api/ai';
 import { getScriptTags } from '@/api/script';
+import { useModelStore } from '@/stores/useModelStore';
 
 const { TextArea } = Input;
 
@@ -29,6 +30,7 @@ function ScriptGeneration() {
     shotCount: '适中（25-30镜）',
   });
   const [novelContent, setNovelContent] = useState('');
+  const { textModel } = useModelStore();
 
   useEffect(() => {
     loadTagConfig();
@@ -53,7 +55,9 @@ function ScriptGeneration() {
       await generateScriptStream(
         {
           novel: values.novel,
-          style: tagSelection.cameraStyle,
+          // 关键逻辑：脚本生成需要把镜头风格和文本模型一起传给后端。
+          cameraStyle: tagSelection.cameraStyle,
+          model: textModel,
         },
         (content: string) => {
           accumulatedText += content;
