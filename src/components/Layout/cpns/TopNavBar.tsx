@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Menu, Button, Space, Avatar, Tooltip } from 'antd';
 import type { MenuProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { UserOutlined, SettingOutlined, WalletOutlined, SwapOutlined } from '@ant-design/icons';
 
 import ModelSettingsModal from '@/components/ModelSettingsModal';
@@ -24,6 +25,7 @@ export default function TopNavBar({
 }: TopNavBarProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const { currentUser } = useUserStore();
   const { toggleTheme } = useThemeStore();
   const [modelModalVisible, setModelModalVisible] = useState(false);
@@ -51,7 +53,7 @@ export default function TopNavBar({
         <div className="topnav-left">
           <div className="topnav-logo" onClick={() => navigate('/')}>
             <img src="/image/logo2.png" alt="logo" className="topnav-logo-img" />
-            <span className="topnav-logo-text">AI 漫剧工作台</span>
+            <span className="topnav-logo-text">{t('appFullName')}</span>
           </div>
           <Menu
             mode="horizontal"

@@ -9,6 +9,7 @@ import {
   MailOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { loginWithPassword, registerWithPassword, sendEmailCode, resetPassword } from '@/api/auth';
 import { useUserStore } from '@/stores/useUserStore';
 import WechatQrLogin from '@/components/WechatQrLogin';
@@ -20,6 +21,7 @@ type EmailTab = 'login' | 'register' | 'reset';
 function Login() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const { setCurrentUser } = useUserStore();
 
   const [loginForm] = Form.useForm();
@@ -451,7 +453,7 @@ function Login() {
     <div className="login-container">
       <div className="login-content">
         <div className="login-header">
-          <h1>AI Comic Studio</h1>
+          <h1>{t('loginTitle')}</h1>
           <p>AI驱动的漫画创作平台</p>
         </div>
 

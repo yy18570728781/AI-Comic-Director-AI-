@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Layout as AntdLayout, Menu, theme, Button, Space, Avatar } from 'antd';
 import type { MenuProps } from 'antd';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   EditOutlined,
   FileTextOutlined,
@@ -43,6 +44,7 @@ const menuItems: MenuProps['items'] = [
 export default function SiderLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const { currentUser, refreshPoints } = useUserStore();
   const [collapsed, setCollapsed] = useState(false);
   const [modelModalVisible, setModelModalVisible] = useState(false);
@@ -84,7 +86,7 @@ export default function SiderLayout() {
       <AntdLayout style={{ height: '100vh', overflow: 'hidden' }}>
         <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
           <div className="sider-logo">
-            <h2>{collapsed ? 'AI' : 'AI漫剧工作台'}</h2>
+            <h2>{collapsed ? t('appShortName') : t('appFullName')}</h2>
             <img style={{ width: 40 }} src="/image/logo2.png" alt="" />
           </div>
           <Menu
@@ -98,7 +100,7 @@ export default function SiderLayout() {
         <AntdLayout style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
           <Header style={{ padding: 0, background: colorBgContainer, flexShrink: 0 }}>
             <div className="sider-header-content">
-              <h3>AI漫剧一站式服务工作台</h3>
+              <h3>{t('appFullName')}</h3>
               <Space>
                 <Button icon={<SettingOutlined />} onClick={() => setModelModalVisible(true)}>
                   模型设置

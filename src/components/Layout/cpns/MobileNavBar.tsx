@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Menu, Button, Avatar, Drawer } from 'antd';
 import type { MenuProps } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   UserOutlined,
   SettingOutlined,
@@ -21,6 +22,7 @@ import './mobilenav.css';
 export default function MobileNavBar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const { currentUser }: any = useUserStore();
   const [modelModalVisible, setModelModalVisible] = useState(false);
   const [userModalVisible, setUserModalVisible] = useState(false);
@@ -48,7 +50,7 @@ export default function MobileNavBar() {
       <header className="mobilenav-header">
         <div className="mobilenav-logo" onClick={() => navigate('/')}>
           <img src="/image/logo.png" alt="logo" />
-          <span>跑跑漫剧</span>
+          <span>{t('appName')}</span>
         </div>
         <div className="mobilenav-actions">
           {currentUser ? (
@@ -77,7 +79,7 @@ export default function MobileNavBar() {
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <img src="/image/logo.png" alt="logo" style={{ width: 32, height: 32 }} />
-            <span>跑跑漫剧</span>
+            <span>{t('appName')}</span>
           </div>
         }
         placement="left"

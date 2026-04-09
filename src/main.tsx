@@ -4,10 +4,13 @@ import { ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
+import i18n from 'i18next';
 import App from './App';
 import './index.css';
+import './brand/i18n';
 
 dayjs.locale('zh-cn');
+document.title = i18n.t('browserTitle');
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -16,10 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
-          // 布局背景
           colorBgLayout: '#f5f5f5',
-
-          // 主题色
           colorPrimary: '#8b5cf6',
           colorInfo: '#3b82f6',
           colorSuccess: '#10b981',

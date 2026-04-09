@@ -2,7 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
-  // 可以添加更多环境变量
+  readonly VITE_BRAND?: 'ss' | 'pp';
 }
 
 interface ImportMeta {
