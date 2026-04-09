@@ -25,6 +25,7 @@ import './style.less';
 const { TextArea } = Input;
 
 const PUBLISH_PLATFORM_OPTIONS = ['抖音', '快手', '视频号', '小红书'];
+const ECOMMERCE_FIXED_VIDEO_MODEL_ID = 'grok-video-3-10s';
 
 interface ModelConfig {
   id: string;
@@ -61,7 +62,7 @@ function formatCreatedAtLabel(value?: string) {
 }
 
 export default function EcommerceZone() {
-  const { videoModel, textModel, setVideoModel, videoModels, loadModels } = useModelStore();
+  const { textModel, videoModels, loadModels } = useModelStore();
   const { currentUser, refreshPoints } = useUserStore();
 
   const [models, setModels] = useState<ModelConfig[]>([]);
@@ -79,23 +80,23 @@ export default function EcommerceZone() {
   );
 
   const { generateVideo } = useAIGeneration({
-    onVideoComplete: (video) => {
-      const currentModel = models.find((item) => item.id === videoModel);
-      // 关键逻辑：生成历史里保存最终提交的完整视频提示词，避免回显时依赖当前表单状态。
+    onVideoComplete: video => {
+      const currentModel = models.find(item => item.id === ECOMMERCE_FIXED_VIDEO_MODEL_ID);
+      // 关键逻辑：历史记录里保留最终提交的完整提示词，避免回显依赖当前表单值。
       const finalPrompt = [prompt.trim(), motionPrompt.trim()].filter(Boolean).join('；');
       const nextRecord: EcommerceVideoRecord = {
         ...video,
         createdAt: new Date().toISOString(),
         prompt: finalPrompt || prompt.trim(),
-        modelName: currentModel?.name || videoModel,
+        modelName: currentModel?.name || ECOMMERCE_FIXED_VIDEO_MODEL_ID,
         resolution,
         ratio: aspectRatio,
       };
-      setGeneratedVideos((prev) => [...prev, nextRecord]);
-      setLoadingPlaceholders((prev) => Math.max(0, prev - 1));
+      setGeneratedVideos(prev => [...prev, nextRecord]);
+      setLoadingPlaceholders(prev => Math.max(0, prev - 1));
       refreshPoints();
     },
-    onError: () => setLoadingPlaceholders((prev) => Math.max(0, prev - 1)),
+    onError: () => setLoadingPlaceholders(prev => Math.max(0, prev - 1)),
     showMessage: true,
   });
 
@@ -119,17 +120,13 @@ export default function EcommerceZone() {
 
   useEffect(() => {
     setModels(videoModels);
-    const currentModel = videoModels.find((model) => model.id === videoModel) || videoModels[0];
-    if (!currentModel) return;
-    if (!videoModel || currentModel.id !== videoModel) {
-      setVideoModel(currentModel.id);
-    }
-  }, [setVideoModel, videoModel, videoModels]);
+  }, [videoModels]);
 
   const { fields, derived, actions } = useVideoComposer({
     models,
-    selectedModelId: videoModel,
-    onModelChange: setVideoModel,
+    selectedModelId: ECOMMERCE_FIXED_VIDEO_MODEL_ID,
+    // 关键逻辑：电商页当前固定使用 grok-video-3-10s，不允许页面内切换模型。
+    onModelChange: () => {},
     currentPoints: currentUser?.points ?? 0,
   });
 
@@ -148,7 +145,6 @@ export default function EcommerceZone() {
     supportedModes,
     maxImageCount,
     durationOptions,
-    modelOptions,
     resolutionOptions,
     aspectRatioOptions,
     modeOptions,
@@ -165,20 +161,21 @@ export default function EcommerceZone() {
     setSelectedMode,
     setSaveToLibrary,
     setGenerateAudio,
-    handleModelChange,
   } = actions;
 
   const currentModelName = useMemo(
-    () => modelOptions.find((item) => item.value === videoModel)?.label || videoModel || '视频模型',
-    [modelOptions, videoModel]
+    () =>
+      models.find(item => item.id === ECOMMERCE_FIXED_VIDEO_MODEL_ID)?.name ||
+      ECOMMERCE_FIXED_VIDEO_MODEL_ID,
+    [models]
   );
   const feedVideos = useMemo(() => [...generatedVideos].reverse(), [generatedVideos]);
-  // 关键状态：当前人物区域只回显第一张参考图。
+  // 关键状态：人物入口只显示一张图，智能生成也只使用这张人物参考图。
   const characterImage = selectedImages[0];
 
   const timelineItems = useMemo<GenerationTimelineItem[]>(
     () =>
-      generatedVideos.map((item) => ({
+      generatedVideos.map(item => ({
         id: item.id,
         type: GenerationTimelineItemType.VIDEO,
         createdAt: item.createdAt,
@@ -190,7 +187,7 @@ export default function EcommerceZone() {
           { label: item.modelName },
           { label: item.resolution },
           { label: item.ratio },
-        ].filter((tag) => Boolean(tag.label)),
+        ].filter(tag => Boolean(tag.label)),
       })),
     [generatedVideos]
   );
@@ -199,18 +196,12 @@ export default function EcommerceZone() {
    * 智能生成视频提示词
    *
    * 关键逻辑：
-   * 1. 把参考图和发布平台一起交给后端视觉模型。
-   * 2. 用户当前已输入的内容作为补充要求继续透传，避免结果偏离方向。
-   * 3. 这里只回填主提示词输入框，不覆盖动作描述。
+   * 1. 这里只检查人物参考图，没有图就直接拦截。
+   * 2. 智能生成只传人物图和平台标签给后端，让后端按带货视频逻辑补全提示词。
    */
   const handleSmartGeneratePrompt = async () => {
-    /**
-     * 关键校验：
-     * 智能生成依赖人物参考图来提取人物形象和带货场景信息，
-     * 所以这里必须先检查人物位是否已有图片。
-     */
     if (!characterImage) {
-      message.warning('请先上传参考图才能智能生成视频提示词');
+      message.warning('请上传参考图');
       return;
     }
 
@@ -243,7 +234,7 @@ export default function EcommerceZone() {
   };
 
   const handleGenerate = async () => {
-    if (!selectedImages.length) return message.warning('请先选择商品参考图');
+    if (!selectedImages.length) return message.warning('请先上传参考图');
     if (!prompt.trim()) return message.warning('请先填写视频提示词');
     if (isSubmitting) return message.warning('任务提交中，请稍候');
     if (!isModeAvailable(selectedMode, selectedImages.length, supportedModes)) {
@@ -251,15 +242,15 @@ export default function EcommerceZone() {
     }
     if (!hasEnoughPoints) return message.warning('积分不足，暂时无法生成');
 
-    // 关键逻辑：视频生成时把主提示词和动作描述拼成最终提交 prompt。
+    // 关键逻辑：生成时统一把主提示词和动作描述合并成最终 prompt。
     const finalPrompt = [prompt.trim(), motionPrompt.trim()].filter(Boolean).join('；');
     setIsSubmitting(true);
     try {
-      setLoadingPlaceholders((prev) => prev + batchCount);
+      setLoadingPlaceholders(prev => prev + batchCount);
       for (let index = 0; index < batchCount; index += 1) {
         await generateVideo({
           prompt: finalPrompt,
-          model: videoModel,
+          model: ECOMMERCE_FIXED_VIDEO_MODEL_ID,
           bizType: 'ecommerce',
           mode: selectedMode as 't2v' | 'i2v' | 'flf2v' | 'ref2v',
           referenceImages: selectedImages,
@@ -305,10 +296,23 @@ export default function EcommerceZone() {
     <div className="ecommerce-zone__config-popover">
       <div className="ecommerce-zone__config-list">
         <div className="ecommerce-zone__config-pill">
+          <span>目标人群</span>
+          <Select
+            value={targetGender}
+            onChange={value => setTargetGender(value)}
+            options={[
+              { label: '女生', value: 'female' },
+              { label: '男生', value: 'male' },
+            ]}
+            variant="borderless"
+            className="ecommerce-zone__pill-select"
+          />
+        </div>
+        <div className="ecommerce-zone__config-pill">
           <span>模式</span>
           <Select
             value={selectedMode}
-            onChange={(value) => setSelectedMode(String(value))}
+            onChange={value => setSelectedMode(String(value))}
             options={modeOptions}
             variant="borderless"
             className="ecommerce-zone__pill-select"
@@ -318,7 +322,7 @@ export default function EcommerceZone() {
           <span>分辨率</span>
           <Select
             value={resolution}
-            onChange={(value) => setResolution(String(value))}
+            onChange={value => setResolution(String(value))}
             options={resolutionOptions}
             variant="borderless"
             className="ecommerce-zone__pill-select"
@@ -328,7 +332,7 @@ export default function EcommerceZone() {
           <span>比例</span>
           <Select
             value={aspectRatio}
-            onChange={(value) => setAspectRatio(String(value))}
+            onChange={value => setAspectRatio(String(value))}
             options={aspectRatioOptions}
             variant="borderless"
             className="ecommerce-zone__pill-select"
@@ -338,8 +342,8 @@ export default function EcommerceZone() {
           <span>时长</span>
           <Select
             value={duration}
-            onChange={(value) => setDuration(Number(value))}
-            options={durationOptions.map((option) => ({
+            onChange={value => setDuration(Number(value))}
+            options={durationOptions.map(option => ({
               label: `${option}s`,
               value: option,
             }))}
@@ -364,14 +368,7 @@ export default function EcommerceZone() {
       <div className="ecommerce-zone__frame">
         <aside className="ecommerce-zone__sidebar">
           <div className="ecommerce-zone__sidebar-top">
-            <div className="ecommerce-zone__sidebar-title">AI数字视频</div>
-            <Select
-              value={videoModel}
-              onChange={(value) => handleModelChange(String(value))}
-              options={modelOptions}
-              variant="borderless"
-              className="ecommerce-zone__model-select"
-            />
+            <div className="ecommerce-zone__sidebar-title">电商2.0模型</div>
           </div>
 
           <div className="ecommerce-zone__sidebar-card">
@@ -384,7 +381,7 @@ export default function EcommerceZone() {
                   setSelectorMode('character');
                   setSelectorVisible(true);
                 }}
-                onKeyDown={(event) => {
+                onKeyDown={event => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
                     setSelectorMode('character');
@@ -395,7 +392,7 @@ export default function EcommerceZone() {
                 {characterImage ? (
                   <img
                     src={characterImage}
-                    alt="人物参考图"
+                    alt="参考图"
                     className="ecommerce-zone__role-image"
                   />
                 ) : (
@@ -421,7 +418,7 @@ export default function EcommerceZone() {
               </div>
               <TextArea
                 value={prompt}
-                onChange={(event) => setPrompt(event.target.value)}
+                onChange={event => setPrompt(event.target.value)}
                 autoSize={{ minRows: 3, maxRows: 5 }}
                 variant="borderless"
                 placeholder="输入视频提示词，例如亚洲美女带货洗衣粉，动态自由分镜，镜头推进展示商品细节"
@@ -432,7 +429,7 @@ export default function EcommerceZone() {
             <div className="ecommerce-zone__field-group">
               <label className="ecommerce-zone__field-label">发布平台</label>
               <div className="ecommerce-zone__platform-tags">
-                {PUBLISH_PLATFORM_OPTIONS.map((item) => (
+                {PUBLISH_PLATFORM_OPTIONS.map(item => (
                   <Tag
                     key={item}
                     className={`ecommerce-zone__platform-tag ${
@@ -451,7 +448,7 @@ export default function EcommerceZone() {
               <label className="ecommerce-zone__field-label">动作描述（可选）</label>
               <TextArea
                 value={motionPrompt}
-                onChange={(event) => setMotionPrompt(event.target.value)}
+                onChange={event => setMotionPrompt(event.target.value)}
                 autoSize={{ minRows: 2, maxRows: 4 }}
                 variant="borderless"
                 placeholder="请描述你想生成的动作、镜头或画面节奏"
@@ -465,7 +462,7 @@ export default function EcommerceZone() {
                 min={1}
                 max={10}
                 value={batchCount}
-                onChange={(value) => setBatchCount(Number(value) || 1)}
+                onChange={value => setBatchCount(Number(value) || 1)}
                 controls
                 className="ecommerce-zone__batch-input"
               />
@@ -496,9 +493,7 @@ export default function EcommerceZone() {
                 </span>
                 <span>{totalCredits} 积分</span>
               </div>
-              <div className="ecommerce-zone__current-points">
-                当前积分 {currentUser?.points ?? 0}
-              </div>
+              <div className="ecommerce-zone__current-points">当前积分 {currentUser?.points ?? 0}</div>
             </div>
 
             <button
@@ -519,17 +514,30 @@ export default function EcommerceZone() {
               <div>
                 <div className="ecommerce-zone__hero-title">Hi，欢迎来到AI人物口播生成工具</div>
                 <div className="ecommerce-zone__hero-subtitle">
-                  选择合适的生成方式，上传素材即可生成。轻松打造电商短视频。
+                  固定使用电商2.0模型生成带货视频，上传参考图即可开始创作。
                 </div>
               </div>
+            </div>
+
+            <div className="ecommerce-zone__toolbar-actions">
+              <button type="button" className="ecommerce-zone__toolbar-button">
+                <SettingOutlined />
+                <span>设置</span>
+              </button>
+              <button type="button" className="ecommerce-zone__toolbar-button">
+                <LinkOutlined />
+                <span>管理视频原料</span>
+              </button>
+              <button type="button" className="ecommerce-zone__toolbar-button">
+                <SearchOutlined />
+                <span>任务搜索</span>
+              </button>
             </div>
           </div>
 
           <div className="ecommerce-zone__divider-row">
             <span />
-            <div>
-              {feedVideos[0] ? formatCreatedAtLabel(feedVideos[0].createdAt) : '等待生成第一条视频'}
-            </div>
+            <div>{feedVideos[0] ? formatCreatedAtLabel(feedVideos[0].createdAt) : '等待生成第一条视频'}</div>
             <span />
           </div>
 
@@ -549,8 +557,7 @@ export default function EcommerceZone() {
           </div>
 
           <div className="ecommerce-zone__footer-note">
-            内容由 AI
-            生成，仅供参考。使用时请严格遵守相关法律规范对内容进行标识，并仅限本平台及关联平台内投放。
+            内容由 AI 生成，仅供参考。使用时请严格遵守相关法律规范对内容进行标识，并仅限本平台及关联平台内投放。
           </div>
         </main>
       </div>
@@ -558,12 +565,12 @@ export default function EcommerceZone() {
       <ReferenceImageSelector
         visible={selectorVisible}
         onCancel={() => setSelectorVisible(false)}
-        onConfirm={(images) => {
-          // 关键逻辑：人物入口只回填 1 张，避免外层“视频提示词”误拿到多张人物图。
-          setSelectedImages(selectorMode === 'character' ? images.slice(0, 1) : images);
+        onConfirm={images => {
+          // 关键逻辑：这里先只保留一张参考图，电商 2.0 当前围绕单人物参考图生成视频。
+          setSelectedImages(images.slice(0, 1));
           setSelectorVisible(false);
         }}
-        maxCount={selectorMode === 'character' ? 1 : maxImageCount}
+        maxCount={1}
         defaultImages={selectedImages}
         bizType="ecommerce"
       />
