@@ -10,6 +10,7 @@ export interface AdminTaskUser {
 export interface AdminTaskRecord {
   id: number;
   taskType: 'image' | 'video';
+  bizType?: 'default' | 'ecommerce';
   userId?: number;
   scriptId?: number;
   shotId?: number;

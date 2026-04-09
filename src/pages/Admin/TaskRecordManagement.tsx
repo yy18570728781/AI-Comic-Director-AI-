@@ -32,6 +32,16 @@ const taskTypeColorMap: Record<string, string> = {
   video: 'purple',
 };
 
+const bizTypeTextMap: Record<string, string> = {
+  default: '通用',
+  ecommerce: '电商',
+};
+
+const bizTypeColorMap: Record<string, string> = {
+  default: 'default',
+  ecommerce: 'gold',
+};
+
 const statusColorMap: Record<string, string> = {
   processing: 'processing',
   completed: 'success',
@@ -156,6 +166,16 @@ export default function TaskRecordManagement() {
       render: (taskType: string) => (
         <Tag color={taskTypeColorMap[taskType] || 'default'}>
           {taskTypeTextMap[taskType] || taskType}
+        </Tag>
+      ),
+    },
+    {
+      title: '业务',
+      dataIndex: 'bizType',
+      width: 100,
+      render: (bizType?: string) => (
+        <Tag color={bizTypeColorMap[bizType || 'default'] || 'default'}>
+          {bizTypeTextMap[bizType || 'default'] || bizType || '通用'}
         </Tag>
       ),
     },
