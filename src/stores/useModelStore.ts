@@ -14,12 +14,12 @@ export interface ModelConfig {
 export const DEFAULT_MODEL_CONFIG: ModelConfig = {
   imageModel: 'doubao-seedream-4-5-251128',
   videoModel: 'doubao-seedance-1-0-pro-fast-251015',
-  // 关键逻辑：文本默认值先保留旧主链路模型，避免用户本地没有配置时出现空值。
-  textModel: 'doubao-1-5-pro-32k-250115',
+  // 关键逻辑：智能生成要走多模态模型，所以默认文本模型改成支持识图的火山模型。
+  textModel: 'doubao-seed-2-0-pro-260215',
 };
 
 // 配置版本号，用于强制刷新本地缓存
-const CONFIG_VERSION = 7;
+const CONFIG_VERSION = 8;
 
 // 模型选项结构，与后端 /api/ai/models 返回保持一致
 export interface ModelOption {

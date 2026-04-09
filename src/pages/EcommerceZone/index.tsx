@@ -519,24 +519,9 @@ export default function EcommerceZone() {
               <div>
                 <div className="ecommerce-zone__hero-title">Hi，欢迎来到AI人物口播生成工具</div>
                 <div className="ecommerce-zone__hero-subtitle">
-                  选择合适的生成方式，上传素材即可生成。支持切换不同模型，轻松打造电商短视频。
+                  选择合适的生成方式，上传素材即可生成。轻松打造电商短视频。
                 </div>
               </div>
-            </div>
-
-            <div className="ecommerce-zone__toolbar-actions">
-              <button type="button" className="ecommerce-zone__toolbar-button">
-                <SettingOutlined />
-                <span>设置</span>
-              </button>
-              <button type="button" className="ecommerce-zone__toolbar-button">
-                <LinkOutlined />
-                <span>管理视频原料</span>
-              </button>
-              <button type="button" className="ecommerce-zone__toolbar-button">
-                <SearchOutlined />
-                <span>任务搜索</span>
-              </button>
             </div>
           </div>
 
