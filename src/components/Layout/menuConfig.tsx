@@ -26,11 +26,11 @@ export const topMenuItems: MenuProps['items'] = [
     icon: <AppstoreOutlined />,
     label: '创作中心',
     children: [
+      { key: '/ecommerce-zone', icon: <ShopOutlined />, label: '电商素材生成' },
       { key: '/ai-creation', icon: <EditOutlined />, label: '剧本创作' },
       { key: '/script-management', icon: <FileTextOutlined />, label: '剧本管理' },
       { key: '/image-to-image', icon: <CameraOutlined />, label: '图片创作' },
       { key: '/image-to-video', icon: <VideoCameraOutlined />, label: '视频创作' },
-      { key: '/ecommerce-zone', icon: <ShopOutlined />, label: '电商专区' },
     ],
   },
   {
